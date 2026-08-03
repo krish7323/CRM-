@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: elh_mongodb
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo_data:/data/db
+
+  server:
+    build: ./server
+    container_name: elh_server
+    ports:
+      - '5000:5000'
+    environment:
+      - PORT=5000
+      - MONGODB_URI=mongodb://mongodb:27017/elh_crm
+      - JWT_SECRET=elh_super_secret_jwt_key_2026_european_language_hub
+      - NODE_ENV=production
+    depends_on:
+      - mongodb
+
+  client:
+    build: ./client
+    container_name: elh_client
+    ports:
+      - '80:80'
+    depends_on:
+      - server
+
+volumes:
+  mongo_data:
