@@ -21,6 +21,31 @@ export interface User {
   avatarUrl?: string;
 }
 
+export interface StudyNote {
+  _id: string;
+  title: string;
+  gradeOrClass: string;
+  courseName: string;
+  pdfUrl?: string;
+  description: string;
+  uploadedBy: string;
+  uploadedAt: string;
+}
+
+export interface AttendanceEntry {
+  studentId: string;
+  studentName: string;
+  status: 'Present' | 'Absent' | 'Leave';
+}
+
+export interface DailyAttendanceLog {
+  _id: string;
+  batchCode: string;
+  date: string;
+  entries: AttendanceEntry[];
+  markedBy: string;
+}
+
 export type LeadStatus = 'New' | 'Contacted' | 'Interested' | 'Demo' | 'Follow-up' | 'Admission' | 'Lost';
 export type Language = 'German' | 'French' | 'Spanish' | 'Italian' | 'Portuguese' | 'English';
 export type CEFRLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';

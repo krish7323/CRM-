@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { UserRole, CustomRole, User, Lead, Student, Course, Batch, FeeRecord, Expense, Certificate } from '../types';
+import { UserRole, CustomRole, User, Lead, Student, Course, Batch, FeeRecord, Expense, Certificate, StudyNote, DailyAttendanceLog, AttendanceEntry } from '../types';
 import { canManageUser, ROLE_RANKS } from '../utils/hierarchy';
 
 interface AppState {
@@ -10,9 +10,11 @@ interface AppState {
   currentUser: User;
   isAiDrawerOpen: boolean;
   
-  // Registered User Accounts & Custom Sub-Roles
+  // Registered User Accounts, Sub-Roles, Study Notes & Attendance Logs
   users: User[];
   customRoles: CustomRole[];
+  studyNotes: StudyNote[];
+  attendanceLogs: DailyAttendanceLog[];
 
   // Data entities
   leads: Lead[];
@@ -34,6 +36,10 @@ interface AppState {
 
   addCustomRole: (roleData: Partial<CustomRole>) => void;
   deleteCustomRole: (id: string) => void;
+
+  // Study Notes & Attendance Actions
+  addStudyNote: (noteData: Partial<StudyNote>) => void;
+  saveDailyAttendanceLog: (batchCode: string, date: string, entries: AttendanceEntry[]) => void;
 
   // UI Actions
   setTheme: (theme: 'dark' | 'light') => void;
@@ -60,7 +66,7 @@ interface AppState {
   generateCertificate: (student: Student, grade: string, score: number) => void;
 }
 
-// Initial Registered Staff Accounts Set Up for 4 Roles
+// Initial Registered Staff Accounts
 const initialRegisteredUsers: User[] = [
   {
     id: 'usr-admin',
@@ -114,13 +120,42 @@ const initialCustomRoles: CustomRole[] = [
     description: 'Senior counsellor overseeing parent enrollment calls & WhatsApp pipeline',
     createdBy: 'Dr. Rajesh Sharma (School Admin)',
   },
+];
+
+const initialStudyNotes: StudyNote[] = [
   {
-    id: 'role-c2',
-    name: 'Head of German Faculty',
-    parentRole: 'Teacher',
-    rank: 3,
-    description: 'Lead language instructor managing curriculum & batch attendance',
-    createdBy: 'Dr. Rajesh Sharma (School Admin)',
+    _id: 'note-1',
+    title: 'German A1 Chapter 1: Grammar & Vocabulary Notes',
+    gradeOrClass: '5th Standard (German A1)',
+    courseName: 'German',
+    pdfUrl: '/docs/german_a1_ch1_notes.pdf',
+    description: 'Essential greetings, numbers, and basic sentence construction PDF worksheet.',
+    uploadedBy: 'Prof. Amit Kulkarni',
+    uploadedAt: '2026-08-01',
+  },
+  {
+    _id: 'note-2',
+    title: 'French A2 DELF Examination Prep Material',
+    gradeOrClass: '10th Standard (French A2)',
+    courseName: 'French',
+    pdfUrl: '/docs/french_a2_prep.pdf',
+    description: 'DELF A2 oral comprehension and written exam practice notes.',
+    uploadedBy: 'Sunita Verma',
+    uploadedAt: '2026-08-02',
+  },
+];
+
+const initialAttendanceLogs: DailyAttendanceLog[] = [
+  {
+    _id: 'att-1',
+    batchCode: 'GER-A1-B01',
+    date: '2026-08-01',
+    markedBy: 'Prof. Amit Kulkarni',
+    entries: [
+      { studentId: 'IIA-1001', studentName: 'Aarav Gupta', status: 'Present' },
+      { studentId: 'IIA-1002', studentName: 'Priya Patel', status: 'Present' },
+      { studentId: 'IIA-1003', studentName: 'Rohan Verma', status: 'Absent' },
+    ],
   },
 ];
 
@@ -159,6 +194,7 @@ const initialStudents: Student[] = [
     aadhaarNo: '9988-7766-5544',
     address: 'MG Road, Koramangala, Bengaluru',
     courseName: 'German',
+    gradeApplied: '5th Standard (German A1)',
     level: 'A1',
     batchCode: 'GER-A1-B01',
     joiningDate: '2026-07-01',
@@ -262,6 +298,8 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   users: initialRegisteredUsers,
   customRoles: initialCustomRoles,
+  studyNotes: initialStudyNotes,
+  attendanceLogs: initialAttendanceLogs,
 
   leads: initialLeads,
   students: initialStudents,
@@ -388,6 +426,40 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   deleteCustomRole: (id) => {
     set({ customRoles: get().customRoles.filter((r) => r.id !== id) });
+  },
+
+  addStudyNote: (noteData) => {
+    const newNote: StudyNote = {
+      _id: `note-${Date.now()}`,
+      title: noteData.title || 'Class Study Material Notes',
+      gradeOrClass: noteData.gradeOrClass || '5th Standard (German A1)',
+      courseName: noteData.courseName || 'German',
+      pdfUrl: noteData.pdfUrl || '/docs/study_material.pdf',
+      description: noteData.description || 'Uploaded by Faculty Teacher for Grade/Class curriculum.',
+      uploadedBy: get().currentUser.name,
+      uploadedAt: new Date().toISOString().split('T')[0],
+    };
+    set({ studyNotes: [newNote, ...get().studyNotes] });
+  },
+
+  saveDailyAttendanceLog: (batchCode, date, entries) => {
+    const existingIdx = get().attendanceLogs.findIndex((log) => log.batchCode === batchCode && log.date === date);
+
+    const newLog: DailyAttendanceLog = {
+      _id: `att-${Date.now()}`,
+      batchCode,
+      date,
+      entries,
+      markedBy: get().currentUser.name,
+    };
+
+    if (existingIdx >= 0) {
+      const updatedLogs = [...get().attendanceLogs];
+      updatedLogs[existingIdx] = newLog;
+      set({ attendanceLogs: updatedLogs });
+    } else {
+      set({ attendanceLogs: [newLog, ...get().attendanceLogs] });
+    }
   },
 
   setTheme: (theme) => {
@@ -574,7 +646,6 @@ export const useAppStore = create<AppState>((set, get) => ({
       ],
     };
 
-    // Automatically create Student Login Account
     const newStudentAccount: User = {
       id: `usr-${Date.now()}`,
       name: newStudent.name,
