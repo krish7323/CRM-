@@ -4,7 +4,7 @@ import { Student } from '../types';
 import { GraduationCap, Search, Phone, Mail, FileCheck, CheckCircle2, ShieldCheck, X, UserPlus, Plus } from 'lucide-react';
 
 export const StudentsPage: React.FC = () => {
-  const { students } = useAppStore();
+  const { students, registerDirectStudent } = useAppStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -23,26 +23,7 @@ export const StudentsPage: React.FC = () => {
 
   const handleRegisterStudent = (e: React.FormEvent) => {
     e.preventDefault();
-    const newStd: Student = {
-      _id: `std-${Date.now()}`,
-      studentId: `IIA-${1001 + students.length}`,
-      name: newStudentForm.name,
-      parentName: newStudentForm.parentName,
-      phone: newStudentForm.phone,
-      whatsapp: newStudentForm.phone,
-      email: newStudentForm.email,
-      aadhaarNo: newStudentForm.aadhaarNo,
-      address: newStudentForm.address,
-      courseName: newStudentForm.courseName,
-      level: newStudentForm.level,
-      batchCode: newStudentForm.batchCode,
-      joiningDate: new Date().toISOString().split('T')[0],
-      admissionDate: new Date().toISOString().split('T')[0],
-      documents: [{ type: 'Aadhaar Card', url: '/docs/aadhaar.pdf', status: 'Submitted' }],
-      isActive: true,
-    };
-
-    useAppStore.setState({ students: [newStd, ...students] });
+    registerDirectStudent(newStudentForm);
     setIsAddModalOpen(false);
     setNewStudentForm({
       name: '',

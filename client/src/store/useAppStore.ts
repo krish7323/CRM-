@@ -45,6 +45,7 @@ interface AppState {
   updateLeadStatus: (leadId: string, status: Lead['status']) => void;
   addLeadNote: (leadId: string, noteText: string) => void;
   convertLeadToStudent: (leadId: string) => void;
+  registerDirectStudent: (studentData: Partial<Student>) => void;
   
   // Fee Actions
   payInstallment: (feeId: string, installmentNo: number, amount: number, mode: string, refText: string) => void;
@@ -150,10 +151,12 @@ const initialStudents: Student[] = [
     _id: 'std-1',
     studentId: 'IIA-1001',
     name: 'Aarav Gupta',
+    parentName: 'Ramesh Gupta',
     dob: '2004-05-14',
     phone: '+91 91234 56789',
     whatsapp: '+91 91234 56789',
     email: 'student@elh.edu',
+    aadhaarNo: '9988-7766-5544',
     address: 'MG Road, Koramangala, Bengaluru',
     courseName: 'German',
     level: 'A1',
@@ -472,6 +475,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       _id: `std-${Date.now()}`,
       studentId: newStudentId,
       name: targetLead.name,
+      parentName: targetLead.parentName || 'N/A',
       phone: targetLead.phone,
       whatsapp: targetLead.whatsapp,
       email: targetLead.email,
@@ -507,10 +511,84 @@ export const useAppStore = create<AppState>((set, get) => ({
       ],
     };
 
+    // Automatically create Student Login Account
+    const newStudentAccount: User = {
+      id: `usr-${Date.now()}`,
+      name: newStudent.name,
+      email: newStudent.email,
+      phone: newStudent.phone,
+      password: 'password123',
+      role: 'Student',
+      isActive: true,
+    };
+
     set({
       students: [newStudent, ...get().students],
       fees: [newFee, ...get().fees],
+      users: [...get().users, newStudentAccount],
       leads: get().leads.map((l) => (l._id === leadId ? { ...l, status: 'Admission' } : l)),
+    });
+  },
+
+  registerDirectStudent: (studentData) => {
+    const newStudentId = `IIA-${1001 + get().students.length}`;
+    const newStudent: Student = {
+      _id: `std-${Date.now()}`,
+      studentId: newStudentId,
+      name: studentData.name || 'New Student',
+      parentName: studentData.parentName || 'N/A',
+      phone: studentData.phone || '+91 98000 00000',
+      whatsapp: studentData.phone || '+91 98000 00000',
+      email: studentData.email || `student${Date.now()}@elh.edu`,
+      aadhaarNo: studentData.aadhaarNo,
+      address: studentData.address || 'Bengaluru, India',
+      courseName: studentData.courseName || 'German',
+      level: studentData.level || 'A1',
+      batchCode: studentData.batchCode || 'GER-A1-B01',
+      joiningDate: new Date().toISOString().split('T')[0],
+      admissionDate: new Date().toISOString().split('T')[0],
+      documents: [{ type: 'Aadhaar Card', url: '/docs/aadhaar.pdf', status: 'Submitted' }],
+      isActive: true,
+    };
+
+    const newFee: FeeRecord = {
+      _id: `fee-${Date.now()}`,
+      studentId: newStudent._id,
+      studentCode: newStudent.studentId,
+      studentName: newStudent.name,
+      courseName: `${newStudent.courseName} ${newStudent.level}`,
+      totalFee: 25000,
+      discount: 0,
+      netFee: 25000,
+      paidTotal: 0,
+      remainingTotal: 25000,
+      status: 'Pending',
+      installments: [
+        {
+          installmentNo: 1,
+          amount: 15000,
+          dueDate: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
+          paidAmount: 0,
+          status: 'Pending',
+        },
+      ],
+    };
+
+    // Automatically create Student Login Account
+    const newStudentAccount: User = {
+      id: `usr-${Date.now()}`,
+      name: newStudent.name,
+      email: newStudent.email,
+      phone: newStudent.phone,
+      password: 'password123',
+      role: 'Student',
+      isActive: true,
+    };
+
+    set({
+      students: [newStudent, ...get().students],
+      fees: [newFee, ...get().fees],
+      users: [...get().users, newStudentAccount],
     });
   },
 
