@@ -86,9 +86,9 @@ export const DashboardPage: React.FC = () => {
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-2xl font-black text-slate-100">{students.length + 124}</span>
+            <span className="text-2xl font-black text-slate-100">{students.length}</span>
             <span className="text-[11px] font-bold text-emerald-400 flex items-center">
-              +14.8% <ArrowUpRight className="w-3 h-3 ml-0.5" />
+              Active <ArrowUpRight className="w-3 h-3 ml-0.5" />
             </span>
           </div>
           <p className="text-[10px] text-slate-500 mt-1">Across German, French, Spanish & English batches</p>
@@ -97,7 +97,7 @@ export const DashboardPage: React.FC = () => {
         {/* Card 2: New Enquiries */}
         <div className="glass-card p-5 rounded-2xl relative overflow-hidden group">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">New Enquiries (Today)</span>
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">New Enquiries</span>
             <div className="p-2 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
               <Users className="w-5 h-5" />
             </div>
