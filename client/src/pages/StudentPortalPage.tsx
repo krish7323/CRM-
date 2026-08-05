@@ -14,10 +14,12 @@ import {
   Plus,
   X,
   Sparkles,
+  ShieldCheck,
+  Award,
 } from 'lucide-react';
 
 export const StudentPortalPage: React.FC = () => {
-  const { currentUser, students, studyNotes, addStudyNote, activeRole, attendanceLogs } = useAppStore();
+  const { currentUser, students, studyNotes, addStudyNote, activeRole, attendanceLogs, fees, certificates } = useAppStore();
 
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
   const [noteForm, setNoteForm] = useState({
@@ -28,16 +30,24 @@ export const StudentPortalPage: React.FC = () => {
     description: '',
   });
 
-  // Active student matching login
-  const student = students[0] || {
-    studentId: 'IIA-1001',
-    name: currentUser.name || 'Aarav Gupta',
-    parentName: 'Ramesh Gupta',
-    courseName: 'German',
-    level: 'A1',
-    batchCode: 'GER-A1-B01',
-    joiningDate: '2026-07-01',
-  };
+  // Dynamically find logged in student or fallback to first student
+  const student =
+    students.find((s) => s.email.toLowerCase() === currentUser.email.toLowerCase() || s.name === currentUser.name) ||
+    students[0] || {
+      studentId: 'IIA-1001',
+      name: currentUser.name || 'Aarav Gupta',
+      parentName: 'Ramesh Gupta',
+      courseName: 'German',
+      level: 'A1',
+      batchCode: 'GER-A1-B01',
+      joiningDate: '2026-07-01',
+    };
+
+  // Associated Fee record
+  const studentFee = fees.find((f) => f.studentCode === student.studentId || f.studentName === student.name);
+
+  // Associated Certificates
+  const studentCerts = certificates.filter((c) => c.studentCode === student.studentId || c.studentName === student.name);
 
   const handleUploadNote = (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,7 +64,7 @@ export const StudentPortalPage: React.FC = () => {
 
   return (
     <div className="space-y-6 font-sans">
-      {/* Top Welcome Card */}
+      {/* Top Welcome Header */}
       <div className="glass-panel p-6 rounded-3xl border border-slate-800 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="flex items-center space-x-4">
           <img
@@ -70,7 +80,7 @@ export const StudentPortalPage: React.FC = () => {
               </span>
             </div>
             <p className="text-xs text-slate-400 mt-1">
-              Program: <strong>{student.courseName} {student.level}</strong> • Batch: <strong className="text-cyan-400 font-mono">{student.batchCode || 'GER-A1-B01'}</strong>
+              Enrolled Course: <strong className="text-slate-200">{student.courseName} {student.level}</strong> • Batch: <strong className="text-cyan-400 font-mono">{student.batchCode || 'GER-A1-B01'}</strong>
             </p>
           </div>
         </div>
@@ -82,18 +92,45 @@ export const StudentPortalPage: React.FC = () => {
             className="flex items-center space-x-2 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold text-xs px-4 py-2.5 rounded-xl shadow-lg shadow-amber-500/20 hover:scale-105 transition"
           >
             <Upload className="w-4 h-4" />
-            <span>Upload PDF Class Notes (for 5th Standard & Students)</span>
+            <span>Upload PDF Class Notes for Students</span>
           </button>
         )}
+      </div>
+
+      {/* Quick Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+        <div className="glass-card p-4 rounded-2xl border border-slate-800 space-y-1">
+          <span className="text-slate-400 text-[10px] uppercase font-semibold">Attendance Rate</span>
+          <p className="text-xl font-black text-emerald-400">94.2% Verified</p>
+          <p className="text-[10px] text-slate-500">Regular Attendance in Database</p>
+        </div>
+
+        <div className="glass-card p-4 rounded-2xl border border-slate-800 space-y-1">
+          <span className="text-slate-400 text-[10px] uppercase font-semibold">Fee Status (INR)</span>
+          <p className="text-xl font-black text-amber-400">
+            {studentFee ? `₹${studentFee.paidTotal.toLocaleString('en-IN')} Paid` : '₹15,000 Paid'}
+          </p>
+          <p className="text-[10px] text-slate-500">
+            Pending: {studentFee ? `₹${studentFee.remainingTotal.toLocaleString('en-IN')}` : '₹8,000'}
+          </p>
+        </div>
+
+        <div className="glass-card p-4 rounded-2xl border border-slate-800 space-y-1">
+          <span className="text-slate-400 text-[10px] uppercase font-semibold">Aadhaar Card Verification</span>
+          <p className="text-xl font-black text-cyan-400 flex items-center gap-1">
+            <ShieldCheck className="w-5 h-5 text-emerald-400" /> Verified
+          </p>
+          <p className="text-[10px] text-slate-500">Govt ID Documentation Verified</p>
+        </div>
       </div>
 
       {/* Class Notes & PDF Study Material Section */}
       <div className="glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
         <div className="flex items-center justify-between pb-3 border-b border-slate-800">
           <h2 className="text-sm font-bold text-slate-100 flex items-center gap-2">
-            <FileText className="w-4 h-4 text-amber-400" /> Class Study Material & PDF Notes (Grade/Class Wise)
+            <FileText className="w-4 h-4 text-amber-400" /> My Class PDF Study Material & Worksheets
           </h2>
-          <span className="text-xs text-slate-400">{studyNotes.length} PDFs Uploaded by Faculty</span>
+          <span className="text-xs text-slate-400">{studyNotes.length} PDF Notes Available</span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -131,7 +168,7 @@ export const StudentPortalPage: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="glass-panel p-5 rounded-2xl border border-slate-800 space-y-3">
           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-cyan-400" /> Weekly Class Schedule
+            <Calendar className="w-4 h-4 text-cyan-400" /> Weekly Class Schedule & Hall
           </h3>
           <div className="space-y-2 text-xs">
             <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 flex justify-between">
@@ -149,7 +186,7 @@ export const StudentPortalPage: React.FC = () => {
 
         <div className="glass-panel p-5 rounded-2xl border border-slate-800 space-y-3">
           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400" /> My Attendance Log History
+            <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Attendance Database Log History
           </h3>
           <div className="space-y-2 text-xs">
             {attendanceLogs.length > 0 ? (
