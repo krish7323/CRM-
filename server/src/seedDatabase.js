@@ -31,9 +31,10 @@ import LeaveRequest from './models/LeaveRequest.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.join(__dirname, '../../.env') });
 dotenv.config({ path: path.join(__dirname, '../.env') });
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/iia_institute_erp';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://vizdigitalofficial_db_user:awvCYzaRT343kYNh@crm00.zhkkkuu.mongodb.net/iia_institute_erp?retryWrites=true&w=majority&appName=crm00';
 
 const indianFirstNames = [
   'Aarav', 'Vivaan', 'Aditya', 'Vihaan', 'Arjun', 'Sai', 'Reyansh', 'Ayaan', 'Krishna', 'Ishaan',
@@ -228,19 +229,26 @@ export const seedDatabase = async () => {
     ];
 
     const batches = await Batch.insertMany(
-      batchDefs.map((b) => ({
-        code: b.code,
-        courseName: b.courseName,
-        level: 'Standard',
-        teacherName: b.teacherName,
-        room: b.room,
-        timing: '09:00 AM - 02:00 PM',
-        days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-        maxStudents: 40,
-        currentStudents: 4,
-        status: 'Ongoing',
-        startDate: new Date('2026-04-01')
-      }))
+      batchDefs.map((b, idx) => {
+        const matchedCourse = courses.find((c) => c.name === b.courseName) || courses[idx % courses.length];
+        const matchedTeacher = teachers.find((t) => t.name === b.teacherName) || teachers[idx % teachers.length];
+        return {
+          code: b.code,
+          courseId: matchedCourse._id,
+          courseName: b.courseName,
+          level: 'Standard',
+          teacherId: matchedTeacher._id,
+          teacherName: b.teacherName,
+          room: b.room,
+          timing: '09:00 AM - 02:00 PM',
+          days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+          maxStudents: 40,
+          currentEnrolledCount: 4,
+          status: 'Ongoing',
+          startDate: new Date('2026-04-01'),
+          endDate: new Date('2027-03-31')
+        };
+      })
     );
 
     // 4. Generate 80 Students & 80 Parents
@@ -345,6 +353,8 @@ export const seedDatabase = async () => {
         studentCode: std.studentId,
         studentName: std.name,
         courseName: std.courseName,
+        totalFee: netFee + 3000,
+        discount: 3000,
         netFee: netFee,
         paidTotal: paidTotal,
         remainingTotal: remainingTotal,
@@ -353,22 +363,22 @@ export const seedDatabase = async () => {
           {
             installmentNo: 1,
             amount: Math.round(netFee / 2),
-            dueDate: '2026-04-10',
+            dueDate: new Date('2026-04-10'),
             status: paidTotal >= Math.round(netFee / 2) ? 'Paid' : 'Pending',
             paidAmount: paidTotal >= Math.round(netFee / 2) ? Math.round(netFee / 2) : 0,
-            paidDate: '2026-04-05',
-            payMode: 'UPI',
-            refText: `GPay-UPI-${80000 + idx}`
+            paidDate: new Date('2026-04-05'),
+            mode: 'UPI',
+            transactionRef: `GPay-UPI-${80000 + idx}`
           },
           {
             installmentNo: 2,
             amount: Math.round(netFee / 2),
-            dueDate: '2026-08-10',
+            dueDate: new Date('2026-08-10'),
             status: paidTotal === netFee ? 'Paid' : 'Pending',
             paidAmount: paidTotal === netFee ? Math.round(netFee / 2) : 0,
-            paidDate: '2026-08-01',
-            payMode: 'Bank Transfer',
-            refText: `NFT-BANK-${90000 + idx}`
+            paidDate: new Date('2026-08-01'),
+            mode: 'Bank Transfer',
+            transactionRef: `NFT-BANK-${90000 + idx}`
           }
         ]
       });
@@ -389,12 +399,14 @@ export const seedDatabase = async () => {
         const batchStudents = createdStudents.filter((s) => s.batchCode === b.code);
         if (batchStudents.length > 0) {
           attendanceLogsToInsert.push({
+            batchId: b._id,
             batchCode: b.code,
-            date: dateStr,
-            entries: batchStudents.map((s, sIdx) => ({
-              studentId: s.studentId,
+            date: d,
+            records: batchStudents.map((s, sIdx) => ({
+              studentId: s._id,
+              studentCode: s.studentId,
               studentName: s.name,
-              status: (sIdx + dayOffset) % 15 === 0 ? 'Absent' : (sIdx + dayOffset) % 20 === 0 ? 'Late' : 'Present'
+              status: (sIdx + dayOffset) % 15 === 0 ? 'Absent' : (sIdx + dayOffset) % 20 === 0 ? 'Leave' : 'Present'
             }))
           });
         }
@@ -406,11 +418,11 @@ export const seedDatabase = async () => {
     console.log('Seeding Homework & Submissions...');
     const homeworksToInsert = teachers.map((t, idx) => ({
       title: `${t.customRoleTitle?.split(' ')[2] || 'Core'} Practice Assignment #${idx + 1}`,
-      courseName: 'General Academic',
       batchCode: batches[idx % batches.length].code,
+      teacherId: t._id,
       teacherName: t.name,
       description: 'Solve problem set 1 to 15 from Chapter 3 textbook and submit PDF scan.',
-      dueDate: new Date(Date.now() + (idx + 2) * 86400000).toISOString().split('T')[0],
+      dueDate: new Date(Date.now() + (idx + 2) * 86400000),
       totalMarks: 100
     }));
     const createdHomeworks = await Homework.insertMany(homeworksToInsert);
@@ -423,12 +435,11 @@ export const seedDatabase = async () => {
         studentId: std._id,
         studentCode: std.studentId,
         studentName: std.name,
-        submissionUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-        submittedAt: new Date(),
+        fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+        submissionDate: new Date(),
         marksObtained: 75 + (sIdx % 23),
-        grade: 'A',
         teacherRemarks: 'Excellent syntax formation and structured step solutions.',
-        status: 'Graded'
+        status: 'Evaluated'
       });
     });
     await HomeworkSubmission.insertMany(submissionsToInsert);
@@ -446,7 +457,7 @@ export const seedDatabase = async () => {
         examType: ex.examType,
         batchCode: batches[idx % batches.length].code,
         subject: ex.subject,
-        examDate: new Date(Date.now() + (idx + 5) * 86400000).toISOString().split('T')[0],
+        examDate: new Date(Date.now() + (idx + 5) * 86400000),
         startTime: '09:00 AM',
         room: 'Aryabhata Hall (Room 102)',
         invigilatorName: teachers[idx % teachers.length].name,
@@ -482,8 +493,8 @@ export const seedDatabase = async () => {
         applicantName: teachers[0].name,
         applicantRole: 'Teacher',
         leaveType: 'Casual',
-        startDate: '2026-08-15',
-        endDate: '2026-08-16',
+        startDate: new Date('2026-08-15'),
+        endDate: new Date('2026-08-16'),
         reason: 'Attending educational symposium in New Delhi',
         substituteTeacher: teachers[1].name,
         status: 'Approved'
@@ -493,19 +504,19 @@ export const seedDatabase = async () => {
         applicantName: teachers[2].name,
         applicantRole: 'Teacher',
         leaveType: 'Medical',
-        startDate: '2026-08-20',
-        endDate: '2026-08-22',
+        startDate: new Date('2026-08-20'),
+        endDate: new Date('2026-08-22'),
         reason: 'Viral fever rest advised by physician',
         substituteTeacher: teachers[3].name,
         status: 'Pending'
       },
       {
-        applicantId: createdStudents[0]._id,
+        applicantId: ownerUser._id,
         applicantName: createdStudents[0].name,
         applicantRole: 'Student',
-        leaveType: 'Family Function',
-        startDate: '2026-08-18',
-        endDate: '2026-08-19',
+        leaveType: 'Emergency',
+        startDate: new Date('2026-08-18'),
+        endDate: new Date('2026-08-19'),
         reason: 'Sister wedding ceremony in hometown',
         substituteTeacher: 'N/A',
         status: 'Approved'
@@ -540,14 +551,13 @@ export const seedDatabase = async () => {
 
     const issuesToInsert = createdStudents.slice(0, 20).map((std, iIdx) => ({
       bookId: createdBooks[iIdx]._id,
-      bookBarcode: createdBooks[iIdx].barcode,
       bookTitle: createdBooks[iIdx].title,
-      studentId: std._id,
-      studentCode: std.studentId,
-      studentName: std.name,
-      issueDate: '2026-08-01',
-      dueDate: '2026-08-15',
-      status: 'Issued'
+      barcode: createdBooks[iIdx].barcode,
+      borrowerId: ownerUser._id,
+      borrowerName: std.name,
+      borrowerRole: 'Student',
+      issueDate: new Date('2026-08-01'),
+      dueDate: new Date('2026-08-15')
     }));
     await BookIssue.insertMany(issuesToInsert);
 
@@ -586,12 +596,13 @@ export const seedDatabase = async () => {
       studentCode: std.studentId,
       studentName: std.name,
       parentName: std.fatherName,
+      parentPhone: std.parentPhone,
       teacherName: std.teacherName,
-      meetingDate: '2026-08-25',
+      meetingDate: new Date('2026-08-25'),
       meetingTime: '10:30 AM',
       meetLink: 'https://meet.google.com/iia-parent-teacher-conf',
-      agenda: 'Term 1 Academic Progress Review & Performance Evaluation',
-      status: pIdx % 2 === 0 ? 'Scheduled' : 'Completed'
+      notes: 'Term 1 Academic Progress Review & Performance Evaluation',
+      status: pIdx % 2 === 0 ? 'Upcoming' : 'Completed'
     }));
     await PTM.insertMany(ptmsToInsert);
 
