@@ -10,8 +10,8 @@ export const LoginPage = () => {
 
   const from = location.state?.from?.pathname || '/';
 
-  const [emailOrPhone, setEmailOrPhone] = useState('owner@elh.edu');
-  const [password, setPassword] = useState('password123');
+  const [emailOrPhone, setEmailOrPhone] = useState('owner@schoolerp.com');
+  const [password, setPassword] = useState('Owner@123');
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -33,9 +33,9 @@ export const LoginPage = () => {
     }, 400);
   };
 
-  const fillQuickCredentials = (emailVal) => {
+  const fillQuickCredentials = (emailVal, passVal) => {
     setEmailOrPhone(emailVal);
-    setPassword('password123');
+    setPassword(passVal || 'Owner@123');
     setErrorMsg('');
   };
 
