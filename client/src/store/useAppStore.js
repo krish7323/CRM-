@@ -145,189 +145,333 @@ const initialLeads = [
   },
 ];
 
-const initialStudents = [
-  { _id: 'std-1', studentId: 'IIA-1001', name: 'Aarav Gupta', parentName: 'Ramesh Gupta', dob: '2004-05-14', phone: '+91 91234 56789', email: 'student@elh.edu', courseName: 'German', level: 'A1', batchCode: 'GER-A1-B01', joiningDate: '2026-07-01', isActive: true },
+const indianFirstNames = [
+  'Aarav', 'Vivaan', 'Aditya', 'Vihaan', 'Arjun', 'Sai', 'Reyansh', 'Ayaan', 'Krishna', 'Ishaan',
+  'Shaurya', 'Atharva', 'Advait', 'Pranav', 'Adhiraj', 'Kabir', 'Ananya', 'Diya', 'Riya', 'Aadhya',
+  'Pari', 'Anika', 'Isha', 'Avani', 'Myra', 'Kavya', 'Anvi', 'Navya', 'Trisha', 'Saanvi',
+  'Rohan', 'Karan', 'Dev', 'Manish', 'Siddharth', 'Nikhil', 'Gaurav', 'Vikram', 'Alok', 'Yash',
+  'Pooja', 'Neha', 'Sneha', 'Swati', 'Megha', 'Divya', 'Shreya', 'Priti', 'Anjali', 'Deepika',
+  'Rahul', 'Varun', 'Tarun', 'Harsh', 'Mohit', 'Sameer', 'Rajesh', 'Suresh', 'Deepak', 'Manoj',
+  'Kiran', 'Bhavna', 'Komal', 'Sangeeta', 'Sunita', 'Rekha', 'Anita', 'Rashmi', 'Smita', 'Archana',
+  'Kunal', 'Abhinav', 'Shubham', 'Mayank', 'Rishabh', 'Shivam', 'Ayush', 'Utkarsh', 'Chirag', 'Tushar'
 ];
 
-const initialSubjects = [
-  { _id: 'sb-1', code: 'ENG-101', name: 'English Literature & Language', teacherName: 'Anjali Saxena', weeklyClasses: 5, maxMarks: 100, passingMarks: 33, isPractical: false },
-  { _id: 'sb-2', code: 'MATH-201', name: 'Mathematics & Analytics', teacherName: 'Dr. Rajesh Sharma', weeklyClasses: 6, maxMarks: 100, passingMarks: 33, isPractical: false },
-  { _id: 'sb-3', code: 'SCI-301', name: 'General Science & Physics', teacherName: 'Prof. Amit Kulkarni', weeklyClasses: 5, maxMarks: 100, passingMarks: 33, isPractical: true },
-  { _id: 'sb-4', code: 'PHY-401', name: 'Senior Physics & Laboratory', teacherName: 'Prof. Amit Kulkarni', weeklyClasses: 6, maxMarks: 100, passingMarks: 33, isPractical: true },
-  { _id: 'sb-5', code: 'CHEM-402', name: 'Senior Chemistry & Organic Lab', teacherName: 'Prof. Johann Weber', weeklyClasses: 6, maxMarks: 100, passingMarks: 33, isPractical: true },
-  { _id: 'sb-6', code: 'BIO-403', name: 'Biology & Life Sciences', teacherName: 'Sunita Menon', weeklyClasses: 5, maxMarks: 100, passingMarks: 33, isPractical: true },
-  { _id: 'sb-7', code: 'CS-501', name: 'Computer Science & AI Coding', teacherName: 'Vikramaditya Roy', weeklyClasses: 5, maxMarks: 100, passingMarks: 33, isPractical: true },
-  { _id: 'sb-8', code: 'GER-101', name: 'German Language (CEFR A1-C2)', teacherName: 'Prof. Amit Kulkarni', weeklyClasses: 5, maxMarks: 100, passingMarks: 50, isPractical: false },
-  { _id: 'sb-9', code: 'FRE-101', name: 'French Language (DELF A1-B2)', teacherName: 'Prof. Johann Weber', weeklyClasses: 5, maxMarks: 100, passingMarks: 50, isPractical: false },
-  { _id: 'sb-10', code: 'ACC-601', name: 'Accountancy & Financial Management', teacherName: 'Siddharth Roy', weeklyClasses: 6, maxMarks: 100, passingMarks: 33, isPractical: false },
+const indianLastNames = [
+  'Sharma', 'Verma', 'Gupta', 'Singh', 'Kumar', 'Patel', 'Joshi', 'Mehta', 'Nair', 'Reddy',
+  'Rao', 'Bhat', 'Deshmukh', 'Kulkarni', 'Roy', 'Sen', 'Das', 'Banerjee', 'Chowdhury', 'Dutta',
+  'Agarwal', 'Bansal', 'Goyal', 'Mittal', 'Shah', 'Trivedi', 'Pandey', 'Mishra', 'Shukla', 'Tiwari'
 ];
 
-const initialAcademicYears = [
-  { _id: 'ay-1', code: '2026-27', name: 'Academic Session 2026-2027', startDate: '2026-04-01', endDate: '2027-03-31', isCurrent: true, status: 'Active' },
-  { _id: 'ay-2', code: '2027-28', name: 'Academic Session 2027-2028', startDate: '2027-04-01', endDate: '2028-03-31', isCurrent: false, status: 'Upcoming' },
+const occupations = [
+  'Software Engineer', 'Senior Business Analyst', 'Chartered Accountant', 'Civil Architect',
+  'Government Officer', 'Professor & Educator', 'Medical Specialist Doctor', 'Entrepreneur',
+  'Operations Manager', 'Financial Advisor', 'Senior Advocate', 'Executive Director'
 ];
 
-const initialSchoolClasses = [
-  { _id: 'cls-pp1', name: 'Nursery / Play Group', code: 'NUR', category: 'Pre-Primary', programType: 'School_K12', sections: [{ code: 'Section A', teacherName: 'Priya Nair', capacity: 25 }], baseFee: 18000 },
-  { _id: 'cls-pp2', name: 'LKG (Lower Kindergarten)', code: 'LKG', category: 'Pre-Primary', programType: 'School_K12', sections: [{ code: 'Section A', teacherName: 'Anjali Saxena', capacity: 25 }], baseFee: 20000 },
-  { _id: 'cls-pp3', name: 'UKG (Upper Kindergarten)', code: 'UKG', category: 'Pre-Primary', programType: 'School_K12', sections: [{ code: 'Section A', teacherName: 'Anjali Saxena', capacity: 25 }], baseFee: 22000 },
-  { _id: 'cls-p1', name: 'Class 1', code: 'STD-01', category: 'Primary', programType: 'School_K12', sections: [{ code: 'Section A', teacherName: 'Prof. Amit Kulkarni', capacity: 35 }, { code: 'Section B', teacherName: 'Priya Nair', capacity: 35 }], baseFee: 28000 },
-  { _id: 'cls-p5', name: 'Class 5', code: 'STD-05', category: 'Primary', programType: 'School_K12', sections: [{ code: 'Section A', teacherName: 'Dr. Rajesh Sharma', capacity: 35 }], baseFee: 32000 },
-  { _id: 'cls-m8', name: 'Class 8', code: 'STD-08', category: 'Middle', programType: 'School_K12', sections: [{ code: 'Section A', teacherName: 'Prof. Johann Weber', capacity: 40 }], baseFee: 36000 },
-  { _id: 'cls-s10', name: 'Class 10 (Secondary Board)', code: 'STD-10', category: 'Secondary', programType: 'School_K12', sections: [{ code: 'Section A', teacherName: 'Dr. Rajesh Sharma', capacity: 40 }], baseFee: 42000 },
-  { _id: 'cls-ss11', name: 'Class 11 (Senior Secondary)', code: 'STD-11', category: 'Senior Secondary', programType: 'School_K12', streams: [
-    { name: 'Science Stream', subjects: ['Physics', 'Chemistry', 'Mathematics', 'Computer Science'], fee: 48000 },
-    { name: 'Commerce Stream', subjects: ['Accountancy', 'Business Studies', 'Economics', 'Mathematics'], fee: 44000 },
-    { name: 'Arts / Humanities Stream', subjects: ['History', 'Geography', 'Political Science', 'English'], fee: 40000 },
-  ], sections: [{ code: 'Section A (Science)', teacherName: 'Prof. Amit Kulkarni', capacity: 40 }], baseFee: 48000 },
-  { _id: 'cls-ss12', name: 'Class 12 (Board Final)', code: 'STD-12', category: 'Senior Secondary', programType: 'School_K12', streams: [
-    { name: 'Science Stream', subjects: ['Physics', 'Chemistry', 'Mathematics', 'Computer Science'], fee: 52000 },
-    { name: 'Commerce Stream', subjects: ['Accountancy', 'Business Studies', 'Economics', 'Mathematics'], fee: 48000 },
-  ], sections: [{ code: 'Section A (Science)', teacherName: 'Dr. Rajesh Sharma', capacity: 40 }], baseFee: 52000 },
-];
-
-const initialCourses = [
-  {
-    _id: 'crs-1',
-    name: 'German Language',
-    code: 'GER',
-    description: 'Comprehensive Goethe-Institut aligned German language course from A1 to C2.',
-    programType: 'Language_Coaching',
-    category: 'Language_Coaching',
-    levels: [
-      { code: 'A1', baseFee: 25000, durationWeeks: 8, totalClasses: 40 },
-      { code: 'A2', baseFee: 28000, durationWeeks: 8, totalClasses: 40 },
-      { code: 'B1', baseFee: 32000, durationWeeks: 10, totalClasses: 50 },
-    ],
-  },
-  {
-    _id: 'crs-2',
-    name: 'French Language',
-    code: 'FRE',
-    description: 'DELF/DALF certified French language curriculum covering all levels.',
-    programType: 'Language_Coaching',
-    category: 'Language_Coaching',
-    levels: [
-      { code: 'A1', baseFee: 26000, durationWeeks: 8, totalClasses: 40 },
-      { code: 'A2', baseFee: 29000, durationWeeks: 8, totalClasses: 40 },
-    ],
-  },
+const programList = [
+  'Nursery', 'LKG', 'UKG', 'Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5',
+  'Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10', 'Class 11 Science',
+  'Class 11 Commerce', 'Class 11 Arts', 'Class 12 Science', 'Class 12 Commerce',
+  'Class 12 Arts', 'JEE Coaching', 'NEET Coaching', 'SSC Coaching', 'Banking Coaching'
 ];
 
 const initialBatches = [
-  {
-    _id: 'btc-1',
-    code: 'GER-A1-B01',
-    courseName: 'German',
-    level: 'A1',
-    teacherName: 'Prof. Amit Kulkarni',
-    room: 'Aryabhata Hall (Room 102)',
-    timing: '09:00 AM - 11:00 AM',
-    days: ['Mon', 'Wed', 'Fri'],
-    maxStudents: 15,
-    currentStudents: 1,
-    status: 'Ongoing',
-    startDate: '2026-07-01',
-  },
-  {
-    _id: 'btc-2',
-    code: 'FRE-A1-B01',
-    courseName: 'French',
-    level: 'A1',
-    teacherName: 'Prof. Johann Weber',
-    room: 'Chanakya Hall (Room 104)',
-    timing: '11:30 AM - 01:30 PM',
-    days: ['Tue', 'Thu', 'Sat'],
-    maxStudents: 20,
-    currentStudents: 0,
-    status: 'Upcoming',
-    startDate: '2026-08-15',
-  },
+  { _id: 'btc-1', code: 'Class 1 A', courseName: 'Class 1', level: 'Standard', teacherName: 'Anita Sharma', room: 'Room 101', timing: '09:00 AM - 02:00 PM', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], maxStudents: 40, currentStudents: 5, status: 'Ongoing', startDate: '2026-04-01' },
+  { _id: 'btc-2', code: 'Class 1 B', courseName: 'Class 1', level: 'Standard', teacherName: 'Vikas Kumar', room: 'Room 102', timing: '09:00 AM - 02:00 PM', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], maxStudents: 40, currentStudents: 5, status: 'Ongoing', startDate: '2026-04-01' },
+  { _id: 'btc-3', code: 'Class 2 A', courseName: 'Class 2', level: 'Standard', teacherName: 'Sneha Gupta', room: 'Room 103', timing: '09:00 AM - 02:00 PM', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], maxStudents: 40, currentStudents: 5, status: 'Ongoing', startDate: '2026-04-01' },
+  { _id: 'btc-4', code: 'Class 3 A', courseName: 'Class 3', level: 'Standard', teacherName: 'Rohit Sharma', room: 'Room 104', timing: '09:00 AM - 02:00 PM', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], maxStudents: 40, currentStudents: 5, status: 'Ongoing', startDate: '2026-04-01' },
+  { _id: 'btc-5', code: 'Class 4 A', courseName: 'Class 4', level: 'Standard', teacherName: 'Neha Verma', room: 'Room 105', timing: '09:00 AM - 02:00 PM', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], maxStudents: 40, currentStudents: 5, status: 'Ongoing', startDate: '2026-04-01' },
+  { _id: 'btc-6', code: 'Class 5 A', courseName: 'Class 5', level: 'Standard', teacherName: 'Anita Sharma', room: 'Room 106', timing: '09:00 AM - 02:00 PM', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], maxStudents: 40, currentStudents: 5, status: 'Ongoing', startDate: '2026-04-01' },
+  { _id: 'btc-7', code: 'Class 6 A', courseName: 'Class 6', level: 'Standard', teacherName: 'Vikas Kumar', room: 'Room 107', timing: '09:00 AM - 02:00 PM', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], maxStudents: 40, currentStudents: 5, status: 'Ongoing', startDate: '2026-04-01' },
+  { _id: 'btc-8', code: 'Class 7 A', courseName: 'Class 7', level: 'Standard', teacherName: 'Sneha Gupta', room: 'Room 108', timing: '09:00 AM - 02:00 PM', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], maxStudents: 40, currentStudents: 5, status: 'Ongoing', startDate: '2026-04-01' },
+  { _id: 'btc-9', code: 'Class 8 A', courseName: 'Class 8', level: 'Standard', teacherName: 'Rohit Sharma', room: 'Room 109', timing: '09:00 AM - 02:00 PM', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], maxStudents: 40, currentStudents: 5, status: 'Ongoing', startDate: '2026-04-01' },
+  { _id: 'btc-10', code: 'Class 9 A', courseName: 'Class 9', level: 'Standard', teacherName: 'Neha Verma', room: 'Room 110', timing: '09:00 AM - 02:00 PM', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], maxStudents: 40, currentStudents: 5, status: 'Ongoing', startDate: '2026-04-01' },
+  { _id: 'btc-11', code: 'Class 10 A', courseName: 'Class 10', level: 'Standard', teacherName: 'Anita Sharma', room: 'Room 111', timing: '09:00 AM - 02:00 PM', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], maxStudents: 40, currentStudents: 5, status: 'Ongoing', startDate: '2026-04-01' },
+  { _id: 'btc-12', code: 'Class 11 Science A', courseName: 'Class 11 Science', level: 'Standard', teacherName: 'Vikas Kumar', room: 'Lab 201', timing: '09:00 AM - 02:00 PM', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], maxStudents: 40, currentStudents: 5, status: 'Ongoing', startDate: '2026-04-01' },
+  { _id: 'btc-13', code: 'Class 11 Commerce A', courseName: 'Class 11 Commerce', level: 'Standard', teacherName: 'Sneha Gupta', room: 'Room 202', timing: '09:00 AM - 02:00 PM', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], maxStudents: 40, currentStudents: 5, status: 'Ongoing', startDate: '2026-04-01' },
+  { _id: 'btc-14', code: 'Class 12 Science A', courseName: 'Class 12 Science', level: 'Standard', teacherName: 'Rohit Sharma', room: 'Lab 203', timing: '09:00 AM - 02:00 PM', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], maxStudents: 40, currentStudents: 5, status: 'Ongoing', startDate: '2026-04-01' },
+  { _id: 'btc-15', code: 'JEE Morning', courseName: 'JEE Coaching', level: 'Advanced', teacherName: 'Anita Sharma', room: 'Aryabhata Hall', timing: '07:00 AM - 10:00 AM', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], maxStudents: 50, currentStudents: 5, status: 'Ongoing', startDate: '2026-04-01' },
+  { _id: 'btc-16', code: 'JEE Evening', courseName: 'JEE Coaching', level: 'Advanced', teacherName: 'Vikas Kumar', room: 'Aryabhata Hall', timing: '04:00 PM - 07:00 PM', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], maxStudents: 50, currentStudents: 5, status: 'Ongoing', startDate: '2026-04-01' },
+  { _id: 'btc-17', code: 'NEET Morning', courseName: 'NEET Coaching', level: 'Advanced', teacherName: 'Sneha Gupta', room: 'Charaka Hall', timing: '07:00 AM - 10:00 AM', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], maxStudents: 50, currentStudents: 5, status: 'Ongoing', startDate: '2026-04-01' },
+  { _id: 'btc-18', code: 'SSC Weekend', courseName: 'SSC Coaching', level: 'Standard', teacherName: 'Neha Verma', room: 'Ramanujan Hall', timing: '09:00 AM - 04:00 PM', days: ['Sat', 'Sun'], maxStudents: 60, currentStudents: 5, status: 'Ongoing', startDate: '2026-04-01' }
 ];
 
-const initialFees = [
-  { _id: 'fee-1', studentId: 'std-1', studentCode: 'IIA-1001', studentName: 'Aarav Gupta', courseName: 'German A1', totalFee: 25000, discount: 2500, netFee: 22500, paidTotal: 15000, remainingTotal: 7500, status: 'Partial', installments: [{ installmentNo: 1, amount: 15000, paidAmount: 15000, status: 'Paid', payMode: 'UPI', refText: 'GPay-99281' }] },
+const teacherNames = ['Anita Sharma', 'Vikas Kumar', 'Sneha Gupta', 'Rohit Sharma', 'Neha Verma'];
+const counsellorNames = ['Priya Verma', 'Rahul Singh'];
+
+const generate80Students = () => {
+  const students = [];
+  for (let i = 1; i <= 80; i++) {
+    const fn = indianFirstNames[i % indianFirstNames.length];
+    const ln = indianLastNames[i % indianLastNames.length];
+    const sName = `${fn} ${ln}`;
+    const fName = `Rajesh ${ln}`;
+    const mName = `Sunita ${ln}`;
+    const code = `STU-${1000 + i}`;
+    const pType = programList[i % programList.length];
+    const bCode = initialBatches[i % initialBatches.length].code;
+    const tName = teacherNames[i % teacherNames.length];
+    const cName = counsellorNames[i % counsellorNames.length];
+    const status = i <= 70 ? 'Verified' : i <= 76 ? 'Pending' : 'Rejected';
+
+    students.push({
+      _id: `std-${i}`,
+      studentId: code,
+      admissionNo: `ADM-2026-${String(i).padStart(3, '0')}`,
+      rollNo: String((i % 40) + 1),
+      name: sName,
+      dob: `2008-05-${(i % 25) + 1}`,
+      gender: i % 2 === 0 ? 'Male' : 'Female',
+      bloodGroup: ['A+', 'B+', 'O+', 'AB+'][i % 4],
+      phone: `+91 91${2000000 + i}`,
+      email: `student${i}@schoolerp.com`,
+      address: `${100 + i}, Sector ${(i % 15) + 1}, Central City, India`,
+      fatherName: fName,
+      motherName: mName,
+      guardianName: fName,
+      parentPhone: `+91 98${1000000 + i}`,
+      parentWhatsapp: `+91 98${1000000 + i}`,
+      parentEmail: `parent${i}@schoolerp.com`,
+      parentOccupation: occupations[i % occupations.length],
+      emergencyContact: `+91 98${1000000 + i}`,
+      verificationStatus: status,
+      courseName: pType,
+      level: pType,
+      packageType: i % 3 === 0 ? 'Yearly' : i % 2 === 0 ? 'Quarterly' : 'Monthly',
+      batchCode: bCode,
+      teacherName: tName,
+      counsellorName: cName,
+      joiningDate: `2026-04-${(i % 20) + 1}`,
+      admissionDate: `2026-04-${(i % 20) + 1}`,
+      photoUrl: `https://images.unsplash.com/photo-${1539571696357 + (i % 10)}?w=150`,
+      isActive: true,
+      timeline: [
+        { title: 'Student Registered', detail: `Registered by Counsellor ${cName}`, by: cName, at: `2026-04-${(i % 20) + 1}` },
+        { title: 'Verification Status Updated', detail: `Status: ${status}`, by: 'Amit Sharma', at: '2026-04-22' }
+      ]
+    });
+  }
+  return students;
+};
+
+const initialStudents = generate80Students();
+
+const initialSubjects = [
+  { _id: 'sb-1', code: 'ENG-101', name: 'English Literature & Language', teacherName: 'Sneha Gupta', weeklyClasses: 5, maxMarks: 100, passingMarks: 33, isPractical: false },
+  { _id: 'sb-2', code: 'MATH-201', name: 'Mathematics & Algebra', teacherName: 'Anita Sharma', weeklyClasses: 6, maxMarks: 100, passingMarks: 33, isPractical: false },
+  { _id: 'sb-3', code: 'SCI-301', name: 'General Science & Physics', teacherName: 'Vikas Kumar', weeklyClasses: 5, maxMarks: 100, passingMarks: 33, isPractical: true },
+  { _id: 'sb-4', code: 'CS-501', name: 'Computer Science & Python', teacherName: 'Rohit Sharma', weeklyClasses: 5, maxMarks: 100, passingMarks: 33, isPractical: true },
+  { _id: 'sb-5', code: 'SST-601', name: 'Social Science & History', teacherName: 'Neha Verma', weeklyClasses: 5, maxMarks: 100, passingMarks: 33, isPractical: false }
 ];
+
+const initialAcademicYears = [
+  { _id: 'ay-1', code: '2026-27', name: 'Academic Session 2026-2027', startDate: '2026-04-01', endDate: '2027-03-31', isCurrent: true, status: 'Active' }
+];
+
+const initialSchoolClasses = programList.map((p, idx) => ({
+  _id: `cls-${idx + 1}`,
+  name: p,
+  code: p.toUpperCase().replace(/\s+/g, '-'),
+  category: p.includes('Class 11') || p.includes('Class 12') ? 'Senior Secondary' : p.includes('Class') ? 'Secondary' : 'Coaching',
+  programType: p.includes('Coaching') ? 'Custom_Skill' : 'School_K12',
+  sections: [{ code: 'Section A', teacherName: teacherNames[idx % teacherNames.length], capacity: 40 }],
+  baseFee: 25000 + (idx % 10) * 3000
+}));
+
+const initialCourses = initialSchoolClasses;
+
+const generate80Fees = (students) => {
+  return students.map((std, idx) => {
+    const netFee = 30000 + (idx % 10) * 3000;
+    const status = idx % 4 === 0 ? 'Paid' : idx % 3 === 0 ? 'Partial' : 'Pending';
+    const paidTotal = status === 'Paid' ? netFee : status === 'Partial' ? Math.round(netFee * 0.5) : 0;
+    const remainingTotal = netFee - paidTotal;
+    return {
+      _id: `fee-${idx + 1}`,
+      studentId: std._id,
+      studentCode: std.studentId,
+      studentName: std.name,
+      courseName: std.courseName,
+      totalFee: netFee + 3000,
+      discount: 3000,
+      netFee: netFee,
+      paidTotal: paidTotal,
+      remainingTotal: remainingTotal,
+      status: status,
+      installments: [
+        { installmentNo: 1, amount: Math.round(netFee / 2), paidAmount: paidTotal >= Math.round(netFee / 2) ? Math.round(netFee / 2) : paidTotal, status: paidTotal >= Math.round(netFee / 2) ? 'Paid' : 'Pending', payMode: 'UPI', refText: `GPay-${80000 + idx}`, dueDate: '2026-04-10' },
+        { installmentNo: 2, amount: Math.round(netFee / 2), paidAmount: paidTotal === netFee ? Math.round(netFee / 2) : 0, status: paidTotal === netFee ? 'Paid' : 'Pending', payMode: 'Bank Transfer', refText: `NFT-${90000 + idx}`, dueDate: '2026-08-10' }
+      ]
+    };
+  });
+};
+
+const initialFees = generate80Fees(initialStudents);
 
 const initialExpenses = [
   { _id: 'exp-1', title: 'Facility Rent & Maintenance', category: 'Rent', amount: 45000, date: '2026-08-01', remarks: 'Monthly lease payment' },
+  { _id: 'exp-2', title: 'Lab Equipment Purchase', category: 'Equipment', amount: 25000, date: '2026-08-02', remarks: 'Chemistry glassware kits' }
 ];
 
-const initialCertificates = [
-  {
-    _id: 'cert-1',
-    certNumber: 'IIA-CERT-2026-1001',
-    studentId: 'std-1',
-    studentName: 'Aarav Gupta',
-    courseName: 'German Language',
-    level: 'A1',
-    grade: 'Distinction (A+)',
-    marks: 94,
-    issueDate: '2026-08-01',
-    qrCodeUrl: '/verify/IIA-CERT-2026-1001',
-  },
-];
+const initialCertificates = initialStudents.slice(0, 10).map((std, idx) => ({
+  _id: `cert-${idx + 1}`,
+  certNumber: `IIA-CERT-2026-${1000 + idx}`,
+  studentId: std._id,
+  studentName: std.name,
+  courseName: std.courseName,
+  level: 'Standard',
+  grade: 'Distinction (A+)',
+  marks: 92 + (idx % 8),
+  issueDate: '2026-08-01',
+  qrCodeUrl: `/verify/IIA-CERT-2026-${1000 + idx}`
+}));
 
-const initialBooks = [
-  { _id: 'bk-1', title: 'Netzwerk A1 Deutsch', author: 'Stefanie Dengler', category: 'German Language', isbn: '978-3126061285', barcode: 'IIA-BK-9001', shelf: 'Shelf A', rack: 'Rack 02', purchasePrice: 1850, status: 'Issued' },
-];
+const generate200Books = () => {
+  const titles = [
+    'NCERT Mathematics Class 10', 'Concepts of Physics by HC Verma', 'Organic Chemistry Guide',
+    'Fundamentals of Computer Science', 'History of Ancient India', 'Indian Economy Guide',
+    'Higher Algebra by Hall & Knight', 'Oxford English Grammar', 'CEFR German A1 Kursbuch', 'DELF French Preparation'
+  ];
+  const books = [];
+  for (let b = 1; b <= 200; b++) {
+    books.push({
+      _id: `bk-${b}`,
+      title: `${titles[b % titles.length]} - Edition ${2020 + (b % 5)}`,
+      author: `Author ${b}`,
+      barcode: `IIA-BK-${1000 + b}`,
+      isbn: `978-3-16-1484${String(b).padStart(3, '0')}-0`,
+      category: b % 3 === 0 ? 'Science' : b % 2 === 0 ? 'Mathematics' : 'Literature',
+      shelf: `Shelf ${(b % 10) + 1}`,
+      rack: `Rack ${(b % 5) + 1}`,
+      purchasePrice: 450 + (b % 10) * 50,
+      status: b % 10 === 0 ? 'Issued' : 'Available'
+    });
+  }
+  return books;
+};
 
-const initialBookIssues = [
-  { _id: 'iss-1', bookId: 'bk-1', bookTitle: 'Netzwerk A1 Deutsch', barcode: 'IIA-BK-9001', borrowerName: 'Aarav Gupta', borrowerRole: 'Student', issueDate: '2026-08-01', dueDate: '2026-08-15', returnDate: null, fineAmount: 0 },
-];
+const initialBooks = generate200Books();
 
-const initialHomeworks = [
-  { _id: 'hw-1', title: 'German A1 Chapter 2 Grammar', description: 'Exercises on nominative cases', batchCode: 'GER-A1-B01', teacherName: 'Prof. Amit Kulkarni', dueDate: '2026-08-10', totalMarks: 50 },
-];
+const initialBookIssues = initialStudents.slice(0, 20).map((std, iIdx) => ({
+  _id: `iss-${iIdx + 1}`,
+  bookId: initialBooks[iIdx]._id,
+  bookTitle: initialBooks[iIdx].title,
+  barcode: initialBooks[iIdx].barcode,
+  borrowerName: std.name,
+  borrowerRole: 'Student',
+  issueDate: '2026-08-01',
+  dueDate: '2026-08-15',
+  returnDate: null,
+  fineAmount: 0
+}));
 
-const initialHomeworkSubmissions = [
-  { _id: 'sub-1', homeworkId: 'hw-1', studentCode: 'IIA-1001', studentName: 'Aarav Gupta', submissionDate: '2026-08-06', fileUrl: '/docs/aarav_hw1.pdf', status: 'Evaluated', marksObtained: 46, teacherRemarks: 'Great work!' },
-];
+const initialHomeworks = teacherNames.map((t, idx) => ({
+  _id: `hw-${idx + 1}`,
+  title: `${t.split(' ')[0]} Subject Practice Assignment #${idx + 1}`,
+  description: 'Solve problem set 1 to 15 from Chapter 3 textbook and submit PDF scan.',
+  batchCode: initialBatches[idx % initialBatches.length].code,
+  teacherName: t,
+  dueDate: '2026-08-15',
+  totalMarks: 100
+}));
 
-const initialScholarships = [
-  { _id: 'sch-1', studentCode: 'IIA-1001', studentName: 'Aarav Gupta', type: 'Sibling Discount', percentage: 10, amount: 2500, reason: 'Younger sibling enrolled', status: 'Approved', approvedBy: 'Vikramaditya Roy' },
-];
+const initialHomeworkSubmissions = initialStudents.slice(0, 40).map((std, sIdx) => ({
+  _id: `sub-${sIdx + 1}`,
+  homeworkId: initialHomeworks[sIdx % initialHomeworks.length]._id,
+  studentCode: std.studentId,
+  studentName: std.name,
+  submissionDate: '2026-08-06',
+  fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+  status: 'Evaluated',
+  marksObtained: 78 + (sIdx % 20),
+  teacherRemarks: 'Excellent syntax formation and structured step solutions.'
+}));
 
-const initialPTMs = [
-  { _id: 'ptm-1', teacherName: 'Prof. Amit Kulkarni', studentCode: 'IIA-1001', studentName: 'Aarav Gupta', parentName: 'Ramesh Gupta', parentPhone: '+91 93344 55667', meetingDate: '2026-08-12', meetingTime: '04:00 PM', meetingType: 'Online', meetLink: 'https://meet.google.com/iia-ptm', status: 'Upcoming' },
-];
+const initialScholarships = initialStudents.slice(0, 5).map((std, idx) => ({
+  _id: `sch-${idx + 1}`,
+  studentCode: std.studentId,
+  studentName: std.name,
+  type: 'Merit Scholarship',
+  percentage: 15,
+  amount: 4500,
+  reason: 'Scored Top Rank in Admissions Screening',
+  status: 'Approved',
+  approvedBy: 'Amit Sharma'
+}));
+
+const initialPTMs = initialStudents.slice(0, 15).map((std, pIdx) => ({
+  _id: `ptm-${pIdx + 1}`,
+  teacherName: std.teacherName,
+  studentCode: std.studentId,
+  studentName: std.name,
+  parentName: std.fatherName,
+  parentPhone: std.parentPhone,
+  meetingDate: '2026-08-25',
+  meetingTime: '10:30 AM',
+  meetingType: 'Online',
+  meetLink: 'https://meet.google.com/iia-ptm',
+  status: pIdx % 2 === 0 ? 'Upcoming' : 'Completed'
+}));
 
 const initialExams = [
-  { _id: 'ex-1', title: 'Goethe German A1 Mid-Term Examination', examType: 'Mid Term', session: '2026-27', batchCode: 'GER-A1-B01', subject: 'German Syntax & Oral', examDate: '2026-08-15', startTime: '09:00 AM', room: 'Aryabhata Hall (Room 102)', invigilatorName: 'Prof. Amit Kulkarni', totalMarks: 100, passingMarks: 50 },
+  { _id: 'ex-1', title: 'Unit Test 1 - Term 1', examType: 'Unit Test', session: '2026-27', batchCode: 'Class 10 A', subject: 'Mathematics', examDate: '2026-08-15', startTime: '09:00 AM', room: 'Aryabhata Hall', invigilatorName: 'Anita Sharma', totalMarks: 100, passingMarks: 33 },
+  { _id: 'ex-2', title: 'Mid-Term Examinations 2026', examType: 'Mid Term', session: '2026-27', batchCode: 'Class 12 Science A', subject: 'Science & Physics', examDate: '2026-09-10', startTime: '09:00 AM', room: 'Aryabhata Hall', invigilatorName: 'Vikas Kumar', totalMarks: 100, passingMarks: 33 },
+  { _id: 'ex-3', title: 'Final Board Series Test', examType: 'Final Exam', session: '2026-27', batchCode: 'JEE Morning', subject: 'Computer Science', examDate: '2026-10-05', startTime: '09:00 AM', room: 'Aryabhata Hall', invigilatorName: 'Rohit Sharma', totalMarks: 100, passingMarks: 33 }
 ];
 
-const initialExamMarks = [
-  { _id: 'em-1', examId: 'ex-1', studentId: 'std-1', studentCode: 'IIA-1001', studentName: 'Aarav Gupta', marksObtained: 94, grade: 'A+', rank: 1, teacherRemarks: 'Outstanding listening and grammar accuracy.' },
-];
+const initialExamMarks = initialStudents.map((std, sIdx) => {
+  const marks = 45 + (sIdx % 52);
+  return {
+    _id: `em-${sIdx + 1}`,
+    examId: initialExams[sIdx % initialExams.length]._id,
+    studentId: std._id,
+    studentCode: std.studentId,
+    studentName: std.name,
+    marksObtained: marks,
+    grade: marks >= 90 ? 'A+' : marks >= 75 ? 'A' : marks >= 60 ? 'B+' : marks >= 50 ? 'B' : 'C',
+    rank: (sIdx % 10) + 1,
+    teacherRemarks: 'Strong conceptual clarity shown in solution methodology.',
+    approvalStatus: 'Published',
+    publishedBy: 'Amit Sharma'
+  };
+});
 
 const initialAcademicEvents = [
-  { _id: 'evt-1', title: 'Independence Day School Celebration & Flag Hoisting', eventType: 'Annual Function', startDate: '2026-08-15', endDate: '2026-08-15', targetRoles: ['All'], description: 'Institute Flag Hoisting ceremony followed by cultural program.' },
-  { _id: 'evt-2', title: 'Goethe German A1 Examination Week', eventType: 'Exam', startDate: '2026-08-15', endDate: '2026-08-20', targetRoles: ['Student', 'Teacher'], description: 'Mid-term examinations across all language levels.' },
+  { _id: 'evt-1', title: 'Independence Day Celebration & Flag Hoisting', eventType: 'Annual Function', startDate: '2026-08-15', endDate: '2026-08-15', targetRoles: ['All'], description: 'Institute Flag Hoisting ceremony followed by cultural program.' },
+  { _id: 'evt-2', title: 'CBSE Mid-Term Examination Week', eventType: 'Exam', startDate: '2026-08-25', endDate: '2026-08-30', targetRoles: ['Student', 'Teacher'], description: 'Mid-term examinations across all academic classes.' }
 ];
 
 const initialTransportRoutes = [
-  { _id: 'rt-1', routeCode: 'R-101', routeName: 'Indiranagar - Koramangala - Campus', stops: [{ stopName: 'Indiranagar Metro', pickupTime: '07:30 AM', fee: 2500 }, { stopName: 'Koramangala 5th Block', pickupTime: '07:50 AM', fee: 2200 }], vehicleNo: 'KA-01-EQ-9988', driverName: 'Sardar Singh', driverPhone: '+91 98877 66554' },
+  { _id: 'rt-1', routeCode: 'R-101', routeName: 'Indiranagar - MG Road - Campus', stops: [{ stopName: 'Indiranagar Metro', pickupTime: '07:30 AM', fee: 2500 }], vehicleNo: 'KA-01-EA-1001', driverName: 'Sardar Singh', driverPhone: '+91 94455 66701' },
+  { _id: 'rt-2', routeCode: 'R-102', routeName: 'Koramangala - HSR Layout - Campus', stops: [{ stopName: 'Koramangala 5th Block', pickupTime: '07:20 AM', fee: 2800 }], vehicleNo: 'KA-01-EA-1002', driverName: 'Ramesh Kumar', driverPhone: '+91 94455 66702' },
+  { _id: 'rt-3', routeCode: 'R-103', routeName: 'Whitefield - ITPL Main Road - Campus', stops: [{ stopName: 'Whitefield Post Office', pickupTime: '07:10 AM', fee: 3000 }], vehicleNo: 'KA-01-EA-1003', driverName: 'Prakash Patil', driverPhone: '+91 94455 66703' }
 ];
 
 const initialVehicles = [
-  { _id: 'vh-1', vehicleNo: 'KA-01-EQ-9988', model: 'Tata Starbus 40 Seater', capacity: 40, driverName: 'Sardar Singh', insuranceExpiry: '2027-03-31', fitnessExpiry: '2027-05-15', status: 'Active' },
+  { _id: 'vh-1', vehicleNo: 'KA-01-EA-1001', model: 'Tata Starbus 40 Seater', capacity: 40, driverName: 'Sardar Singh', insuranceExpiry: '2027-03-31', fitnessExpiry: '2027-05-15', status: 'Active' },
+  { _id: 'vh-2', vehicleNo: 'KA-01-EA-1002', model: 'Eicher Skyline Pro 45 Seater', capacity: 45, driverName: 'Ramesh Kumar', insuranceExpiry: '2027-04-30', fitnessExpiry: '2027-06-15', status: 'Active' },
+  { _id: 'vh-3', vehicleNo: 'KA-01-EA-1003', model: 'Ashok Leyland Sunshine 50 Seater', capacity: 50, driverName: 'Prakash Patil', insuranceExpiry: '2027-05-31', fitnessExpiry: '2027-07-15', status: 'Active' }
 ];
 
 const initialAssets = [
-  { _id: 'ast-1', name: 'Epson EB-E01 3300 Lumens Projector', assetCode: 'IIA-AST-4001', category: 'Projectors', purchaseDate: '2026-02-10', purchasePrice: 38500, vendor: 'ProTech Electronics', status: 'Available', room: 'Aryabhata Hall (Room 102)' },
-  { _id: 'ast-2', name: 'Dell OptiPlex 7090 Desktop Computer', assetCode: 'IIA-AST-4002', category: 'Computers', purchaseDate: '2026-01-15', purchasePrice: 65000, vendor: 'Dell Direct', status: 'Issued', assignedTo: 'Prof. Amit Kulkarni' },
+  { _id: 'ast-1', name: 'Dell OptiPlex 7090 Desktop (Computer Lab 1)', assetCode: 'IIA-AST-1001', category: 'Computers', purchaseDate: '2025-06-15', purchasePrice: 55000, vendor: 'Dell India', status: 'Available', room: 'Computer Lab 101' },
+  { _id: 'ast-2', name: 'Epson EB-E01 Classroom Projector', assetCode: 'IIA-AST-2001', category: 'Projectors', purchaseDate: '2025-08-20', purchasePrice: 38000, vendor: 'Epson India', status: 'Available', room: 'Aryabhata Hall' },
+  { _id: 'ast-3', name: 'Dual Student Classroom Bench & Desk Set', assetCode: 'IIA-AST-3001', category: 'Furniture', purchaseDate: '2025-04-10', purchasePrice: 12000, vendor: 'Godrej Furniture', status: 'Available', room: 'Room 102' },
+  { _id: 'ast-4', name: 'Advanced Chemistry Practical Glassware Kit', assetCode: 'IIA-AST-4001', category: 'Lab Equipment', purchaseDate: '2025-11-05', purchasePrice: 25000, vendor: 'Borosil Scientific', status: 'Available', room: 'Chemistry Lab' }
 ];
 
 const initialNotices = [
-  { _id: 'ntc-1', title: 'CBSE Mid-Term Examination Schedule Announcement', content: 'Detailed timetable for German A1 & B1 exams published.', category: 'General', priority: 'High', isPinned: true, createdAt: '2026-08-05' },
+  { _id: 'ntc-1', title: 'CBSE Mid-Term Examination Schedule Announcement', content: 'Detailed timetable for Class 9 to Class 12 Mid-Term tests has been published.', category: 'General', priority: 'High', isPinned: true, createdAt: '2026-08-05' },
+  { _id: 'ntc-2', title: 'Parent Teacher Conference Reminder', content: 'Virtual PTM scheduled for August 25 via Google Meet.', category: 'PTM', priority: 'High', isPinned: true, createdAt: '2026-08-06' }
 ];
 
 const initialChatMessages = [
-  { _id: 'msg-1', senderName: 'Dr. Rajesh Sharma', senderRole: 'Admin', recipientId: 'usr-teacher', text: 'Please upload the A1 mid-term question paper PDF.', createdAt: '2026-08-06 10:15 AM' },
+  { _id: 'msg-1', senderName: 'Amit Sharma', senderRole: 'Owner', recipientId: 'usr-teacher-1', text: 'Please ensure mid-term answer scripts are uploaded by Friday.', createdAt: '2026-08-06 10:15 AM' }
 ];
 
 const initialLeaveRequests = [
-  { _id: 'lv-1', applicantId: 'usr-teacher', applicantName: 'Prof. Amit Kulkarni', applicantRole: 'Teacher', leaveType: 'Casual', startDate: '2026-08-20', endDate: '2026-08-21', reason: 'Family function', substituteTeacher: 'Prof. Johann Weber', status: 'Pending' },
+  { _id: 'lv-1', applicantId: 'usr-teacher-1', applicantName: 'Anita Sharma', applicantRole: 'Teacher', leaveType: 'Casual', startDate: '2026-08-15', endDate: '2026-08-16', reason: 'Educational symposium', substituteTeacher: 'Vikas Kumar', status: 'Approved' },
+  { _id: 'lv-2', applicantId: 'usr-teacher-3', applicantName: 'Sneha Gupta', applicantRole: 'Teacher', leaveType: 'Medical', startDate: '2026-08-20', endDate: '2026-08-22', reason: 'Viral fever rest', substituteTeacher: 'Rohit Sharma', status: 'Pending' }
 ];
 
 const initialAttendanceLogs = [
