@@ -47,6 +47,23 @@ app.get('/api/public/verify/:certNumber', async (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api', apiRoutes);
 
+// Serve Client Static Build Files in Production / Render
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const clientDistPath = path.join(__dirname, '../../client/dist');
+
+if (fs.existsSync(clientDistPath)) {
+  app.use(express.static(clientDistPath));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) return next();
+    res.sendFile(path.join(clientDistPath, 'index.html'));
+  });
+}
+
 // Socket.io connection handling
 io.on('connection', (socket) => {
   console.log(`⚡ Socket client connected: ${socket.id}`);
