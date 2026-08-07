@@ -2,6 +2,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import { authenticateJWT } from '../middleware/auth.js';
 import { requireRoles } from '../middleware/rbac.js';
+import User from '../models/User.js';
 import Lead from '../models/Lead.js';
 import Student from '../models/Student.js';
 import Course from '../models/Course.js';
@@ -34,7 +35,7 @@ router.use(authenticateJWT);
 
 const isDbConnected = () => mongoose.connection.readyState === 1;
 
-// Sample fallback dataset for Standalone API mode when MongoDB is offline
+// Fallback datasets for Standalone API mode when MongoDB is offline
 const fallbackLeads = [{ _id: 'ld-1', name: 'Rohan Verma', phone: '+91 98765 43210', course: 'German', level: 'A1', status: 'New' }];
 const fallbackStudents = [{ _id: 'std-1', studentId: 'IIA-1001', name: 'Aarav Gupta', courseName: 'German', level: 'A1' }];
 const fallbackBooks = [{ _id: 'bk-1', title: 'Netzwerk A1 Deutsch', barcode: 'IIA-BK-9001', status: 'Available' }];
@@ -54,8 +55,50 @@ const fallbackAttendance = [{ _id: 'att-1', batchCode: 'GER-A1-B01', presentCoun
 const fallbackFees = [{ _id: 'fee-1', studentCode: 'IIA-1001', netFee: 22500, paidTotal: 15000, remainingTotal: 7500 }];
 const fallbackExpenses = [{ _id: 'exp-1', title: 'Facility Rent', amount: 45000 }];
 
+/* ==================== USER MANAGEMENT ==================== */
+router.get('/users', requireRoles(['Owner', 'Admin', 'HR']), async (req, res) => {
+  try {
+    if (!isDbConnected()) return res.json([]);
+    const users = await User.find({ isDeleted: false }).select('-passwordHash');
+    res.json(users);
+  } catch (err) {
+    res.json([]);
+  }
+});
+
+router.post('/users', requireRoles(['Owner', 'Admin', 'HR']), async (req, res) => {
+  try {
+    if (!isDbConnected()) return res.status(201).json({ id: `usr-${Date.now()}`, ...req.body });
+    const user = new User(req.body);
+    await user.save();
+    res.status(201).json(user);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+router.put('/users/:id', requireRoles(['Owner', 'Admin', 'HR']), async (req, res) => {
+  try {
+    if (!isDbConnected()) return res.json({ id: req.params.id, ...req.body });
+    const updated = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json(updated);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+router.delete('/users/:id', requireRoles(['Owner', 'Admin']), async (req, res) => {
+  try {
+    if (!isDbConnected()) return res.json({ success: true });
+    await User.findByIdAndUpdate(req.params.id, { isDeleted: true, isActive: false });
+    res.json({ success: true, message: 'User deactivated successfully' });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
 /* ==================== CRM LEADS ==================== */
-router.get('/leads', async (req, res) => {
+router.get('/leads', requireRoles(['Owner', 'Admin', 'Counsellor']), async (req, res) => {
   try {
     if (!isDbConnected()) return res.json(fallbackLeads);
     const leads = await Lead.find({ isDeleted: false }).sort({ createdAt: -1 });
@@ -65,7 +108,7 @@ router.get('/leads', async (req, res) => {
   }
 });
 
-router.post('/leads', async (req, res) => {
+router.post('/leads', requireRoles(['Owner', 'Admin', 'Counsellor']), async (req, res) => {
   try {
     if (!isDbConnected()) return res.status(201).json({ _id: `ld-${Date.now()}`, ...req.body });
     const lead = new Lead(req.body);
@@ -76,14 +119,35 @@ router.post('/leads', async (req, res) => {
   }
 });
 
+router.put('/leads/:id', requireRoles(['Owner', 'Admin', 'Counsellor']), async (req, res) => {
+  try {
+    if (!isDbConnected()) return res.json({ _id: req.params.id, ...req.body });
+    const updated = await Lead.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json(updated);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
 /* ==================== STUDENTS ==================== */
-router.get('/students', async (req, res) => {
+router.get('/students', requireRoles(['Owner', 'Admin', 'Counsellor', 'Teacher']), async (req, res) => {
   try {
     if (!isDbConnected()) return res.json(fallbackStudents);
     const students = await Student.find({ isDeleted: false }).sort({ createdAt: -1 });
     res.json(students);
   } catch (err) {
     res.json(fallbackStudents);
+  }
+});
+
+router.post('/students', requireRoles(['Owner', 'Admin', 'Counsellor']), async (req, res) => {
+  try {
+    if (!isDbConnected()) return res.status(201).json({ _id: `std-${Date.now()}`, ...req.body });
+    const student = new Student(req.body);
+    await student.save();
+    res.status(201).json(student);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
   }
 });
 
@@ -98,14 +162,36 @@ router.get('/library/books', requireRoles(['Owner', 'Admin', 'Librarian', 'Teach
   }
 });
 
+router.post('/library/books', requireRoles(['Owner', 'Admin', 'Librarian']), async (req, res) => {
+  try {
+    if (!isDbConnected()) return res.status(201).json({ _id: `bk-${Date.now()}`, ...req.body });
+    const book = new Book(req.body);
+    await book.save();
+    res.status(201).json(book);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
 /* ==================== HOMEWORK ==================== */
-router.get('/homework', requireRoles(['Owner', 'Admin', 'Teacher', 'Student']), async (req, res) => {
+router.get('/homework', requireRoles(['Owner', 'Admin', 'Teacher', 'Student', 'Parent']), async (req, res) => {
   try {
     if (!isDbConnected()) return res.json(fallbackHomeworks);
     const homeworks = await Homework.find({ isDeleted: false }).sort({ createdAt: -1 });
     res.json(homeworks);
   } catch (err) {
     res.json(fallbackHomeworks);
+  }
+});
+
+router.post('/homework', requireRoles(['Owner', 'Admin', 'Teacher']), async (req, res) => {
+  try {
+    if (!isDbConnected()) return res.status(201).json({ _id: `hw-${Date.now()}`, ...req.body });
+    const hw = new Homework(req.body);
+    await hw.save();
+    res.status(201).json(hw);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
   }
 });
 
@@ -120,6 +206,17 @@ router.get('/scholarships', requireRoles(['Owner', 'Admin', 'Accountant']), asyn
   }
 });
 
+router.post('/scholarships', requireRoles(['Owner', 'Admin', 'Accountant']), async (req, res) => {
+  try {
+    if (!isDbConnected()) return res.status(201).json({ _id: `sch-${Date.now()}`, ...req.body });
+    const sch = new Scholarship(req.body);
+    await sch.save();
+    res.status(201).json(sch);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
 /* ==================== PTM ==================== */
 router.get('/ptm', requireRoles(['Owner', 'Admin', 'Teacher', 'Parent']), async (req, res) => {
   try {
@@ -128,6 +225,17 @@ router.get('/ptm', requireRoles(['Owner', 'Admin', 'Teacher', 'Parent']), async 
     res.json(ptms);
   } catch (err) {
     res.json(fallbackPTMs);
+  }
+});
+
+router.post('/ptm', requireRoles(['Owner', 'Admin', 'Teacher']), async (req, res) => {
+  try {
+    if (!isDbConnected()) return res.status(201).json({ _id: `ptm-${Date.now()}`, ...req.body });
+    const ptm = new PTM(req.body);
+    await ptm.save();
+    res.status(201).json(ptm);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
   }
 });
 
@@ -142,6 +250,17 @@ router.get('/exams', requireRoles(['Owner', 'Admin', 'Teacher', 'Student', 'Pare
   }
 });
 
+router.post('/exams', requireRoles(['Owner', 'Admin', 'Teacher']), async (req, res) => {
+  try {
+    if (!isDbConnected()) return res.status(201).json({ _id: `ex-${Date.now()}`, ...req.body });
+    const exam = new Exam(req.body);
+    await exam.save();
+    res.status(201).json(exam);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
 /* ==================== CALENDAR ==================== */
 router.get('/calendar/events', async (req, res) => {
   try {
@@ -153,14 +272,36 @@ router.get('/calendar/events', async (req, res) => {
   }
 });
 
+router.post('/calendar/events', requireRoles(['Owner', 'Admin', 'Teacher']), async (req, res) => {
+  try {
+    if (!isDbConnected()) return res.status(201).json({ _id: `evt-${Date.now()}`, ...req.body });
+    const evt = new AcademicEvent(req.body);
+    await evt.save();
+    res.status(201).json(evt);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
 /* ==================== TRANSPORT ==================== */
-router.get('/transport/routes', requireRoles(['Owner', 'Admin', 'Transport Manager', 'Parent']), async (req, res) => {
+router.get('/transport/routes', requireRoles(['Owner', 'Admin', 'Transport Manager', 'Parent', 'Student']), async (req, res) => {
   try {
     if (!isDbConnected()) return res.json(fallbackRoutes);
     const routes = await TransportRoute.find({ isDeleted: false });
     res.json(routes);
   } catch (err) {
     res.json(fallbackRoutes);
+  }
+});
+
+router.post('/transport/routes', requireRoles(['Owner', 'Admin', 'Transport Manager']), async (req, res) => {
+  try {
+    if (!isDbConnected()) return res.status(201).json({ _id: `rt-${Date.now()}`, ...req.body });
+    const route = new TransportRoute(req.body);
+    await route.save();
+    res.status(201).json(route);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
   }
 });
 
@@ -175,6 +316,17 @@ router.get('/inventory/assets', requireRoles(['Owner', 'Admin', 'Librarian']), a
   }
 });
 
+router.post('/inventory/assets', requireRoles(['Owner', 'Admin', 'Librarian']), async (req, res) => {
+  try {
+    if (!isDbConnected()) return res.status(201).json({ _id: `ast-${Date.now()}`, ...req.body });
+    const asset = new Asset(req.body);
+    await asset.save();
+    res.status(201).json(asset);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
 /* ==================== NOTICES ==================== */
 router.get('/notices', async (req, res) => {
   try {
@@ -183,6 +335,17 @@ router.get('/notices', async (req, res) => {
     res.json(notices);
   } catch (err) {
     res.json(fallbackNotices);
+  }
+});
+
+router.post('/notices', requireRoles(['Owner', 'Admin']), async (req, res) => {
+  try {
+    if (!isDbConnected()) return res.status(201).json({ _id: `ntc-${Date.now()}`, ...req.body });
+    const notice = new Notice(req.body);
+    await notice.save();
+    res.status(201).json(notice);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
   }
 });
 
@@ -197,6 +360,17 @@ router.get('/chat/messages', async (req, res) => {
   }
 });
 
+router.post('/chat/messages', async (req, res) => {
+  try {
+    if (!isDbConnected()) return res.status(201).json({ _id: `msg-${Date.now()}`, ...req.body });
+    const msg = new ChatMessage(req.body);
+    await msg.save();
+    res.status(201).json(msg);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
 /* ==================== LEAVES ==================== */
 router.get('/leaves', requireRoles(['Owner', 'Admin', 'HR', 'Teacher']), async (req, res) => {
   try {
@@ -205,6 +379,17 @@ router.get('/leaves', requireRoles(['Owner', 'Admin', 'HR', 'Teacher']), async (
     res.json(leaves);
   } catch (err) {
     res.json(fallbackLeaves);
+  }
+});
+
+router.post('/leaves', requireRoles(['Owner', 'Admin', 'HR', 'Teacher']), async (req, res) => {
+  try {
+    if (!isDbConnected()) return res.status(201).json({ _id: `lv-${Date.now()}`, ...req.body });
+    const leave = new LeaveRequest(req.body);
+    await leave.save();
+    res.status(201).json(leave);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
   }
 });
 
@@ -219,6 +404,17 @@ router.get('/courses', async (req, res) => {
   }
 });
 
+router.post('/courses', requireRoles(['Owner', 'Admin', 'Counsellor', 'Teacher']), async (req, res) => {
+  try {
+    if (!isDbConnected()) return res.status(201).json({ _id: `crs-${Date.now()}`, ...req.body });
+    const course = new Course(req.body);
+    await course.save();
+    res.status(201).json(course);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
 router.get('/batches', async (req, res) => {
   try {
     if (!isDbConnected()) return res.json(fallbackBatches);
@@ -226,6 +422,17 @@ router.get('/batches', async (req, res) => {
     res.json(batches);
   } catch (err) {
     res.json(fallbackBatches);
+  }
+});
+
+router.post('/batches', requireRoles(['Owner', 'Admin', 'Teacher']), async (req, res) => {
+  try {
+    if (!isDbConnected()) return res.status(201).json({ _id: `btc-${Date.now()}`, ...req.body });
+    const batch = new Batch(req.body);
+    await batch.save();
+    res.status(201).json(batch);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
   }
 });
 
@@ -240,7 +447,18 @@ router.get('/attendance', async (req, res) => {
   }
 });
 
-router.get('/fees', async (req, res) => {
+router.post('/attendance', requireRoles(['Owner', 'Admin', 'Teacher']), async (req, res) => {
+  try {
+    if (!isDbConnected()) return res.status(201).json({ _id: `att-${Date.now()}`, ...req.body });
+    const att = new Attendance(req.body);
+    await att.save();
+    res.status(201).json(att);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+router.get('/fees', requireRoles(['Owner', 'Admin', 'Accountant']), async (req, res) => {
   try {
     if (!isDbConnected()) return res.json(fallbackFees);
     const fees = await Fee.find({ isDeleted: false }).sort({ updatedAt: -1 });
@@ -250,7 +468,18 @@ router.get('/fees', async (req, res) => {
   }
 });
 
-router.get('/expenses', async (req, res) => {
+router.post('/fees', requireRoles(['Owner', 'Admin', 'Accountant']), async (req, res) => {
+  try {
+    if (!isDbConnected()) return res.status(201).json({ _id: `fee-${Date.now()}`, ...req.body });
+    const fee = new Fee(req.body);
+    await fee.save();
+    res.status(201).json(fee);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+router.get('/expenses', requireRoles(['Owner', 'Admin', 'Accountant']), async (req, res) => {
   try {
     if (!isDbConnected()) return res.json(fallbackExpenses);
     const expenses = await Expense.find({ isDeleted: false }).sort({ date: -1 });
@@ -260,4 +489,16 @@ router.get('/expenses', async (req, res) => {
   }
 });
 
+router.post('/expenses', requireRoles(['Owner', 'Admin', 'Accountant']), async (req, res) => {
+  try {
+    if (!isDbConnected()) return res.status(201).json({ _id: `exp-${Date.now()}`, ...req.body });
+    const exp = new Expense(req.body);
+    await exp.save();
+    res.status(201).json(exp);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
 export default router;
+

@@ -222,6 +222,7 @@ export const ExamsPage = () => {
                 <th className="p-3">Grade Scale</th>
                 <th className="p-3">Class Rank</th>
                 <th className="p-3">Teacher Remarks</th>
+                <th className="p-3">Approval Status</th>
                 <th className="p-3 text-right">Report Card</th>
               </tr>
             </thead>
@@ -239,6 +240,11 @@ export const ExamsPage = () => {
                     <Star className="w-3 h-3 fill-cyan-400" /> Rank #{em.rank || 1}
                   </td>
                   <td className="p-3 text-slate-300 font-sans">{em.teacherRemarks}</td>
+                  <td className="p-3 font-sans">
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${em.approvalStatus === 'Published' ? 'bg-emerald-950 text-emerald-400 border-emerald-800' : 'bg-amber-950 text-amber-400 border-amber-800'}`}>
+                      {em.approvalStatus || 'Published'}
+                    </span>
+                  </td>
                   <td className="p-3 text-right">
                     <button
                       onClick={() => window.print()}

@@ -62,6 +62,19 @@ io.on('connection', (socket) => {
 const PORT = process.env.PORT || 5000;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/elh_crm';
 
+// Handle port busy / occupied fallback gracefully
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    const altPort = Number(PORT) + 1;
+    console.log(`⚠️ Port ${PORT} occupied. Automatically failing over to port ${altPort}...`);
+    server.listen(altPort, () => {
+      console.log(`🚀 European Language Hub (ELH) Server running on port ${altPort}`);
+    });
+  } else {
+    console.error('Server error:', err);
+  }
+});
+
 mongoose
   .connect(MONGODB_URI, { serverSelectionTimeoutMS: 2000 })
   .then(async () => {

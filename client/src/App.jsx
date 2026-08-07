@@ -1,65 +1,74 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthGuard } from './components/layout/AuthGuard.jsx';
 import { RoleGuard } from './components/layout/RoleGuard.jsx';
 import { MainLayout } from './components/layout/MainLayout.jsx';
-import { LoginPage } from './pages/LoginPage.jsx';
-import { AdmissionApplicationPage } from './pages/AdmissionApplicationPage.jsx';
-import { DashboardPage } from './pages/DashboardPage.jsx';
-import { CRMPage } from './pages/CRMPage.jsx';
-import { FollowupsPage } from './pages/FollowupsPage.jsx';
-import { StudentsPage } from './pages/StudentsPage.jsx';
-import { AdmissionsPage } from './pages/AdmissionsPage.jsx';
-import { CoursesPage } from './pages/CoursesPage.jsx';
-import { BatchesPage } from './pages/BatchesPage.jsx';
-import { AttendancePage } from './pages/AttendancePage.jsx';
-import { ExamsPage } from './pages/ExamsPage.jsx';
-import { AcademicCalendarPage } from './pages/AcademicCalendarPage.jsx';
-import { TransportPage } from './pages/TransportPage.jsx';
-import { InventoryPage } from './pages/InventoryPage.jsx';
-import { LibraryPage } from './pages/LibraryPage.jsx';
-import { HomeworkPage } from './pages/HomeworkPage.jsx';
-import { ScholarshipPage } from './pages/ScholarshipPage.jsx';
-import { PTMPage } from './pages/PTMPage.jsx';
-import { NoticePage } from './pages/NoticePage.jsx';
-import { ChatPage } from './pages/ChatPage.jsx';
-import { LeavePage } from './pages/LeavePage.jsx';
-import { FeesPage } from './pages/FeesPage.jsx';
-import { ExpensesPage } from './pages/ExpensesPage.jsx';
-import { WhatsAppPage } from './pages/WhatsAppPage.jsx';
-import { DocumentsPage } from './pages/DocumentsPage.jsx';
-import { CertificatesPage } from './pages/CertificatesPage.jsx';
-import { StaffPage } from './pages/StaffPage.jsx';
-import { SettingsPage } from './pages/SettingsPage.jsx';
-import { ReportsPage } from './pages/ReportsPage.jsx';
-import { ParentPortalPage } from './pages/ParentPortalPage.jsx';
-import { StudentPortalPage } from './pages/StudentPortalPage.jsx';
-import { VerifyCertificatePage } from './pages/VerifyCertificatePage.jsx';
+
+const LoginPage = lazy(() => import('./pages/LoginPage.jsx').then((m) => ({ default: m.LoginPage })));
+const AdmissionApplicationPage = lazy(() => import('./pages/AdmissionApplicationPage.jsx').then((m) => ({ default: m.AdmissionApplicationPage })));
+const DashboardPage = lazy(() => import('./pages/DashboardPage.jsx').then((m) => ({ default: m.DashboardPage })));
+const CRMPage = lazy(() => import('./pages/CRMPage.jsx').then((m) => ({ default: m.CRMPage })));
+const FollowupsPage = lazy(() => import('./pages/FollowupsPage.jsx').then((m) => ({ default: m.FollowupsPage })));
+const StudentsPage = lazy(() => import('./pages/StudentsPage.jsx').then((m) => ({ default: m.StudentsPage })));
+const AdmissionsPage = lazy(() => import('./pages/AdmissionsPage.jsx').then((m) => ({ default: m.AdmissionsPage })));
+const CoursesPage = lazy(() => import('./pages/CoursesPage.jsx').then((m) => ({ default: m.CoursesPage })));
+const BatchesPage = lazy(() => import('./pages/BatchesPage.jsx').then((m) => ({ default: m.BatchesPage })));
+const AttendancePage = lazy(() => import('./pages/AttendancePage.jsx').then((m) => ({ default: m.AttendancePage })));
+const ExamsPage = lazy(() => import('./pages/ExamsPage.jsx').then((m) => ({ default: m.ExamsPage })));
+const AcademicCalendarPage = lazy(() => import('./pages/AcademicCalendarPage.jsx').then((m) => ({ default: m.AcademicCalendarPage })));
+const TransportPage = lazy(() => import('./pages/TransportPage.jsx').then((m) => ({ default: m.TransportPage })));
+const InventoryPage = lazy(() => import('./pages/InventoryPage.jsx').then((m) => ({ default: m.InventoryPage })));
+const LibraryPage = lazy(() => import('./pages/LibraryPage.jsx').then((m) => ({ default: m.LibraryPage })));
+const HomeworkPage = lazy(() => import('./pages/HomeworkPage.jsx').then((m) => ({ default: m.HomeworkPage })));
+const ScholarshipPage = lazy(() => import('./pages/ScholarshipPage.jsx').then((m) => ({ default: m.ScholarshipPage })));
+const PTMPage = lazy(() => import('./pages/PTMPage.jsx').then((m) => ({ default: m.PTMPage })));
+const NoticePage = lazy(() => import('./pages/NoticePage.jsx').then((m) => ({ default: m.NoticePage })));
+const ChatPage = lazy(() => import('./pages/ChatPage.jsx').then((m) => ({ default: m.ChatPage })));
+const LeavePage = lazy(() => import('./pages/LeavePage.jsx').then((m) => ({ default: m.LeavePage })));
+const FeesPage = lazy(() => import('./pages/FeesPage.jsx').then((m) => ({ default: m.FeesPage })));
+const ExpensesPage = lazy(() => import('./pages/ExpensesPage.jsx').then((m) => ({ default: m.ExpensesPage })));
+const WhatsAppPage = lazy(() => import('./pages/WhatsAppPage.jsx').then((m) => ({ default: m.WhatsAppPage })));
+const DocumentsPage = lazy(() => import('./pages/DocumentsPage.jsx').then((m) => ({ default: m.DocumentsPage })));
+const CertificatesPage = lazy(() => import('./pages/CertificatesPage.jsx').then((m) => ({ default: m.CertificatesPage })));
+const StaffPage = lazy(() => import('./pages/StaffPage.jsx').then((m) => ({ default: m.StaffPage })));
+const SettingsPage = lazy(() => import('./pages/SettingsPage.jsx').then((m) => ({ default: m.SettingsPage })));
+const ReportsPage = lazy(() => import('./pages/ReportsPage.jsx').then((m) => ({ default: m.ReportsPage })));
+const ParentPortalPage = lazy(() => import('./pages/ParentPortalPage.jsx').then((m) => ({ default: m.ParentPortalPage })));
+const StudentPortalPage = lazy(() => import('./pages/StudentPortalPage.jsx').then((m) => ({ default: m.StudentPortalPage })));
+const VerifyCertificatePage = lazy(() => import('./pages/VerifyCertificatePage.jsx').then((m) => ({ default: m.VerifyCertificatePage })));
+
+const PageLoader = () => (
+  <div className="min-h-[400px] flex flex-col items-center justify-center space-y-3 p-8">
+    <div className="w-10 h-10 border-4 border-amber-500/30 border-t-amber-500 rounded-full animate-spin"></div>
+    <p className="text-xs text-slate-400 font-semibold tracking-wider uppercase">Loading ELH Module...</p>
+  </div>
+);
 
 export const App = () => {
   return (
     <BrowserRouter>
-      <Routes>
-        {/* Public Login Route */}
-        <Route path="/login" element={<LoginPage />} />
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          {/* Public Login Route */}
+          <Route path="/login" element={<LoginPage />} />
 
-        {/* Public Parent Admission Application Route */}
-        <Route path="/apply" element={<AdmissionApplicationPage />} />
+          {/* Public Parent Admission Application Route */}
+          <Route path="/apply" element={<AdmissionApplicationPage />} />
 
-        {/* Public Certificate Verification Route */}
-        <Route path="/verify/:certNumber" element={<VerifyCertificatePage />} />
+          {/* Public Certificate Verification Route */}
+          <Route path="/verify/:certNumber" element={<VerifyCertificatePage />} />
 
-        {/* Protected Dashboard & CRM Layout Routes */}
-        <Route
-          path="/*"
-          element={
-            <AuthGuard>
-              <MainLayout>
-                <Routes>
+          {/* Protected Dashboard & CRM Layout Routes */}
+          <Route
+            path="/*"
+            element={
+              <AuthGuard>
+                <MainLayout>
+                  <Routes>
                   <Route
                     path="/"
                     element={
-                      <RoleGuard allowedRoles={['Owner', 'Admin', 'Counsellor', 'Teacher', 'Accountant', 'Librarian', 'Transport Manager', 'HR']}>
+                      <RoleGuard allowedRoles={['Owner', 'Admin', 'Counsellor', 'Teacher', 'Accountant', 'Librarian', 'Transport Manager', 'HR', 'Parent', 'Student']}>
                         <DashboardPage />
                       </RoleGuard>
                     }
@@ -107,7 +116,7 @@ export const App = () => {
                   <Route
                     path="/batches"
                     element={
-                      <RoleGuard allowedRoles={['Owner', 'Admin', 'Teacher']}>
+                      <RoleGuard allowedRoles={['Owner', 'Admin', 'Teacher', 'Counsellor']}>
                         <BatchesPage />
                       </RoleGuard>
                     }
@@ -139,7 +148,7 @@ export const App = () => {
                   <Route
                     path="/transport"
                     element={
-                      <RoleGuard allowedRoles={['Owner', 'Admin', 'Transport Manager', 'Parent']}>
+                      <RoleGuard allowedRoles={['Owner', 'Admin', 'Transport Manager', 'Parent', 'Student']}>
                         <TransportPage />
                       </RoleGuard>
                     }
@@ -163,7 +172,7 @@ export const App = () => {
                   <Route
                     path="/homework"
                     element={
-                      <RoleGuard allowedRoles={['Owner', 'Admin', 'Teacher', 'Student']}>
+                      <RoleGuard allowedRoles={['Owner', 'Admin', 'Teacher', 'Student', 'Parent']}>
                         <HomeworkPage />
                       </RoleGuard>
                     }
@@ -243,7 +252,7 @@ export const App = () => {
                   <Route
                     path="/certificates"
                     element={
-                      <RoleGuard allowedRoles={['Owner', 'Admin', 'Teacher']}>
+                      <RoleGuard allowedRoles={['Owner', 'Admin', 'Teacher', 'Student', 'Parent']}>
                         <CertificatesPage />
                       </RoleGuard>
                     }
@@ -294,6 +303,7 @@ export const App = () => {
           }
         />
       </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 };

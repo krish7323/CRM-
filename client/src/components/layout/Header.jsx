@@ -1,10 +1,10 @@
 import React from 'react';
 import { useAppStore } from '../../store/useAppStore.js';
 import { ALL_ROLES } from '../../types/index.js';
-import { Sun, Moon, Sparkles, Bell, Globe, Shield, LogOut, Lock, Crown } from 'lucide-react';
+import { Sun, Moon, Sparkles, Bell, Globe, Shield, LogOut, Lock, Crown, Menu } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-export const Header = () => {
+export const Header = ({ onToggleMobileMenu }) => {
   const { theme, setTheme, activeRole, setActiveRole, toggleAiDrawer, currentUser, logoutUser } = useAppStore();
   const navigate = useNavigate();
 
@@ -16,13 +16,21 @@ export const Header = () => {
   const isOwnerOrAdmin = currentUser.role === 'Owner' || currentUser.role === 'Admin';
 
   return (
-    <header className="sticky top-0 z-30 h-16 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-xl px-4 md:px-6 flex items-center justify-between transition-colors font-sans">
-      {/* Brand Indicator */}
-      <div className="flex items-center space-x-3">
-        <div className="flex items-center space-x-2 bg-slate-900/90 border border-slate-800 rounded-full px-3 py-1 text-xs">
-          <Globe className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-          <span className="text-slate-300 font-medium hidden sm:inline">The Indian International Academy</span>
-          <span className="text-amber-400 font-bold">• IIA 10-Role ERP</span>
+    <header className="sticky top-0 z-30 h-16 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-xl px-3 md:px-6 flex items-center justify-between transition-colors font-sans min-w-0">
+      {/* Brand Indicator & Mobile Menu Toggle */}
+      <div className="flex items-center space-x-2.5">
+        <button
+          onClick={onToggleMobileMenu}
+          className="md:hidden p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-amber-400 focus:outline-none"
+          title="Open Menu"
+        >
+          <Menu className="w-5 h-5 text-amber-400" />
+        </button>
+
+        <div className="flex items-center space-x-1.5 bg-slate-900/90 border border-slate-800 rounded-full px-2.5 py-1 text-xs">
+          <Globe className="w-3.5 h-3.5 text-amber-400 animate-pulse shrink-0" />
+          <span className="text-slate-300 font-medium hidden lg:inline">The Indian International Academy</span>
+          <span className="text-amber-400 font-bold text-[11px] sm:text-xs">IIA ERP</span>
         </div>
       </div>
 

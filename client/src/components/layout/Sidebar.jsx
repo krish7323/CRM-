@@ -39,7 +39,7 @@ const navItems = [
     title: 'Dashboard',
     path: '/',
     icon: <LayoutDashboard className="w-4 h-4" />,
-    roles: ['Owner', 'Admin', 'Counsellor', 'Teacher', 'Accountant', 'Librarian', 'Transport Manager', 'HR'],
+    roles: ['Owner', 'Admin', 'Counsellor', 'Teacher', 'Accountant', 'Librarian', 'Transport Manager', 'HR', 'Parent', 'Student'],
   },
   {
     title: 'CRM & Leads',
@@ -76,7 +76,7 @@ const navItems = [
     title: 'Batches & Timetable',
     path: '/batches',
     icon: <Calendar className="w-4 h-4" />,
-    roles: ['Owner', 'Admin', 'Teacher'],
+    roles: ['Owner', 'Admin', 'Teacher', 'Counsellor'],
   },
   {
     title: 'Attendance Register',
@@ -102,7 +102,7 @@ const navItems = [
     title: 'Transport ERP',
     path: '/transport',
     icon: <Bus className="w-4 h-4 text-amber-400" />,
-    roles: ['Owner', 'Admin', 'Transport Manager', 'Parent'],
+    roles: ['Owner', 'Admin', 'Transport Manager', 'Parent', 'Student'],
     badge: 'Module 7',
   },
   {
@@ -122,7 +122,7 @@ const navItems = [
     title: 'Homework & Assignments',
     path: '/homework',
     icon: <BookMarked className="w-4 h-4 text-amber-400" />,
-    roles: ['Owner', 'Admin', 'Teacher', 'Student'],
+    roles: ['Owner', 'Admin', 'Teacher', 'Student', 'Parent'],
   },
   {
     title: 'Scholarships & Discounts',
@@ -185,7 +185,7 @@ const navItems = [
     title: 'Certificates',
     path: '/certificates',
     icon: <Award className="w-4 h-4" />,
-    roles: ['Owner', 'Admin', 'Teacher'],
+    roles: ['Owner', 'Admin', 'Teacher', 'Student', 'Parent'],
   },
   {
     title: 'Staff & Teachers',
@@ -222,21 +222,17 @@ const navItems = [
   },
 ];
 
-export const Sidebar = () => {
+export const Sidebar = ({ isMobileOpen, onCloseMobile }) => {
   const [collapsed, setCollapsed] = useState(false);
   const { activeRole } = useAppStore();
 
   const allowedNav = navItems.filter((item) => item.roles.includes(activeRole));
 
-  return (
-    <aside
-      className={`relative z-20 flex flex-col border-r border-slate-800/80 bg-slate-950/95 backdrop-blur-2xl transition-all duration-300 ${
-        collapsed ? 'w-16' : 'w-64'
-      }`}
-    >
+  const sidebarContent = (
+    <div className="flex flex-col h-full w-full">
       {/* Brand Crest */}
       <div className="flex h-16 items-center justify-between px-4 border-b border-slate-800/80">
-        {!collapsed && (
+        {(!collapsed || isMobileOpen) && (
           <div className="flex items-center space-x-2.5">
             <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-500 via-teal-500 to-cyan-500 p-0.5 shadow-lg shadow-amber-500/20">
               <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center font-black text-amber-400 text-xs">
@@ -249,22 +245,33 @@ export const Sidebar = () => {
             </div>
           </div>
         )}
-        {collapsed && (
+        {collapsed && !isMobileOpen && (
           <div className="w-8 h-8 mx-auto rounded-xl bg-gradient-to-tr from-amber-500 to-cyan-500 flex items-center justify-center font-bold text-slate-950 text-xs">
             I
           </div>
         )}
 
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="p-1 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition"
-        >
-          {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-        </button>
+        <div className="flex items-center space-x-1">
+          {isMobileOpen ? (
+            <button
+              onClick={onCloseMobile}
+              className="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-100"
+            >
+              ✕
+            </button>
+          ) : (
+            <button
+              onClick={() => setCollapsed(!collapsed)}
+              className="hidden md:block p-1 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition"
+            >
+              {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Role Notice Banner */}
-      {!collapsed && (
+      {(!collapsed || isMobileOpen) && (
         <div className="mx-3 mt-3 p-2 rounded-xl bg-amber-950/40 border border-amber-800/40 flex items-center space-x-2 text-[11px] text-amber-300">
           <ShieldAlert className="w-4 h-4 shrink-0 text-amber-400" />
           <span className="truncate">Active Role: <strong>{activeRole}</strong></span>
@@ -277,6 +284,7 @@ export const Sidebar = () => {
           <NavLink
             key={item.path}
             to={item.path}
+            onClick={() => isMobileOpen && onCloseMobile && onCloseMobile()}
             className={({ isActive }) =>
               `group relative flex items-center rounded-xl px-3 py-2.5 text-xs font-medium transition-all ${
                 isActive
@@ -284,12 +292,12 @@ export const Sidebar = () => {
                   : 'text-slate-400 hover:bg-slate-900 hover:text-slate-200'
               }`
             }
-            title={collapsed ? item.title : undefined}
+            title={collapsed && !isMobileOpen ? item.title : undefined}
           >
             <span className="shrink-0">{item.icon}</span>
-            {!collapsed && <span className="ml-3 font-semibold truncate">{item.title}</span>}
+            {(!collapsed || isMobileOpen) && <span className="ml-3 font-semibold truncate">{item.title}</span>}
 
-            {!collapsed && item.badge && (
+            {(!collapsed || isMobileOpen) && item.badge && (
               <span className="ml-auto text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-md bg-amber-500/20 text-amber-400 border border-amber-500/30">
                 {item.badge}
               </span>
@@ -299,7 +307,7 @@ export const Sidebar = () => {
       </nav>
 
       {/* Footer System Status */}
-      {!collapsed && (
+      {(!collapsed || isMobileOpen) && (
         <div className="p-3 border-t border-slate-800/80 text-[10px] text-slate-500 flex items-center justify-between">
           <span>IIA Enterprise v6.0</span>
           <span className="flex items-center space-x-1 text-emerald-400 font-medium">
@@ -308,6 +316,32 @@ export const Sidebar = () => {
           </span>
         </div>
       )}
-    </aside>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Desktop Sidebar */}
+      <aside
+        className={`hidden md:flex relative z-20 flex-col border-r border-slate-800/80 bg-slate-950/95 backdrop-blur-2xl transition-all duration-300 ${
+          collapsed ? 'w-16' : 'w-64'
+        }`}
+      >
+        {sidebarContent}
+      </aside>
+
+      {/* Mobile Drawer Overlay */}
+      {isMobileOpen && (
+        <div className="md:hidden fixed inset-0 z-50 flex">
+          <div
+            className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity"
+            onClick={onCloseMobile}
+          />
+          <aside className="relative z-50 w-72 max-w-[85vw] h-full bg-slate-950 border-r border-slate-800 shadow-2xl flex flex-col">
+            {sidebarContent}
+          </aside>
+        </div>
+      )}
+    </>
   );
 };

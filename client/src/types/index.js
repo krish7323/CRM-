@@ -1,13 +1,6 @@
-// 10-Role Enterprise User Role Definition
+// 3 Operational User Roles
 export const ALL_ROLES = [
   'Owner',
-  'Admin',
   'Counsellor',
   'Teacher',
-  'Accountant',
-  'Librarian',
-  'Transport Manager',
-  'HR',
-  'Parent',
-  'Student',
 ];

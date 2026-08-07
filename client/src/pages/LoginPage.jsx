@@ -59,7 +59,7 @@ export const LoginPage = () => {
               </div>
               <div>
                 <h1 className="text-sm font-bold tracking-wider text-slate-100 uppercase">The Indian International Academy</h1>
-                <p className="text-xs text-amber-400 font-semibold">10-Role Enterprise ERP Suite</p>
+                <p className="text-xs text-amber-400 font-semibold">3-Role Institute ERP Suite</p>
               </div>
             </div>
 
@@ -67,14 +67,14 @@ export const LoginPage = () => {
               Enterprise Access & Operations Sign In
             </h2>
             <p className="text-xs text-slate-400 mt-3 leading-relaxed">
-              Role-based access enforced across 10 enterprise roles: <strong>Owner</strong>, <strong>Admin</strong>, <strong>Counsellor</strong>, <strong>Teacher</strong>, <strong>Accountant</strong>, <strong>Librarian</strong>, <strong>Transport Manager</strong>, <strong>HR</strong>, <strong>Parent</strong>, and <strong>Student</strong>.
+              Role-based operational access strictly enforced across 3 operational roles: <strong>Owner</strong>, <strong>Counsellor</strong>, and <strong>Teacher</strong>.
             </p>
           </div>
 
           {/* Quick Roster Buttons */}
           <div className="mt-8 pt-6 border-t border-slate-800/80">
             <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
-              <Crown className="w-3.5 h-3.5 text-amber-400" /> IIA 10-Role Quick Test Accounts
+              <Crown className="w-3.5 h-3.5 text-amber-400" /> Operational User Accounts
             </p>
 
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5">

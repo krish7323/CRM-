@@ -2,13 +2,17 @@ import React, { useState } from 'react';
 import { useAppStore } from '../store/useAppStore';
 import { Award, QrCode, Printer } from 'lucide-react';
 export const CertificatesPage = () => {
-    const { certificates, students, generateCertificate } = useAppStore();
+    const { certificates, students, generateCertificate, currentUser } = useAppStore();
     const [selectedCert, setSelectedCert] = useState(certificates[0] || null);
+
+    const canGenerate = currentUser?.role === 'Owner' || currentUser?.role === 'Admin' || currentUser?.role === 'Teacher';
+
     const handleGenerateNew = () => {
         if (students.length === 0)
             return;
         generateCertificate(students[0], 'Distinction', 94);
     };
+
     return (<div className="space-y-6 font-sans">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -18,10 +22,12 @@ export const CertificatesPage = () => {
           <p className="text-xs text-slate-400">Official CBSE & CEFR affiliated gold-embossed merit certificate generator with live QR registry</p>
         </div>
 
-        <button onClick={handleGenerateNew} className="flex items-center space-x-1.5 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold text-xs px-4 py-2 rounded-xl shadow-lg shadow-amber-500/20 hover:scale-105 transition">
-          <Award className="w-4 h-4"/>
-          <span>Generate Certificate</span>
-        </button>
+        {canGenerate && (
+          <button onClick={handleGenerateNew} className="flex items-center space-x-1.5 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold text-xs px-4 py-2 rounded-xl shadow-lg shadow-amber-500/20 hover:scale-105 transition">
+            <Award className="w-4 h-4"/>
+            <span>Generate Certificate</span>
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

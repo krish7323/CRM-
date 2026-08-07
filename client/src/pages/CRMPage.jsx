@@ -126,10 +126,10 @@ export const CRMPage = () => {
 
       {/* Kanban Board */}
       <DragDropContext onDragEnd={onDragEnd}>
-        <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-7 gap-3 overflow-x-auto pb-4">
+        <div className="flex overflow-x-auto space-x-3 pb-4 min-w-0">
           {stages.map((stage) => {
             const stageLeads = filteredLeads.filter((l) => l.status === stage);
-            return (<div key={stage} className="bg-slate-950/60 p-3 rounded-2xl border border-slate-800/80 min-w-[240px] flex flex-col h-[75vh]">
+            return (<div key={stage} className="bg-slate-950/60 p-3 rounded-2xl border border-slate-800/80 w-[270px] shrink-0 flex flex-col h-[70vh]">
                 <div className="flex items-center justify-between pb-2.5 mb-2 border-b border-slate-800/80">
                   <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider">{stage}</h3>
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-900 text-amber-400 border border-slate-800">

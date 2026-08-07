@@ -116,7 +116,7 @@ export const ParentPortalPage = () => {
                 <div key={inst.installmentNo} className="p-3 bg-slate-950 rounded-xl border border-slate-800 flex items-center justify-between font-mono text-[11px]">
                   <div>
                     <p className="font-bold text-slate-200">Installment #{inst.installmentNo}</p>
-                    <p className="text-[10px] text-slate-500">Due: {inst.dueDate}</p>
+                    <p className="text-[10px] text-slate-500">Status: {inst.status}</p>
                   </div>
                   <div className="text-right">
                     <p className="font-bold text-amber-400">₹{inst.amount.toLocaleString('en-IN')}</p>
@@ -145,6 +145,26 @@ export const ParentPortalPage = () => {
                 </div>
                 <p className="text-[11px] text-slate-300">Teacher: {p.teacherName}</p>
                 <p className="text-[10px] text-slate-400">Link: <a href={p.meetLink} target="_blank" rel="noreferrer" className="text-purple-400 underline font-mono">{p.meetLink}</a></p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Homework & Assignments Tracker */}
+        <div className="glass-panel p-5 rounded-2xl border border-slate-800 space-y-3 lg:col-span-2">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2 pb-2 border-b border-slate-800">
+            <BookMarked className="w-4 h-4 text-amber-400" /> Child Homework & Assignment Deadlines
+          </h3>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            {homeworks.map((hw) => (
+              <div key={hw._id} className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-1">
+                <div className="flex justify-between">
+                  <h4 className="font-bold text-slate-100 truncate">{hw.title}</h4>
+                  <span className="text-[10px] font-mono text-amber-400">Due: {hw.dueDate}</span>
+                </div>
+                <p className="text-[11px] text-slate-400">{hw.description}</p>
+                <p className="text-[10px] text-slate-500">Teacher: {hw.teacherName} • Max Marks: {hw.totalMarks}</p>
               </div>
             ))}
           </div>

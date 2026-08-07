@@ -12,6 +12,8 @@ const ExamMarkSchema = new mongoose.Schema(
     teacherRemarks: { type: String },
     principalRemarks: { type: String },
     promotionStatus: { type: String, enum: ['Pass', 'Fail', 'Promoted'], default: 'Pass' },
+    approvalStatus: { type: String, enum: ['Draft', 'Pending_Approval', 'Published'], default: 'Published' },
+    publishedBy: { type: String, default: 'Vikramaditya Roy' },
     isDeleted: { type: Boolean, default: false },
   },
   { timestamps: true }

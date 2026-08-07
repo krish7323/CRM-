@@ -137,21 +137,31 @@ export const LeavePage = () => {
                     </span>
                   </td>
                   <td className="p-3 text-right space-x-1">
-                    {lv.status === 'Pending' && (currentUser.role === 'Owner' || currentUser.role === 'Admin' || currentUser.role === 'HR') && (
-                      <>
-                        <button
-                          onClick={() => approveLeave(lv._id, true)}
-                          className="px-2 py-1 rounded bg-emerald-500 text-slate-950 font-bold text-[10px] hover:bg-emerald-400"
-                        >
-                          Approve
-                        </button>
-                        <button
-                          onClick={() => approveLeave(lv._id, false)}
-                          className="px-2 py-1 rounded bg-rose-950 text-rose-400 font-bold text-[10px] hover:bg-rose-900"
-                        >
-                          Reject
-                        </button>
-                      </>
+                    {lv.status === 'Pending' && (
+                      (() => {
+                        const canApprove =
+                          currentUser.role === 'Owner' ||
+                          currentUser.role === 'Admin' ||
+                          (currentUser.role === 'Counsellor' && (lv.applicantRole === 'Teacher' || lv.applicantRole === 'Student'));
+                        return canApprove ? (
+                          <>
+                            <button
+                              onClick={() => approveLeave(lv._id, true)}
+                              className="px-2 py-1 rounded bg-emerald-500 text-slate-950 font-bold text-[10px] hover:bg-emerald-400"
+                            >
+                              Approve
+                            </button>
+                            <button
+                              onClick={() => approveLeave(lv._id, false)}
+                              className="px-2 py-1 rounded bg-rose-950 text-rose-400 font-bold text-[10px] hover:bg-rose-900"
+                            >
+                              Reject
+                            </button>
+                          </>
+                        ) : (
+                          <span className="text-[10px] text-slate-500 italic">Awaiting Higher Approver</span>
+                        );
+                      })()
                     )}
                   </td>
                 </tr>
