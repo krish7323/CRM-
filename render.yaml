@@ -15,3 +15,13 @@ services:
         value: iia_erp_super_secret_jwt_key_2026
       - key: MONGODB_URI
         value: mongodb+srv://vizdigitalofficial_db_user:awvCYzaRT343kYNh@crm00.zhkkkuu.mongodb.net/iia_institute_erp?retryWrites=true&w=majority&appName=crm00
+
+  - type: web
+    name: CRM-frontend
+    env: static
+    buildCommand: cd client && npm install && npm run build
+    staticPublishPath: ./client/dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
