@@ -95,7 +95,7 @@ export const InventoryPage = () => {
       <div className="glass-card p-5 rounded-2xl border border-slate-800 flex items-center justify-between bg-slate-950/60">
         <div>
           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Asset Portfolio Valuation</span>
-          <p className="text-2xl font-black text-teal-400 font-mono mt-0.5">₹{totalAssetValue.toLocaleString('en-IN')}</p>
+          <p className="text-2xl font-black text-teal-400 font-mono mt-0.5">₹{(totalAssetValue || 0).toLocaleString('en-IN')}</p>
         </div>
         <div className="w-12 h-12 rounded-2xl bg-teal-500/10 border border-teal-500/30 flex items-center justify-center text-teal-400">
           <IndianRupee className="w-6 h-6" />
@@ -152,7 +152,7 @@ export const InventoryPage = () => {
               </p>
               <p className="flex justify-between">
                 <span className="text-slate-500 text-[10px]">Purchase Cost:</span>
-                <span className="text-teal-400 font-bold">₹{ast.purchasePrice.toLocaleString('en-IN')}</span>
+                <span className="text-teal-400 font-bold">₹{(ast.purchasePrice || 0).toLocaleString('en-IN')}</span>
               </p>
               {ast.assignedTo && <p className="text-slate-300 font-sans text-[11px]">Assigned: {ast.assignedTo}</p>}
             </div>

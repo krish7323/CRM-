@@ -31,7 +31,7 @@ export const AdmissionsPage = () => {
               </div>
 
               <div className="text-xs text-slate-300 flex justify-between">
-                <span>Quoted Fee: €{lead.quotedFee.toLocaleString()}</span>
+                <span>Quoted Fee: ₹{(lead.quotedFee || 0).toLocaleString('en-IN')}</span>
                 <span className="text-cyan-400">{lead.status} Stage</span>
               </div>
 

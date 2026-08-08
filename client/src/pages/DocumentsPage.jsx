@@ -21,7 +21,7 @@ export const DocumentsPage = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-800/60">
-            {students.flatMap((s) => s.documents.map((doc, idx) => (<tr key={`${s._id}-${idx}`} className="hover:bg-slate-900/50 transition">
+            {(students || []).flatMap((s) => (s.documents || []).map((doc, idx) => (<tr key={`${s._id}-${idx}`} className="hover:bg-slate-900/50 transition">
                   <td className="p-4 font-bold text-slate-100">{s.name} ({s.studentId})</td>
                   <td className="p-4 text-slate-300">{doc.type}</td>
                   <td className="p-4">

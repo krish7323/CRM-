@@ -206,7 +206,7 @@ export const CoursesPage = () => {
               <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-2 text-xs">
                 <div className="flex justify-between items-center text-[11px]">
                   <span className="text-slate-400">Annual Tuition Fee:</span>
-                  <span className="font-bold text-emerald-400 font-mono">₹{cls.baseFee?.toLocaleString('en-IN')}</span>
+                  <span className="font-bold text-emerald-400 font-mono">₹{(cls.baseFee || 0).toLocaleString('en-IN')}</span>
                 </div>
 
                 <div className="border-t border-slate-800/80 pt-2 space-y-1">
@@ -226,9 +226,9 @@ export const CoursesPage = () => {
                       <div key={idx} className="p-1.5 rounded bg-purple-950/40 border border-purple-800/40 text-[10px] space-y-0.5">
                         <div className="flex justify-between font-bold text-purple-300">
                           <span>{st.name}</span>
-                          <span>₹{st.fee?.toLocaleString('en-IN')}</span>
+                          <span>₹{(st.fee || 0).toLocaleString('en-IN')}</span>
                         </div>
-                        <p className="text-[9px] text-slate-400 truncate">{st.subjects.join(', ')}</p>
+                        <p className="text-[9px] text-slate-400 truncate">{(st.subjects || []).join(', ')}</p>
                       </div>
                     ))}
                   </div>
@@ -264,7 +264,7 @@ export const CoursesPage = () => {
                       <span className="font-bold text-cyan-400">{lvl.code}</span>
                       <span className="text-[10px] text-slate-400 block">{lvl.durationWeeks} weeks • {lvl.totalClasses} classes</span>
                     </div>
-                    <span className="font-bold text-emerald-400 font-mono">₹{lvl.baseFee?.toLocaleString('en-IN')}</span>
+                    <span className="font-bold text-emerald-400 font-mono">₹{(lvl.baseFee || 0).toLocaleString('en-IN')}</span>
                   </div>
                 ))}
               </div>

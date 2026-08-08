@@ -108,18 +108,18 @@ export const ParentPortalPage = () => {
           <div className="space-y-2 text-xs">
             <div className="flex justify-between p-3 bg-slate-950 rounded-xl border border-slate-800">
               <span>Total Course Net Fee:</span>
-              <span className="font-bold text-slate-100 font-mono">₹{childFee?.netFee?.toLocaleString('en-IN')}</span>
+              <span className="font-bold text-slate-100 font-mono">₹{childFee?.netFee?.toLocaleString('en-IN') || '25,000'}</span>
             </div>
 
             <div className="space-y-1.5 pt-2">
-              {childFee?.installments.map((inst) => (
+              {childFee?.installments?.map((inst) => (
                 <div key={inst.installmentNo} className="p-3 bg-slate-950 rounded-xl border border-slate-800 flex items-center justify-between font-mono text-[11px]">
                   <div>
                     <p className="font-bold text-slate-200">Installment #{inst.installmentNo}</p>
                     <p className="text-[10px] text-slate-500">Status: {inst.status}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-amber-400">₹{inst.amount.toLocaleString('en-IN')}</p>
+                    <p className="font-bold text-amber-400">₹{(inst.amount || 0).toLocaleString('en-IN')}</p>
                     <span className={`text-[10px] font-bold ${inst.status === 'Paid' ? 'text-emerald-400' : 'text-amber-400'}`}>
                       {inst.status}
                     </span>

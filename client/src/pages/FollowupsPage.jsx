@@ -56,13 +56,13 @@ export const FollowupsPage = () => {
                   </td>
                   <td className="p-4 text-slate-300">{lead.counsellorName || 'Sophie Martin'}</td>
                   <td className="p-4 text-slate-400 max-w-xs truncate">
-                    {lead.notes[lead.notes.length - 1]?.text || 'Scheduled call'}
+                    {lead.notes?.[lead.notes?.length - 1]?.text || 'Scheduled call'}
                   </td>
                   <td className="p-4 text-right space-x-2">
                     <a href={`tel:${lead.phone}`} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800 text-slate-200 font-semibold hover:bg-slate-700 transition">
                       <Phone className="w-3 h-3 text-cyan-400"/> Call
                     </a>
-                    <a href={`https://wa.me/${lead.whatsapp.replace(/\D/g, '')}?text=Hallo%20${encodeURIComponent(lead.name)},%20this%20is%20The%20European%20Language%20Hub.%20Following%20up%20on%20your%20${lead.course}%20enquiry!`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-500 transition">
+                    <a href={`https://wa.me/${(lead.whatsapp || '').replace(/\D/g, '')}?text=Hallo%20${encodeURIComponent(lead.name || '')},%20this%20is%20The%20European%20Language%20Hub.%20Following%20up%20on%20your%20${lead.course || ''}%20enquiry!`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-500 transition">
                       <MessageSquare className="w-3 h-3"/> WhatsApp
                     </a>
                   </td>

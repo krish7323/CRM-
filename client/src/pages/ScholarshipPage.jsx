@@ -74,7 +74,7 @@ export const ScholarshipPage = () => {
       <div className="glass-card p-5 rounded-2xl border border-slate-800 flex items-center justify-between bg-slate-950/60">
         <div>
           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Granted Concessions</span>
-          <p className="text-2xl font-black text-emerald-400 font-mono mt-0.5">₹{totalConcessionAmount.toLocaleString('en-IN')}</p>
+          <p className="text-2xl font-black text-emerald-400 font-mono mt-0.5">₹{(totalConcessionAmount || 0).toLocaleString('en-IN')}</p>
         </div>
         <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
           <IndianRupee className="w-6 h-6" />
@@ -134,7 +134,7 @@ export const ScholarshipPage = () => {
                 <tr key={sch._id} className="hover:bg-slate-900/50">
                   <td className="p-3 font-sans font-bold text-slate-100">{sch.studentName} ({sch.studentCode})</td>
                   <td className="p-3 font-sans text-cyan-300 font-semibold">{sch.type}</td>
-                  <td className="p-3 font-bold text-emerald-400">₹{sch.amount.toLocaleString('en-IN')} ({sch.percentage}%)</td>
+                  <td className="p-3 font-bold text-emerald-400">₹{(sch.amount || 0).toLocaleString('en-IN')} ({sch.percentage || 0}%)</td>
                   <td className="p-3 font-sans text-slate-300 max-w-xs truncate">{sch.reason}</td>
                   <td className="p-3">
                     <span className={`px-2.5 py-0.5 rounded text-[10px] font-bold font-sans ${

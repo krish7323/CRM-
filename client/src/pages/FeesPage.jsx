@@ -30,10 +30,10 @@ export const FeesPage = () => {
 
         <div className="flex gap-3 text-xs font-semibold">
           <div className="bg-emerald-950/60 border border-emerald-800/60 text-emerald-400 px-3 py-1.5 rounded-xl">
-            Collected: ₹{totalCollected.toLocaleString('en-IN')}
+            Collected: ₹{(totalCollected || 0).toLocaleString('en-IN')}
           </div>
           <div className="bg-amber-950/60 border border-amber-800/60 text-amber-400 px-3 py-1.5 rounded-xl">
-            Pending: ₹{totalPending.toLocaleString('en-IN')}
+            Pending: ₹{(totalPending || 0).toLocaleString('en-IN')}
           </div>
         </div>
       </div>
@@ -60,9 +60,9 @@ export const FeesPage = () => {
                     <p className="text-[10px] font-mono text-amber-400">{fee.studentCode}</p>
                   </td>
                   <td className="p-4 text-slate-300">{fee.courseName}</td>
-                  <td className="p-4 text-slate-200 font-semibold">₹{fee.netFee.toLocaleString('en-IN')}</td>
-                  <td className="p-4 text-emerald-400 font-semibold">₹{fee.paidTotal.toLocaleString('en-IN')}</td>
-                  <td className="p-4 text-amber-400 font-semibold">₹{fee.remainingTotal.toLocaleString('en-IN')}</td>
+                  <td className="p-4 text-slate-200 font-semibold">₹{(fee.netFee || 0).toLocaleString('en-IN')}</td>
+                  <td className="p-4 text-emerald-400 font-semibold">₹{(fee.paidTotal || 0).toLocaleString('en-IN')}</td>
+                  <td className="p-4 text-amber-400 font-semibold">₹{(fee.remainingTotal || 0).toLocaleString('en-IN')}</td>
                   <td className="p-4">
                     <span className={`px-2.5 py-0.5 rounded text-[10px] font-bold uppercase ${fee.status === 'Paid'
                 ? 'bg-emerald-950 text-emerald-400 border border-emerald-800/40'
@@ -97,7 +97,7 @@ export const FeesPage = () => {
             <div className="space-y-3">
               {selectedFee.installments.map((inst) => (<div key={inst.installmentNo} className="bg-slate-950 p-3 rounded-xl border border-slate-800 flex items-center justify-between text-xs">
                   <div>
-                    <p className="font-bold text-slate-200">Installment #{inst.installmentNo} — ₹{inst.amount.toLocaleString('en-IN')}</p>
+                    <p className="font-bold text-slate-200">Installment #{inst.installmentNo} — ₹{(inst.amount || 0).toLocaleString('en-IN')}</p>
                     <p className="text-[10px] text-slate-400">Status: {inst.status}</p>
                   </div>
 

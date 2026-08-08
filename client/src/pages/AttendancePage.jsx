@@ -15,7 +15,7 @@ export const AttendancePage = () => {
     const getStatus = (stdId) => {
         if (attendanceRecords[stdId])
             return attendanceRecords[stdId];
-        if (existingLog) {
+        if (existingLog && Array.isArray(existingLog.entries)) {
             const match = existingLog.entries.find((e) => e.studentId === stdId);
             if (match)
                 return match.status;

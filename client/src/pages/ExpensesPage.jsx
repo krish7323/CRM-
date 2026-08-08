@@ -38,17 +38,17 @@ export const ExpensesPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="glass-card p-5 rounded-2xl border border-slate-800">
           <span className="text-xs font-semibold text-slate-400 uppercase">Total Fee Income (INR)</span>
-          <p className="text-xl font-black text-emerald-400 mt-2">₹{totalCollected.toLocaleString('en-IN')}</p>
+          <p className="text-xl font-black text-emerald-400 mt-2">₹{(totalCollected || 0).toLocaleString('en-IN')}</p>
         </div>
 
         <div className="glass-card p-5 rounded-2xl border border-slate-800">
           <span className="text-xs font-semibold text-slate-400 uppercase">Operating Expenses (INR)</span>
-          <p className="text-xl font-black text-rose-400 mt-2">₹{totalExp.toLocaleString('en-IN')}</p>
+          <p className="text-xl font-black text-rose-400 mt-2">₹{(totalExp || 0).toLocaleString('en-IN')}</p>
         </div>
 
         <div className="glass-card p-5 rounded-2xl border border-slate-800">
           <span className="text-xs font-semibold text-slate-400 uppercase">Net Surplus / Margin</span>
-          <p className="text-xl font-black text-amber-400 mt-2">₹{netSurplus.toLocaleString('en-IN')}</p>
+          <p className="text-xl font-black text-amber-400 mt-2">₹{(netSurplus || 0).toLocaleString('en-IN')}</p>
         </div>
       </div>
 
@@ -72,7 +72,7 @@ export const ExpensesPage = () => {
           <tbody className="divide-y divide-slate-800/60">
             {expenses.map((exp) => (<tr key={exp._id} className="hover:bg-slate-900/50">
                 <td className="p-4 font-bold text-slate-100">{exp.category}</td>
-                <td className="p-4 font-mono font-bold text-rose-400">₹{exp.amount.toLocaleString('en-IN')}</td>
+                <td className="p-4 font-mono font-bold text-rose-400">₹{(exp.amount || 0).toLocaleString('en-IN')}</td>
                 <td className="p-4 text-slate-400">{exp.date}</td>
                 <td className="p-4 text-slate-300">{exp.paidBy}</td>
                 <td className="p-4 text-slate-400">{exp.remarks || '-'}</td>

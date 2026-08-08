@@ -74,10 +74,10 @@ export const StudentPortalPage = () => {
         <div className="glass-card p-4 rounded-2xl border border-slate-800 space-y-1">
           <span className="text-slate-400 text-[10px] uppercase font-semibold">Fee Status (INR)</span>
           <p className="text-xl font-black text-amber-400">
-            {studentFee ? `₹${studentFee.paidTotal.toLocaleString('en-IN')} Paid` : '₹15,000 Paid'}
+            {studentFee ? `₹${(studentFee.paidTotal || 0).toLocaleString('en-IN')} Paid` : '₹15,000 Paid'}
           </p>
           <p className="text-[10px] text-slate-500">
-            Pending: {studentFee ? `₹${studentFee.remainingTotal.toLocaleString('en-IN')}` : '₹8,000'}
+            Pending: {studentFee ? `₹${(studentFee.remainingTotal || 0).toLocaleString('en-IN')}` : '₹8,000'}
           </p>
         </div>
 

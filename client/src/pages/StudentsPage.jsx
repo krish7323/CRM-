@@ -69,7 +69,8 @@ export const StudentsPage = () => {
         let totalPresent = 0;
         let totalAbsent = 0;
         let totalLogs = 0;
-        attendanceLogs.forEach((log) => {
+        (attendanceLogs || []).forEach((log) => {
+            if (!log || !Array.isArray(log.entries)) return;
             const match = log.entries.find((e) => e.studentId === studentCode);
             if (match) {
                 totalLogs++;
@@ -335,7 +336,7 @@ export const StudentsPage = () => {
 
               <div className="space-y-1.5 max-h-28 overflow-y-auto">
                 {attendanceLogs.length > 0 ? (attendanceLogs.map((log) => {
-                const entry = log.entries.find((e) => e.studentId === selectedStudent.studentId);
+                const entry = log.entries?.find((e) => e.studentId === selectedStudent.studentId);
                 return (<div key={log._id} className="p-2.5 bg-slate-950 rounded-xl border border-slate-800 flex justify-between items-center text-xs">
                         <div>
                           <p className="font-semibold text-slate-200">Date: {log.date}</p>

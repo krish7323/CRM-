@@ -175,7 +175,7 @@ export const LibraryPage = () => {
         <div className="glass-card p-4 rounded-2xl border border-slate-800 flex items-center justify-between">
           <div>
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Fine Revenue Collected</span>
-            <p className="text-xl font-black text-teal-400 font-mono mt-0.5">₹{totalFineCollected.toLocaleString('en-IN')}</p>
+            <p className="text-xl font-black text-teal-400 font-mono mt-0.5">₹{(totalFineCollected || 0).toLocaleString('en-IN')}</p>
           </div>
           <div className="w-10 h-10 rounded-xl bg-teal-500/10 border border-teal-500/30 flex items-center justify-center text-teal-400">
             <IndianRupee className="w-5 h-5" />

@@ -192,9 +192,9 @@ export const DashboardPage = () => {
                 </div>
               </div>
               <div className="mt-3 flex items-baseline gap-2">
-                <span className="text-2xl font-black text-slate-100">₹{totalCollected.toLocaleString('en-IN')}</span>
+                <span className="text-2xl font-black text-slate-100">₹{(totalCollected || 0).toLocaleString('en-IN')}</span>
               </div>
-              <p className="text-[10px] text-slate-500 mt-1">Pending: ₹{totalPending.toLocaleString('en-IN')}</p>
+              <p className="text-[10px] text-slate-500 mt-1">Pending: ₹{(totalPending || 0).toLocaleString('en-IN')}</p>
             </div>
 
             <div className="glass-card p-5 rounded-2xl">
@@ -205,7 +205,7 @@ export const DashboardPage = () => {
                 </div>
               </div>
               <div className="mt-3 flex items-baseline gap-2">
-                <span className="text-2xl font-black text-slate-100">₹{netProfit.toLocaleString('en-IN')}</span>
+                <span className="text-2xl font-black text-slate-100">₹{(netProfit || 0).toLocaleString('en-IN')}</span>
               </div>
               <p className="text-[10px] text-slate-500 mt-1">Net Operating Profit</p>
             </div>

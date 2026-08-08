@@ -156,7 +156,7 @@ export const CRMPage = () => {
 
                               <div className="flex items-center justify-between text-[10px] text-slate-400">
                                 <span>{lead.course} {lead.level}</span>
-                                <span className="font-mono text-amber-400 font-bold">₹{lead.quotedFee.toLocaleString('en-IN')}</span>
+                                <span className="font-mono text-amber-400 font-bold">₹{(lead.quotedFee || 0).toLocaleString('en-IN')}</span>
                               </div>
 
                               {lead.demoClassDate && (<div className="p-1.5 rounded bg-slate-900 text-[9px] text-cyan-300 flex items-center justify-between border border-slate-800">
@@ -208,7 +208,7 @@ export const CRMPage = () => {
               </div>
               <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
                 <span className="text-slate-500 text-[10px]">Quoted Fee (INR)</span>
-                <p className="font-bold text-amber-400 font-mono">₹{selectedLead.quotedFee.toLocaleString('en-IN')}</p>
+                <p className="font-bold text-amber-400 font-mono">₹{(selectedLead.quotedFee || 0).toLocaleString('en-IN')}</p>
               </div>
               <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
                 <span className="text-slate-500 text-[10px]">Lead Score</span>
@@ -249,7 +249,7 @@ export const CRMPage = () => {
                   {selectedLead.callHistory.map((c) => (<div key={c.id} className="p-2 bg-slate-950 rounded-lg border border-slate-800 text-[11px] flex justify-between">
                       <div>
                         <p className="font-semibold text-slate-200">{c.notes}</p>
-                        <p className="text-[9px] text-slate-500">By {c.calledBy} • {new Date(c.calledAt).toLocaleString('en-IN')}</p>
+                        <p className="text-[9px] text-slate-500">By {c.calledBy} • {c.calledAt ? new Date(c.calledAt).toLocaleString('en-IN') : 'Recently'}</p>
                       </div>
                       <span className="px-2 py-0.5 rounded bg-slate-900 text-amber-400 font-bold text-[9px] h-fit">
                         {c.outcome}

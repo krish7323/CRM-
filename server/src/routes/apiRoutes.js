@@ -51,7 +51,7 @@ const fallbackMessages = [{ _id: 'msg-1', senderName: 'Dr. Rajesh Sharma', text:
 const fallbackLeaves = [{ _id: 'lv-1', applicantName: 'Prof. Amit Kulkarni', leaveType: 'Casual', status: 'Pending' }];
 const fallbackCourses = [{ _id: 'crs-1', name: 'German Language', code: 'GER-A1' }];
 const fallbackBatches = [{ _id: 'btc-1', code: 'GER-A1-B01', courseName: 'German A1' }];
-const fallbackAttendance = [{ _id: 'att-1', batchCode: 'GER-A1-B01', presentCount: 18 }];
+const fallbackAttendance = [{ _id: 'att-1', batchCode: 'GER-A1-B01', date: '2026-08-06', presentCount: 18, entries: [{ studentId: 'IIA-1001', studentName: 'Aarav Gupta', status: 'Present' }] }];
 const fallbackFees = [{ _id: 'fee-1', studentCode: 'IIA-1001', netFee: 22500, paidTotal: 15000, remainingTotal: 7500 }];
 const fallbackExpenses = [{ _id: 'exp-1', title: 'Facility Rent', amount: 45000 }];
 
