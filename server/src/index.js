@@ -66,9 +66,17 @@ process.on('unhandledRejection', (reason, promise) => {
 // Serve Client Static Build Files in Production / Render
 import fs from 'fs';
 
-const clientDistPath = path.join(__dirname, '../../client/dist');
+const potentialPaths = [
+  path.resolve(process.cwd(), 'client/dist'),
+  path.resolve(__dirname, '../../client/dist'),
+  path.resolve(__dirname, '../client/dist'),
+  path.resolve(process.cwd(), 'dist'),
+];
 
-if (fs.existsSync(clientDistPath)) {
+let clientDistPath = potentialPaths.find((p) => fs.existsSync(p));
+
+if (clientDistPath) {
+  console.log(`📦 Serving production client build from: ${clientDistPath}`);
   app.use(express.static(clientDistPath));
   app.get('*', (req, res, next) => {
     if (req.path.startsWith('/api')) return next();
