@@ -29,8 +29,8 @@ export const Header = ({ onToggleMobileMenu }) => {
 
         <div className="flex items-center space-x-1.5 bg-slate-900/90 border border-slate-800 rounded-full px-2.5 py-1 text-xs">
           <Globe className="w-3.5 h-3.5 text-amber-400 animate-pulse shrink-0" />
-          <span className="text-slate-300 font-medium hidden lg:inline">The Indian International Academy</span>
-          <span className="text-amber-400 font-bold text-[11px] sm:text-xs">IIA ERP</span>
+          <span className="text-slate-300 font-medium hidden lg:inline">European Language Hub</span>
+          <span className="text-amber-400 font-bold text-[11px] sm:text-xs">ELH CRM</span>
         </div>
       </div>
 
@@ -73,7 +73,7 @@ export const Header = ({ onToggleMobileMenu }) => {
           className="flex items-center space-x-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs px-3 py-1.5 rounded-xl shadow-lg shadow-amber-500/20 transition-all hover:scale-105 active:scale-95"
         >
           <Sparkles className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">IIA AI</span>
+          <span className="hidden sm:inline">ELH AI</span>
         </button>
 
         {/* Theme Toggle Button */}

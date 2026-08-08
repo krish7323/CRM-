@@ -31,7 +31,7 @@ export const CoursesPage = () => {
     currentUser,
   } = useAppStore();
 
-  const [activeTab, setActiveTab] = useState('school'); // 'school' | 'coaching' | 'subjects' | 'sessions'
+  const [activeTab, setActiveTab] = useState('coaching'); // 'coaching' | 'subjects' | 'sessions'
 
   // Modals
   const [isClassModalOpen, setIsClassModalOpen] = useState(false);
@@ -41,19 +41,10 @@ export const CoursesPage = () => {
   const [isCourseModalOpen, setIsCourseModalOpen] = useState(false);
 
   // Forms
-  const [classForm, setClassForm] = useState({
-    name: 'Class 9 (Secondary Board)',
-    code: 'STD-09',
-    category: 'Secondary',
-    baseFee: 38000,
-    sectionName: 'Section A',
-    teacherName: 'Prof. Amit Kulkarni',
-  });
-
   const [subjectForm, setSubjectForm] = useState({
-    code: 'AI-101',
-    name: 'Artificial Intelligence & Robotics',
-    teacherName: 'Vikramaditya Roy',
+    code: 'GER-A1-MOD',
+    name: 'Goethe German A1 Grammar & Vocabulary',
+    teacherName: 'Prof. Amit Kulkarni',
     weeklyClasses: 5,
     maxMarks: 100,
     passingMarks: 33,
@@ -69,8 +60,8 @@ export const CoursesPage = () => {
   });
 
   const [promoteForm, setPromoteForm] = useState({
-    sourceClass: 'STD-10',
-    targetClass: 'STD-11',
+    sourceClass: 'GER-A1',
+    targetClass: 'GER-A2',
   });
 
   const [courseForm, setCourseForm] = useState({
@@ -93,31 +84,21 @@ export const CoursesPage = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-slate-100 flex items-center gap-2">
-            <School className="w-5 h-5 text-amber-400" /> IIA Academic Program, Class & Curriculum Manager
+            <BookOpen className="w-5 h-5 text-amber-400" /> ELH Language Program & Curriculum Manager
           </h1>
           <p className="text-xs text-slate-400">
-            Traditional School (Nursery - Class 12), Coaching & Language programs, Subject Registry & Session Promotion Engine
+            Comprehensive German, French, English, Spanish & European Language curriculum, CEFR levels & base fee structures
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {activeTab === 'school' && (
-            <button
-              onClick={() => setIsClassModalOpen(true)}
-              className="flex items-center space-x-1.5 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold text-xs px-4 py-2 rounded-xl shadow-lg shadow-amber-500/20 hover:scale-105 transition"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Add School Class</span>
-            </button>
-          )}
-
           {activeTab === 'coaching' && (
             <button
               onClick={() => setIsCourseModalOpen(true)}
-              className="flex items-center space-x-1.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-slate-950 font-bold text-xs px-4 py-2 rounded-xl shadow-lg shadow-cyan-500/20 hover:scale-105 transition"
+              className="flex items-center space-x-1.5 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold text-xs px-4 py-2 rounded-xl shadow-lg shadow-amber-500/20 hover:scale-105 transition"
             >
               <Plus className="w-4 h-4" />
-              <span>Add Custom Program</span>
+              <span>Add Language Program</span>
             </button>
           )}
 
@@ -127,7 +108,7 @@ export const CoursesPage = () => {
               className="flex items-center space-x-1.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-bold text-xs px-4 py-2 rounded-xl shadow-lg shadow-emerald-500/20 hover:scale-105 transition"
             >
               <Plus className="w-4 h-4" />
-              <span>Add Subject</span>
+              <span>Add Module Subject</span>
             </button>
           )}
 
@@ -137,7 +118,7 @@ export const CoursesPage = () => {
               className="flex items-center space-x-1.5 bg-gradient-to-r from-purple-500 to-pink-500 text-slate-950 font-bold text-xs px-4 py-2 rounded-xl shadow-lg shadow-purple-500/20 hover:scale-105 transition"
             >
               <ArrowRight className="w-4 h-4" />
-              <span>Promote Students</span>
+              <span>Promote Level Students</span>
             </button>
           )}
         </div>
@@ -146,24 +127,12 @@ export const CoursesPage = () => {
       {/* Navigation Tabs */}
       <div className="flex border-b border-slate-800 space-x-4 text-xs font-bold overflow-x-auto">
         <button
-          onClick={() => setActiveTab('school')}
-          className={`pb-3 px-1 border-b-2 flex items-center gap-2 transition ${
-            activeTab === 'school' ? 'border-amber-400 text-amber-400' : 'border-transparent text-slate-400 hover:text-slate-200'
-          }`}
-        >
-          <GraduationCap className="w-4 h-4" /> School Programs (Nursery – Class 12)
-          <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 text-[10px]">
-            {schoolClasses.length} Classes
-          </span>
-        </button>
-
-        <button
           onClick={() => setActiveTab('coaching')}
           className={`pb-3 px-1 border-b-2 flex items-center gap-2 transition ${
             activeTab === 'coaching' ? 'border-amber-400 text-amber-400' : 'border-transparent text-slate-400 hover:text-slate-200'
           }`}
         >
-          <Sparkles className="w-4 h-4" /> Coaching & Language Programs
+          <Sparkles className="w-4 h-4" /> Language & Coaching Programs
           <span className="px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400 text-[10px]">
             {courses.length} Programs
           </span>
@@ -175,7 +144,7 @@ export const CoursesPage = () => {
             activeTab === 'subjects' ? 'border-amber-400 text-amber-400' : 'border-transparent text-slate-400 hover:text-slate-200'
           }`}
         >
-          <BookmarkCheck className="w-4 h-4" /> Subject Registry ({subjects.length})
+          <BookmarkCheck className="w-4 h-4" /> Subject Module Registry ({subjects.length})
         </button>
 
         <button
@@ -184,60 +153,9 @@ export const CoursesPage = () => {
             activeTab === 'sessions' ? 'border-amber-400 text-amber-400' : 'border-transparent text-slate-400 hover:text-slate-200'
           }`}
         >
-          <Calendar className="w-4 h-4" /> Academic Sessions & Student Promotion
+          <Calendar className="w-4 h-4" /> Academic Sessions & Level Promotion
         </button>
       </div>
-
-      {/* TAB 1: K-12 SCHOOL PROGRAMS */}
-      {activeTab === 'school' && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {schoolClasses.map((cls) => (
-            <div key={cls._id} className="glass-panel p-5 rounded-2xl border border-slate-800 space-y-4 relative">
-              <div className="flex items-start justify-between">
-                <div>
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-amber-400 font-mono px-2 py-0.5 rounded bg-slate-900 border border-slate-800">
-                    {cls.category} • Code: {cls.code}
-                  </span>
-                  <h3 className="text-base font-bold text-slate-100 mt-1">{cls.name}</h3>
-                </div>
-                <GraduationCap className="w-5 h-5 text-amber-400" />
-              </div>
-
-              <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-2 text-xs">
-                <div className="flex justify-between items-center text-[11px]">
-                  <span className="text-slate-400">Annual Tuition Fee:</span>
-                  <span className="font-bold text-emerald-400 font-mono">₹{(cls.baseFee || 0).toLocaleString('en-IN')}</span>
-                </div>
-
-                <div className="border-t border-slate-800/80 pt-2 space-y-1">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase">Configured Sections</span>
-                  {(cls.sections || []).map((sec, idx) => (
-                    <div key={idx} className="flex justify-between text-[10px] font-mono text-slate-300 bg-slate-900/60 p-1.5 rounded border border-slate-800">
-                      <span>{sec.code} ({sec.capacity} Seats)</span>
-                      <span className="text-amber-300">{sec.teacherName}</span>
-                    </div>
-                  ))}
-                </div>
-
-                {cls.streams && cls.streams.length > 0 && (
-                  <div className="border-t border-slate-800/80 pt-2 space-y-1">
-                    <span className="text-[10px] font-bold text-purple-400 uppercase">Available Academic Streams</span>
-                    {cls.streams.map((st, idx) => (
-                      <div key={idx} className="p-1.5 rounded bg-purple-950/40 border border-purple-800/40 text-[10px] space-y-0.5">
-                        <div className="flex justify-between font-bold text-purple-300">
-                          <span>{st.name}</span>
-                          <span>₹{(st.fee || 0).toLocaleString('en-IN')}</span>
-                        </div>
-                        <p className="text-[9px] text-slate-400 truncate">{(st.subjects || []).join(', ')}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
 
       {/* TAB 2: COACHING & LANGUAGE PROGRAMS */}
       {activeTab === 'coaching' && (
@@ -343,15 +261,12 @@ export const CoursesPage = () => {
 
             <form onSubmit={handlePromoteSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
               <div>
-                <label className="text-[11px] font-semibold text-slate-400">Current Class (Source)</label>
+                <label className="text-[11px] font-semibold text-slate-400">Current Language Level (Source)</label>
                 <select
                   value={promoteForm.sourceClass}
                   onChange={(e) => setPromoteForm({ ...promoteForm, sourceClass: e.target.value })}
                   className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-amber-500"
                 >
-                  {schoolClasses.map((c) => (
-                    <option key={c._id} value={c.code}>{c.name} ({c.code})</option>
-                  ))}
                   {courses.map((c) => (
                     <option key={c._id} value={c.code}>{c.name} ({c.code})</option>
                   ))}
@@ -359,13 +274,13 @@ export const CoursesPage = () => {
               </div>
 
               <div>
-                <label className="text-[11px] font-semibold text-slate-400">Promote To Class (Target)</label>
+                <label className="text-[11px] font-semibold text-slate-400">Promote To Level (Target)</label>
                 <select
                   value={promoteForm.targetClass}
                   onChange={(e) => setPromoteForm({ ...promoteForm, targetClass: e.target.value })}
                   className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-amber-500"
                 >
-                  {schoolClasses.map((c) => (
+                  {courses.map((c) => (
                     <option key={c._id} value={c.code}>{c.name} ({c.code})</option>
                   ))}
                 </select>
@@ -376,97 +291,11 @@ export const CoursesPage = () => {
                   type="submit"
                   className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-slate-950 font-bold text-xs py-2.5 rounded-xl hover:scale-105 transition"
                 >
-                  Execute Year-End Promotion →
+                  Execute Level Promotion →
                 </button>
               </div>
             </form>
           </div>
-        </div>
-      )}
-
-      {/* MODAL: ADD SCHOOL CLASS */}
-      {isClassModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              addSchoolClass({
-                name: classForm.name,
-                code: classForm.code,
-                category: classForm.category,
-                baseFee: classForm.baseFee,
-                sections: [{ code: classForm.sectionName, teacherName: classForm.teacherName, capacity: 35 }],
-              });
-              setIsClassModalOpen(false);
-            }}
-            className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4"
-          >
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-              <h3 className="text-sm font-bold text-slate-100">Add School Grade Class</h3>
-              <button type="button" onClick={() => setIsClassModalOpen(false)} className="text-slate-400 hover:text-slate-200">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div>
-              <label className="text-[11px] font-semibold text-slate-400">Class Grade Name</label>
-              <input
-                type="text"
-                required
-                value={classForm.name}
-                onChange={(e) => setClassForm({ ...classForm, name: e.target.value })}
-                className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-amber-500"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-[11px] font-semibold text-slate-400">Class Code</label>
-                <input
-                  type="text"
-                  required
-                  value={classForm.code}
-                  onChange={(e) => setClassForm({ ...classForm, code: e.target.value })}
-                  className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-amber-500 font-mono"
-                />
-              </div>
-
-              <div>
-                <label className="text-[11px] font-semibold text-slate-400">Category</label>
-                <select
-                  value={classForm.category}
-                  onChange={(e) => setClassForm({ ...classForm, category: e.target.value })}
-                  className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-amber-500"
-                >
-                  <option value="Pre-Primary">Pre-Primary</option>
-                  <option value="Primary">Primary</option>
-                  <option value="Middle">Middle</option>
-                  <option value="Secondary">Secondary</option>
-                  <option value="Senior Secondary">Senior Secondary</option>
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label className="text-[11px] font-semibold text-slate-400">Annual Tuition Base Fee (₹)</label>
-              <input
-                type="number"
-                required
-                value={classForm.baseFee}
-                onChange={(e) => setClassForm({ ...classForm, baseFee: Number(e.target.value) })}
-                className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-amber-500 font-mono"
-              />
-            </div>
-
-            <div className="flex justify-end gap-2 pt-4 border-t border-slate-800">
-              <button type="button" onClick={() => setIsClassModalOpen(false)} className="px-4 py-2 rounded-xl bg-slate-800 text-xs font-semibold text-slate-300">
-                Cancel
-              </button>
-              <button type="submit" className="px-4 py-2 rounded-xl bg-amber-500 text-slate-950 font-bold text-xs hover:bg-amber-400">
-                Save School Class
-              </button>
-            </div>
-          </form>
         </div>
       )}
 

@@ -236,18 +236,18 @@ export const Sidebar = ({ isMobileOpen, onCloseMobile }) => {
           <div className="flex items-center space-x-2.5">
             <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-500 via-teal-500 to-cyan-500 p-0.5 shadow-lg shadow-amber-500/20">
               <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center font-black text-amber-400 text-xs">
-                IIA
+                ELH
               </div>
             </div>
             <div>
-              <h1 className="text-xs font-bold tracking-wider text-slate-100 uppercase">Indian Academy</h1>
-              <p className="text-[10px] text-amber-400 font-semibold">10-Role ERP Engine</p>
+              <h1 className="text-xs font-bold tracking-wider text-slate-100 uppercase">Language Hub</h1>
+              <p className="text-[10px] text-amber-400 font-semibold">European Language CRM</p>
             </div>
           </div>
         )}
         {collapsed && !isMobileOpen && (
           <div className="w-8 h-8 mx-auto rounded-xl bg-gradient-to-tr from-amber-500 to-cyan-500 flex items-center justify-center font-bold text-slate-950 text-xs">
-            I
+            E
           </div>
         )}
 
@@ -309,7 +309,7 @@ export const Sidebar = ({ isMobileOpen, onCloseMobile }) => {
       {/* Footer System Status */}
       {(!collapsed || isMobileOpen) && (
         <div className="p-3 border-t border-slate-800/80 text-[10px] text-slate-500 flex items-center justify-between">
-          <span>IIA Enterprise v6.0</span>
+          <span>ELH Enterprise v6.0</span>
           <span className="flex items-center space-x-1 text-emerald-400 font-medium">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
             <span>Online</span>
