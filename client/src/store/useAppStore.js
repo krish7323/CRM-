@@ -6,18 +6,18 @@ const initialRegisteredUsers = [
   {
     id: 'usr-owner',
     name: 'Amit Sharma (Institute Owner)',
-    email: 'owner@schoolerp.com',
+    email: 'owner@elh.edu',
     phone: '+91 98110 11223',
     password: 'Owner@123',
     role: 'Owner',
-    designation: 'Founder & Chairman',
+    designation: 'Founder & Managing Director',
     isActive: true,
     avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
   },
   {
     id: 'usr-counsellor-1',
     name: 'Priya Verma',
-    email: 'priya@schoolerp.com',
+    email: 'priya@elh.edu',
     phone: '+91 99887 76655',
     password: 'Counsellor@123',
     role: 'Counsellor',
@@ -29,11 +29,11 @@ const initialRegisteredUsers = [
   {
     id: 'usr-counsellor-2',
     name: 'Rahul Singh',
-    email: 'rahul@schoolerp.com',
+    email: 'rahul@elh.edu',
     phone: '+91 99887 76644',
     password: 'Counsellor@123',
     role: 'Counsellor',
-    customRoleTitle: 'Admissions Counsellor',
+    customRoleTitle: 'Language Admissions Counsellor',
     commissionPercentage: 4,
     isActive: true,
     avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
@@ -41,11 +41,11 @@ const initialRegisteredUsers = [
   {
     id: 'usr-teacher-1',
     name: 'Anita Sharma',
-    email: 'teacher1@schoolerp.com',
+    email: 'anita@elh.edu',
     phone: '+91 97654 32101',
     password: 'Teacher@123',
     role: 'Teacher',
-    customRoleTitle: 'Head of Mathematics Faculty',
+    customRoleTitle: 'Head of German Faculty',
     salaryAmount: 65000,
     isActive: true,
     avatarUrl: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150',
@@ -53,11 +53,11 @@ const initialRegisteredUsers = [
   {
     id: 'usr-teacher-2',
     name: 'Vikas Kumar',
-    email: 'teacher2@schoolerp.com',
+    email: 'vikas@elh.edu',
     phone: '+91 97654 32102',
     password: 'Teacher@123',
     role: 'Teacher',
-    customRoleTitle: 'Head of Science Faculty',
+    customRoleTitle: 'Head of French Faculty',
     salaryAmount: 67500,
     isActive: true,
     avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
@@ -65,11 +65,11 @@ const initialRegisteredUsers = [
   {
     id: 'usr-teacher-3',
     name: 'Sneha Gupta',
-    email: 'teacher3@schoolerp.com',
+    email: 'sneha@elh.edu',
     phone: '+91 97654 32103',
     password: 'Teacher@123',
     role: 'Teacher',
-    customRoleTitle: 'Head of English Faculty',
+    customRoleTitle: 'Head of Spanish Faculty',
     salaryAmount: 70000,
     isActive: true,
     avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150',
@@ -77,31 +77,19 @@ const initialRegisteredUsers = [
   {
     id: 'usr-teacher-4',
     name: 'Rohit Sharma',
-    email: 'teacher4@schoolerp.com',
+    email: 'rohit@elh.edu',
     phone: '+91 97654 32104',
     password: 'Teacher@123',
     role: 'Teacher',
-    customRoleTitle: 'Head of Computer Science Faculty',
+    customRoleTitle: 'Head of English & Communication',
     salaryAmount: 72500,
     isActive: true,
     avatarUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150',
   },
-  {
-    id: 'usr-teacher-5',
-    name: 'Neha Verma',
-    email: 'teacher5@schoolerp.com',
-    phone: '+91 97654 32105',
-    password: 'Teacher@123',
-    role: 'Teacher',
-    customRoleTitle: 'Head of Social Science Faculty',
-    salaryAmount: 75000,
-    isActive: true,
-    avatarUrl: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=150',
-  },
 ];
 
 const initialCustomRoles = [
-  { id: 'role-c1', name: 'Head Admissions Counsellor', parentRole: 'Counsellor', rank: 2, description: 'Senior counsellor', createdBy: 'Vikramaditya Roy' },
+  { id: 'role-c1', name: 'Head Admissions Counsellor', parentRole: 'Counsellor', rank: 2, description: 'Senior counsellor', createdBy: 'Amit Sharma' },
 ];
 
 const initialLeads = [
@@ -114,14 +102,14 @@ const initialLeads = [
     whatsapp: '+91 98765 43210',
     email: 'rohan.verma@gmail.com',
     city: 'Bengaluru',
-    course: 'German Language',
+    course: 'German Language (A1)',
     language: 'German',
     level: 'A1',
     quotedFee: 25000,
     source: 'Walk-in',
     status: 'Contacted',
-    notes: [{ text: 'Expressed interest in weekend batch', by: 'Priya Nair', at: new Date().toISOString() }],
-    callHistory: [{ durationSeconds: 180, notes: 'Discussed schedule', outcome: 'Interested', date: new Date().toISOString() }],
+    notes: [{ text: 'Expressed interest in weekend Goethe A1 batch', by: 'Priya Verma', at: new Date().toISOString() }],
+    callHistory: [{ durationSeconds: 180, notes: 'Discussed schedule & Goethe A1 syllabus', outcome: 'Interested', date: new Date().toISOString() }],
     createdAt: new Date().toISOString(),
   },
   {
@@ -133,13 +121,13 @@ const initialLeads = [
     whatsapp: '+91 99887 76655',
     email: 'ananya.s@gmail.com',
     city: 'Bengaluru',
-    course: 'French Language',
+    course: 'French Language (A1)',
     language: 'French',
     level: 'A1',
     quotedFee: 28000,
     source: 'Google Ads',
     status: 'Interested',
-    notes: [{ text: 'Requested demo class', by: 'Priya Nair', at: new Date().toISOString() }],
+    notes: [{ text: 'Requested demo class for DELF A1 French', by: 'Priya Verma', at: new Date().toISOString() }],
     callHistory: [],
     createdAt: new Date().toISOString(),
   },
@@ -169,34 +157,28 @@ const occupations = [
 ];
 
 const programList = [
-  'Nursery', 'LKG', 'UKG', 'Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5',
-  'Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10', 'Class 11 Science',
-  'Class 11 Commerce', 'Class 11 Arts', 'Class 12 Science', 'Class 12 Commerce',
-  'Class 12 Arts', 'JEE Coaching', 'NEET Coaching', 'SSC Coaching', 'Banking Coaching'
+  'German Language (A1)',
+  'German Language (A2)',
+  'German Language (B1)',
+  'German Language (B2)',
+  'French Language (A1)',
+  'French Language (A2)',
+  'French Language (B1)',
+  'Spanish Language (A1)',
+  'Spanish Language (A2)',
+  'Italian Language (A1)',
+  'English & Business Communication'
 ];
 
 const initialBatches = [
-  { _id: 'btc-1', code: 'Class 1 A', courseName: 'Class 1', level: 'Standard', teacherName: 'Anita Sharma', room: 'Room 101', timing: '09:00 AM - 02:00 PM', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], maxStudents: 40, currentStudents: 5, status: 'Ongoing', startDate: '2026-04-01' },
-  { _id: 'btc-2', code: 'Class 1 B', courseName: 'Class 1', level: 'Standard', teacherName: 'Vikas Kumar', room: 'Room 102', timing: '09:00 AM - 02:00 PM', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], maxStudents: 40, currentStudents: 5, status: 'Ongoing', startDate: '2026-04-01' },
-  { _id: 'btc-3', code: 'Class 2 A', courseName: 'Class 2', level: 'Standard', teacherName: 'Sneha Gupta', room: 'Room 103', timing: '09:00 AM - 02:00 PM', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], maxStudents: 40, currentStudents: 5, status: 'Ongoing', startDate: '2026-04-01' },
-  { _id: 'btc-4', code: 'Class 3 A', courseName: 'Class 3', level: 'Standard', teacherName: 'Rohit Sharma', room: 'Room 104', timing: '09:00 AM - 02:00 PM', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], maxStudents: 40, currentStudents: 5, status: 'Ongoing', startDate: '2026-04-01' },
-  { _id: 'btc-5', code: 'Class 4 A', courseName: 'Class 4', level: 'Standard', teacherName: 'Neha Verma', room: 'Room 105', timing: '09:00 AM - 02:00 PM', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], maxStudents: 40, currentStudents: 5, status: 'Ongoing', startDate: '2026-04-01' },
-  { _id: 'btc-6', code: 'Class 5 A', courseName: 'Class 5', level: 'Standard', teacherName: 'Anita Sharma', room: 'Room 106', timing: '09:00 AM - 02:00 PM', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], maxStudents: 40, currentStudents: 5, status: 'Ongoing', startDate: '2026-04-01' },
-  { _id: 'btc-7', code: 'Class 6 A', courseName: 'Class 6', level: 'Standard', teacherName: 'Vikas Kumar', room: 'Room 107', timing: '09:00 AM - 02:00 PM', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], maxStudents: 40, currentStudents: 5, status: 'Ongoing', startDate: '2026-04-01' },
-  { _id: 'btc-8', code: 'Class 7 A', courseName: 'Class 7', level: 'Standard', teacherName: 'Sneha Gupta', room: 'Room 108', timing: '09:00 AM - 02:00 PM', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], maxStudents: 40, currentStudents: 5, status: 'Ongoing', startDate: '2026-04-01' },
-  { _id: 'btc-9', code: 'Class 8 A', courseName: 'Class 8', level: 'Standard', teacherName: 'Rohit Sharma', room: 'Room 109', timing: '09:00 AM - 02:00 PM', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], maxStudents: 40, currentStudents: 5, status: 'Ongoing', startDate: '2026-04-01' },
-  { _id: 'btc-10', code: 'Class 9 A', courseName: 'Class 9', level: 'Standard', teacherName: 'Neha Verma', room: 'Room 110', timing: '09:00 AM - 02:00 PM', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], maxStudents: 40, currentStudents: 5, status: 'Ongoing', startDate: '2026-04-01' },
-  { _id: 'btc-11', code: 'Class 10 A', courseName: 'Class 10', level: 'Standard', teacherName: 'Anita Sharma', room: 'Room 111', timing: '09:00 AM - 02:00 PM', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], maxStudents: 40, currentStudents: 5, status: 'Ongoing', startDate: '2026-04-01' },
-  { _id: 'btc-12', code: 'Class 11 Science A', courseName: 'Class 11 Science', level: 'Standard', teacherName: 'Vikas Kumar', room: 'Lab 201', timing: '09:00 AM - 02:00 PM', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], maxStudents: 40, currentStudents: 5, status: 'Ongoing', startDate: '2026-04-01' },
-  { _id: 'btc-13', code: 'Class 11 Commerce A', courseName: 'Class 11 Commerce', level: 'Standard', teacherName: 'Sneha Gupta', room: 'Room 202', timing: '09:00 AM - 02:00 PM', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], maxStudents: 40, currentStudents: 5, status: 'Ongoing', startDate: '2026-04-01' },
-  { _id: 'btc-14', code: 'Class 12 Science A', courseName: 'Class 12 Science', level: 'Standard', teacherName: 'Rohit Sharma', room: 'Lab 203', timing: '09:00 AM - 02:00 PM', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], maxStudents: 40, currentStudents: 5, status: 'Ongoing', startDate: '2026-04-01' },
-  { _id: 'btc-15', code: 'JEE Morning', courseName: 'JEE Coaching', level: 'Advanced', teacherName: 'Anita Sharma', room: 'Aryabhata Hall', timing: '07:00 AM - 10:00 AM', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], maxStudents: 50, currentStudents: 5, status: 'Ongoing', startDate: '2026-04-01' },
-  { _id: 'btc-16', code: 'JEE Evening', courseName: 'JEE Coaching', level: 'Advanced', teacherName: 'Vikas Kumar', room: 'Aryabhata Hall', timing: '04:00 PM - 07:00 PM', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], maxStudents: 50, currentStudents: 5, status: 'Ongoing', startDate: '2026-04-01' },
-  { _id: 'btc-17', code: 'NEET Morning', courseName: 'NEET Coaching', level: 'Advanced', teacherName: 'Sneha Gupta', room: 'Charaka Hall', timing: '07:00 AM - 10:00 AM', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], maxStudents: 50, currentStudents: 5, status: 'Ongoing', startDate: '2026-04-01' },
-  { _id: 'btc-18', code: 'SSC Weekend', courseName: 'SSC Coaching', level: 'Standard', teacherName: 'Neha Verma', room: 'Ramanujan Hall', timing: '09:00 AM - 04:00 PM', days: ['Sat', 'Sun'], maxStudents: 60, currentStudents: 5, status: 'Ongoing', startDate: '2026-04-01' }
+  { _id: 'btc-1', code: 'GER-A1-B01', courseName: 'German Language (A1)', level: 'A1', teacherName: 'Anita Sharma', room: 'Berlin Hall', timing: '08:00 AM - 10:00 AM', days: ['Mon', 'Wed', 'Fri'], maxStudents: 25, currentStudents: 18, status: 'Ongoing', startDate: '2026-04-01' },
+  { _id: 'btc-2', code: 'GER-A2-B01', courseName: 'German Language (A2)', level: 'A2', teacherName: 'Anita Sharma', room: 'Munich Room', timing: '10:30 AM - 12:30 PM', days: ['Tue', 'Thu', 'Sat'], maxStudents: 25, currentStudents: 15, status: 'Ongoing', startDate: '2026-04-01' },
+  { _id: 'btc-3', code: 'FRE-A1-B01', courseName: 'French Language (A1)', level: 'A1', teacherName: 'Vikas Kumar', room: 'Paris Hall', timing: '09:00 AM - 11:00 AM', days: ['Mon', 'Wed', 'Fri'], maxStudents: 25, currentStudents: 16, status: 'Ongoing', startDate: '2026-04-01' },
+  { _id: 'btc-4', code: 'SPA-A1-B01', courseName: 'Spanish Language (A1)', level: 'A1', teacherName: 'Sneha Gupta', room: 'Madrid Room', timing: '02:00 PM - 04:00 PM', days: ['Tue', 'Thu', 'Sat'], maxStudents: 25, currentStudents: 12, status: 'Ongoing', startDate: '2026-04-01' },
+  { _id: 'btc-5', code: 'ENG-C1-B01', courseName: 'English & Business Communication', level: 'C1', teacherName: 'Rohit Sharma', room: 'London Studio', timing: '06:00 PM - 08:00 PM', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], maxStudents: 30, currentStudents: 22, status: 'Ongoing', startDate: '2026-04-01' }
 ];
 
-const teacherNames = ['Anita Sharma', 'Vikas Kumar', 'Sneha Gupta', 'Rohit Sharma', 'Neha Verma'];
+const teacherNames = ['Anita Sharma', 'Vikas Kumar', 'Sneha Gupta', 'Rohit Sharma'];
 const counsellorNames = ['Priya Verma', 'Rahul Singh'];
 
 const generate80Students = () => {
@@ -207,7 +189,7 @@ const generate80Students = () => {
     const sName = `${fn} ${ln}`;
     const fName = `Rajesh ${ln}`;
     const mName = `Sunita ${ln}`;
-    const code = `STU-${1000 + i}`;
+    const code = `ELH-${1000 + i}`;
     const pType = programList[i % programList.length];
     const bCode = initialBatches[i % initialBatches.length].code;
     const tName = teacherNames[i % teacherNames.length];
@@ -217,27 +199,27 @@ const generate80Students = () => {
     students.push({
       _id: `std-${i}`,
       studentId: code,
-      admissionNo: `ADM-2026-${String(i).padStart(3, '0')}`,
-      rollNo: String((i % 40) + 1),
+      admissionNo: `ADM-ELH-${String(i).padStart(3, '0')}`,
+      rollNo: String((i % 30) + 1),
       name: sName,
-      dob: `2008-05-${(i % 25) + 1}`,
+      dob: `2004-05-${(i % 25) + 1}`,
       gender: i % 2 === 0 ? 'Male' : 'Female',
       bloodGroup: ['A+', 'B+', 'O+', 'AB+'][i % 4],
       phone: `+91 91${2000000 + i}`,
-      email: `student${i}@schoolerp.com`,
+      email: `student${i}@elh.edu`,
       address: `${100 + i}, Sector ${(i % 15) + 1}, Central City, India`,
       fatherName: fName,
       motherName: mName,
       guardianName: fName,
       parentPhone: `+91 98${1000000 + i}`,
       parentWhatsapp: `+91 98${1000000 + i}`,
-      parentEmail: `parent${i}@schoolerp.com`,
+      parentEmail: `parent${i}@elh.edu`,
       parentOccupation: occupations[i % occupations.length],
       emergencyContact: `+91 98${1000000 + i}`,
       verificationStatus: status,
       courseName: pType,
-      level: pType,
-      packageType: i % 3 === 0 ? 'Yearly' : i % 2 === 0 ? 'Quarterly' : 'Monthly',
+      level: pType.includes('A1') ? 'A1' : pType.includes('A2') ? 'A2' : pType.includes('B1') ? 'B1' : 'C1',
+      packageType: i % 3 === 0 ? 'Standard' : i % 2 === 0 ? 'Intensive' : 'Weekend',
       batchCode: bCode,
       teacherName: tName,
       counsellorName: cName,
@@ -246,8 +228,8 @@ const generate80Students = () => {
       photoUrl: `https://images.unsplash.com/photo-${1539571696357 + (i % 10)}?w=150`,
       isActive: true,
       timeline: [
-        { title: 'Student Registered', detail: `Registered by Counsellor ${cName}`, by: cName, at: `2026-04-${(i % 20) + 1}` },
-        { title: 'Verification Status Updated', detail: `Status: ${status}`, by: 'Amit Sharma', at: '2026-04-22' }
+        { title: 'Student Enrolled', detail: `Enrolled by Counsellor ${cName}`, by: cName, at: `2026-04-${(i % 20) + 1}` },
+        { title: 'Document Verification', detail: `Status: ${status}`, by: 'Amit Sharma', at: '2026-04-22' }
       ]
     });
   }
@@ -257,28 +239,27 @@ const generate80Students = () => {
 const initialStudents = generate80Students();
 
 const initialSubjects = [
-  { _id: 'sb-1', code: 'ENG-101', name: 'English Literature & Language', teacherName: 'Sneha Gupta', weeklyClasses: 5, maxMarks: 100, passingMarks: 33, isPractical: false },
-  { _id: 'sb-2', code: 'MATH-201', name: 'Mathematics & Algebra', teacherName: 'Anita Sharma', weeklyClasses: 6, maxMarks: 100, passingMarks: 33, isPractical: false },
-  { _id: 'sb-3', code: 'SCI-301', name: 'General Science & Physics', teacherName: 'Vikas Kumar', weeklyClasses: 5, maxMarks: 100, passingMarks: 33, isPractical: true },
-  { _id: 'sb-4', code: 'CS-501', name: 'Computer Science & Python', teacherName: 'Rohit Sharma', weeklyClasses: 5, maxMarks: 100, passingMarks: 33, isPractical: true },
-  { _id: 'sb-5', code: 'SST-601', name: 'Social Science & History', teacherName: 'Neha Verma', weeklyClasses: 5, maxMarks: 100, passingMarks: 33, isPractical: false }
+  { _id: 'sb-1', code: 'GER-VOC-101', name: 'German A1 Grammar & Speaking', teacherName: 'Anita Sharma', weeklyClasses: 5, maxMarks: 100, passingMarks: 33, isPractical: true },
+  { _id: 'sb-2', code: 'FRE-DELF-101', name: 'DELF French Phonetics & Listening', teacherName: 'Vikas Kumar', weeklyClasses: 4, maxMarks: 100, passingMarks: 33, isPractical: true },
+  { _id: 'sb-3', code: 'SPA-DELE-101', name: 'DELE Spanish Conversation & Writing', teacherName: 'Sneha Gupta', weeklyClasses: 4, maxMarks: 100, passingMarks: 33, isPractical: true },
+  { _id: 'sb-4', code: 'ENG-BIZ-501', name: 'Business English & Public Speaking', teacherName: 'Rohit Sharma', weeklyClasses: 5, maxMarks: 100, passingMarks: 33, isPractical: true }
 ];
 
 const initialAcademicYears = [
-  { _id: 'ay-1', code: '2026-27', name: 'Academic Session 2026-2027', startDate: '2026-04-01', endDate: '2027-03-31', isCurrent: true, status: 'Active' }
+  { _id: 'ay-1', code: '2026-27', name: 'ELH Academic Session 2026-2027', startDate: '2026-04-01', endDate: '2027-03-31', isCurrent: true, status: 'Active' }
 ];
 
-const initialSchoolClasses = programList.map((p, idx) => ({
-  _id: `cls-${idx + 1}`,
-  name: p,
-  code: p.toUpperCase().replace(/\s+/g, '-'),
-  category: p.includes('Class 11') || p.includes('Class 12') ? 'Senior Secondary' : p.includes('Class') ? 'Secondary' : 'Coaching',
-  programType: p.includes('Coaching') ? 'Custom_Skill' : 'School_K12',
-  sections: [{ code: 'Section A', teacherName: teacherNames[idx % teacherNames.length], capacity: 40 }],
-  baseFee: 25000 + (idx % 10) * 3000
-}));
+const initialSchoolClasses = [];
 
-const initialCourses = initialSchoolClasses;
+const initialCourses = [
+  { _id: 'crs-1', code: 'GER-A1', name: 'German A1 Beginner', language: 'German', levelCode: 'A1', durationMonths: 3, baseFee: 25000, description: 'Goethe-Zertifikat A1 Preparation' },
+  { _id: 'crs-2', code: 'GER-A2', name: 'German A2 Elementary', language: 'German', levelCode: 'A2', durationMonths: 3, baseFee: 28000, description: 'Goethe-Zertifikat A2 Preparation' },
+  { _id: 'crs-3', code: 'GER-B1', name: 'German B1 Intermediate', language: 'German', levelCode: 'B1', durationMonths: 4, baseFee: 35000, description: 'Goethe-Zertifikat B1 Work & Study' },
+  { _id: 'crs-4', code: 'FRE-A1', name: 'French A1 Beginner', language: 'French', levelCode: 'A1', durationMonths: 3, baseFee: 25000, description: 'DELF A1 Examination Preparation' },
+  { _id: 'crs-5', code: 'FRE-A2', name: 'French A2 Elementary', language: 'French', levelCode: 'A2', durationMonths: 3, baseFee: 28000, description: 'DELF A2 Examination Preparation' },
+  { _id: 'crs-6', code: 'SPA-A1', name: 'Spanish A1 Beginner', language: 'Spanish', levelCode: 'A1', durationMonths: 3, baseFee: 24000, description: 'DELE A1 Certification Preparation' },
+  { _id: 'crs-7', code: 'ENG-PRO', name: 'English & Business Speaking', language: 'English', levelCode: 'C1', durationMonths: 2, baseFee: 20000, description: 'Professional Fluency & Corporate Accent' }
+];
 
 const generate80Fees = (students) => {
   return students.map((std, idx) => {
@@ -315,15 +296,15 @@ const initialExpenses = [
 
 const initialCertificates = initialStudents.slice(0, 10).map((std, idx) => ({
   _id: `cert-${idx + 1}`,
-  certNumber: `IIA-CERT-2026-${1000 + idx}`,
+  certNumber: `ELH-CERT-2026-${1000 + idx}`,
   studentId: std._id,
   studentName: std.name,
   courseName: std.courseName,
-  level: 'Standard',
+  level: std.level || 'A1',
   grade: 'Distinction (A+)',
   marks: 92 + (idx % 8),
   issueDate: '2026-08-01',
-  qrCodeUrl: `/verify/IIA-CERT-2026-${1000 + idx}`
+  qrCodeUrl: `/verify/ELH-CERT-2026-${1000 + idx}`
 }));
 
 const generate200Books = () => {
