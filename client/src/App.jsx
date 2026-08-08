@@ -16,9 +16,9 @@ const BatchesPage = lazy(() => import('./pages/BatchesPage.jsx').then((m) => ({ 
 const AttendancePage = lazy(() => import('./pages/AttendancePage.jsx').then((m) => ({ default: m.AttendancePage })));
 const ExamsPage = lazy(() => import('./pages/ExamsPage.jsx').then((m) => ({ default: m.ExamsPage })));
 const AcademicCalendarPage = lazy(() => import('./pages/AcademicCalendarPage.jsx').then((m) => ({ default: m.AcademicCalendarPage })));
-const TransportPage = lazy(() => import('./pages/TransportPage.jsx').then((m) => ({ default: m.TransportPage })));
-const InventoryPage = lazy(() => import('./pages/InventoryPage.jsx').then((m) => ({ default: m.InventoryPage })));
-const LibraryPage = lazy(() => import('./pages/LibraryPage.jsx').then((m) => ({ default: m.LibraryPage })));
+const TransportPage = null;
+const InventoryPage = null;
+const LibraryPage = null;
 const HomeworkPage = lazy(() => import('./pages/HomeworkPage.jsx').then((m) => ({ default: m.HomeworkPage })));
 const ScholarshipPage = lazy(() => import('./pages/ScholarshipPage.jsx').then((m) => ({ default: m.ScholarshipPage })));
 const PTMPage = lazy(() => import('./pages/PTMPage.jsx').then((m) => ({ default: m.PTMPage })));
@@ -68,7 +68,7 @@ export const App = () => {
                   <Route
                     path="/"
                     element={
-                      <RoleGuard allowedRoles={['Owner', 'Admin', 'Counsellor', 'Teacher', 'Accountant', 'Librarian', 'Transport Manager', 'HR', 'Parent', 'Student']}>
+                      <RoleGuard allowedRoles={['Owner', 'Counsellor', 'Teacher']}>
                         <DashboardPage />
                       </RoleGuard>
                     }
@@ -76,7 +76,7 @@ export const App = () => {
                   <Route
                     path="/crm"
                     element={
-                      <RoleGuard allowedRoles={['Owner', 'Admin', 'Counsellor']}>
+                      <RoleGuard allowedRoles={['Owner', 'Counsellor']}>
                         <CRMPage />
                       </RoleGuard>
                     }
@@ -84,7 +84,7 @@ export const App = () => {
                   <Route
                     path="/followups"
                     element={
-                      <RoleGuard allowedRoles={['Owner', 'Admin', 'Counsellor']}>
+                      <RoleGuard allowedRoles={['Owner', 'Counsellor']}>
                         <FollowupsPage />
                       </RoleGuard>
                     }
@@ -92,7 +92,7 @@ export const App = () => {
                   <Route
                     path="/students"
                     element={
-                      <RoleGuard allowedRoles={['Owner', 'Admin', 'Counsellor', 'Teacher']}>
+                      <RoleGuard allowedRoles={['Owner', 'Counsellor', 'Teacher']}>
                         <StudentsPage />
                       </RoleGuard>
                     }
@@ -100,7 +100,7 @@ export const App = () => {
                   <Route
                     path="/admissions"
                     element={
-                      <RoleGuard allowedRoles={['Owner', 'Admin', 'Counsellor']}>
+                      <RoleGuard allowedRoles={['Owner', 'Counsellor']}>
                         <AdmissionsPage />
                       </RoleGuard>
                     }
@@ -108,7 +108,7 @@ export const App = () => {
                   <Route
                     path="/courses"
                     element={
-                      <RoleGuard allowedRoles={['Owner', 'Admin', 'Counsellor', 'Teacher']}>
+                      <RoleGuard allowedRoles={['Owner', 'Counsellor', 'Teacher']}>
                         <CoursesPage />
                       </RoleGuard>
                     }
@@ -116,7 +116,7 @@ export const App = () => {
                   <Route
                     path="/batches"
                     element={
-                      <RoleGuard allowedRoles={['Owner', 'Admin', 'Teacher', 'Counsellor']}>
+                      <RoleGuard allowedRoles={['Owner', 'Teacher', 'Counsellor']}>
                         <BatchesPage />
                       </RoleGuard>
                     }
@@ -124,7 +124,7 @@ export const App = () => {
                   <Route
                     path="/attendance"
                     element={
-                      <RoleGuard allowedRoles={['Owner', 'Admin', 'Teacher']}>
+                      <RoleGuard allowedRoles={['Owner', 'Teacher']}>
                         <AttendancePage />
                       </RoleGuard>
                     }
@@ -132,7 +132,7 @@ export const App = () => {
                   <Route
                     path="/exams"
                     element={
-                      <RoleGuard allowedRoles={['Owner', 'Admin', 'Teacher', 'Student', 'Parent']}>
+                      <RoleGuard allowedRoles={['Owner', 'Teacher', 'Counsellor']}>
                         <ExamsPage />
                       </RoleGuard>
                     }
@@ -140,39 +140,15 @@ export const App = () => {
                   <Route
                     path="/academic-calendar"
                     element={
-                      <RoleGuard allowedRoles={['Owner', 'Admin', 'Counsellor', 'Teacher', 'Accountant', 'Librarian', 'Transport Manager', 'HR', 'Parent', 'Student']}>
+                      <RoleGuard allowedRoles={['Owner', 'Counsellor', 'Teacher']}>
                         <AcademicCalendarPage />
-                      </RoleGuard>
-                    }
-                  />
-                  <Route
-                    path="/transport"
-                    element={
-                      <RoleGuard allowedRoles={['Owner', 'Admin', 'Transport Manager', 'Parent', 'Student']}>
-                        <TransportPage />
-                      </RoleGuard>
-                    }
-                  />
-                  <Route
-                    path="/inventory"
-                    element={
-                      <RoleGuard allowedRoles={['Owner', 'Admin', 'Librarian']}>
-                        <InventoryPage />
-                      </RoleGuard>
-                    }
-                  />
-                  <Route
-                    path="/library"
-                    element={
-                      <RoleGuard allowedRoles={['Owner', 'Admin', 'Librarian', 'Teacher', 'Student']}>
-                        <LibraryPage />
                       </RoleGuard>
                     }
                   />
                   <Route
                     path="/homework"
                     element={
-                      <RoleGuard allowedRoles={['Owner', 'Admin', 'Teacher', 'Student', 'Parent']}>
+                      <RoleGuard allowedRoles={['Owner', 'Teacher', 'Counsellor']}>
                         <HomeworkPage />
                       </RoleGuard>
                     }
@@ -180,7 +156,7 @@ export const App = () => {
                   <Route
                     path="/scholarships"
                     element={
-                      <RoleGuard allowedRoles={['Owner', 'Admin', 'Accountant']}>
+                      <RoleGuard allowedRoles={['Owner', 'Counsellor']}>
                         <ScholarshipPage />
                       </RoleGuard>
                     }
@@ -188,7 +164,7 @@ export const App = () => {
                   <Route
                     path="/ptm"
                     element={
-                      <RoleGuard allowedRoles={['Owner', 'Admin', 'Teacher', 'Parent']}>
+                      <RoleGuard allowedRoles={['Owner', 'Teacher', 'Counsellor']}>
                         <PTMPage />
                       </RoleGuard>
                     }
@@ -196,7 +172,7 @@ export const App = () => {
                   <Route
                     path="/notices"
                     element={
-                      <RoleGuard allowedRoles={['Owner', 'Admin', 'Counsellor', 'Teacher', 'Accountant', 'Librarian', 'Transport Manager', 'HR', 'Parent', 'Student']}>
+                      <RoleGuard allowedRoles={['Owner', 'Counsellor', 'Teacher']}>
                         <NoticePage />
                       </RoleGuard>
                     }
@@ -204,7 +180,7 @@ export const App = () => {
                   <Route
                     path="/chat"
                     element={
-                      <RoleGuard allowedRoles={['Owner', 'Admin', 'Counsellor', 'Teacher', 'Accountant', 'Librarian', 'Transport Manager', 'HR', 'Parent', 'Student']}>
+                      <RoleGuard allowedRoles={['Owner', 'Counsellor', 'Teacher']}>
                         <ChatPage />
                       </RoleGuard>
                     }
@@ -212,7 +188,7 @@ export const App = () => {
                   <Route
                     path="/leaves"
                     element={
-                      <RoleGuard allowedRoles={['Owner', 'Admin', 'HR', 'Teacher']}>
+                      <RoleGuard allowedRoles={['Owner', 'Teacher', 'Counsellor']}>
                         <LeavePage />
                       </RoleGuard>
                     }
@@ -220,7 +196,7 @@ export const App = () => {
                   <Route
                     path="/fees"
                     element={
-                      <RoleGuard allowedRoles={['Owner', 'Admin', 'Accountant']}>
+                      <RoleGuard allowedRoles={['Owner', 'Counsellor']}>
                         <FeesPage />
                       </RoleGuard>
                     }
@@ -228,7 +204,7 @@ export const App = () => {
                   <Route
                     path="/expenses"
                     element={
-                      <RoleGuard allowedRoles={['Owner', 'Admin', 'Accountant']}>
+                      <RoleGuard allowedRoles={['Owner']}>
                         <ExpensesPage />
                       </RoleGuard>
                     }
@@ -236,7 +212,7 @@ export const App = () => {
                   <Route
                     path="/whatsapp"
                     element={
-                      <RoleGuard allowedRoles={['Owner', 'Admin', 'Counsellor']}>
+                      <RoleGuard allowedRoles={['Owner', 'Counsellor']}>
                         <WhatsAppPage />
                       </RoleGuard>
                     }
@@ -244,7 +220,7 @@ export const App = () => {
                   <Route
                     path="/documents"
                     element={
-                      <RoleGuard allowedRoles={['Owner', 'Admin']}>
+                      <RoleGuard allowedRoles={['Owner', 'Counsellor']}>
                         <DocumentsPage />
                       </RoleGuard>
                     }
@@ -252,7 +228,7 @@ export const App = () => {
                   <Route
                     path="/certificates"
                     element={
-                      <RoleGuard allowedRoles={['Owner', 'Admin', 'Teacher', 'Student', 'Parent']}>
+                      <RoleGuard allowedRoles={['Owner', 'Teacher', 'Counsellor']}>
                         <CertificatesPage />
                       </RoleGuard>
                     }
@@ -260,7 +236,7 @@ export const App = () => {
                   <Route
                     path="/staff"
                     element={
-                      <RoleGuard allowedRoles={['Owner', 'Admin', 'HR']}>
+                      <RoleGuard allowedRoles={['Owner']}>
                         <StaffPage />
                       </RoleGuard>
                     }
@@ -268,7 +244,7 @@ export const App = () => {
                   <Route
                     path="/settings"
                     element={
-                      <RoleGuard allowedRoles={['Owner', 'Admin']}>
+                      <RoleGuard allowedRoles={['Owner']}>
                         <SettingsPage />
                       </RoleGuard>
                     }
@@ -276,7 +252,7 @@ export const App = () => {
                   <Route
                     path="/reports"
                     element={
-                      <RoleGuard allowedRoles={['Owner', 'Admin', 'Accountant', 'Librarian', 'Transport Manager', 'HR']}>
+                      <RoleGuard allowedRoles={['Owner', 'Counsellor']}>
                         <ReportsPage />
                       </RoleGuard>
                     }

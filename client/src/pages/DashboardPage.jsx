@@ -51,8 +51,8 @@ export const DashboardPage = () => {
           </h1>
           <p className="text-xs text-slate-400 mt-1">
             {isOwnerOrAdmin
-              ? 'The Indian International Academy (IIA) Enterprise ERP & CRM Dashboard.'
-              : `Role-Scoped ${role} Access Dashboard — Customized View`}
+              ? 'The European Language Hub (ELH) Institute CRM & ERP Dashboard.'
+              : `Role-Scoped ${role} Access Dashboard — European Language Hub`}
           </p>
         </div>
         <div className="flex items-center gap-3">
