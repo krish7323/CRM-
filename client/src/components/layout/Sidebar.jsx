@@ -148,12 +148,6 @@ const navSections = [
         icon: <Receipt className="w-4 h-4 text-rose-400" />,
         roles: ['Owner'],
       },
-      {
-        title: 'Scholarships',
-        path: '/scholarships',
-        icon: <HeartHandshake className="w-4 h-4 text-amber-400" />,
-        roles: ['Owner', 'Counsellor'],
-      },
     ],
   },
   {
@@ -169,18 +163,6 @@ const navSections = [
         title: 'Notices & Announcements',
         path: '/notices',
         icon: <Bell className="w-4 h-4 text-amber-400" />,
-        roles: ['Owner', 'Counsellor', 'Teacher'],
-      },
-      {
-        title: 'Parent-Teacher Meetings',
-        path: '/ptm',
-        icon: <Video className="w-4 h-4 text-purple-400" />,
-        roles: ['Owner', 'Teacher', 'Counsellor'],
-      },
-      {
-        title: 'Internal Chat',
-        path: '/chat',
-        icon: <MessageCircle className="w-4 h-4 text-indigo-400" />,
         roles: ['Owner', 'Counsellor', 'Teacher'],
       },
     ],
@@ -228,7 +210,7 @@ const navSections = [
     category: 'SETTINGS',
     items: [
       {
-        title: 'System Settings & Audit',
+        title: 'System Settings',
         path: '/settings',
         icon: <KeyRound className="w-4 h-4 text-amber-400" />,
         roles: ['Owner'],
@@ -248,20 +230,18 @@ export const Sidebar = ({ isMobileOpen, onCloseMobile }) => {
       <div className="flex h-16 items-center justify-between px-4 border-b border-slate-800/80">
         {(!collapsed || isMobileOpen) && (
           <div className="flex items-center space-x-2.5">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-500 via-teal-500 to-cyan-500 p-0.5 shadow-lg shadow-amber-500/20">
-              <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center font-black text-amber-400 text-xs">
-                ELH
-              </div>
+            <div className="w-9 h-9 rounded-xl bg-white p-1 shadow-md shadow-amber-500/20 flex items-center justify-center">
+              <img src="/logo.png" alt="TELA Logo" className="w-full h-full object-contain" />
             </div>
             <div>
-              <h1 className="text-xs font-bold tracking-wider text-slate-100 uppercase">Language Hub</h1>
-              <p className="text-[10px] text-amber-400 font-semibold">European Language CRM</p>
+              <h1 className="text-xs font-black tracking-wider text-slate-100 uppercase">TELA ACADEMY</h1>
+              <p className="text-[9px] text-amber-400 font-semibold tracking-wide">The European Language Academy • Kaithal</p>
             </div>
           </div>
         )}
         {collapsed && !isMobileOpen && (
-          <div className="w-8 h-8 mx-auto rounded-xl bg-gradient-to-tr from-amber-500 to-cyan-500 flex items-center justify-center font-bold text-slate-950 text-xs">
-            E
+          <div className="w-9 h-9 mx-auto rounded-xl bg-white p-1 flex items-center justify-center shadow-md">
+            <img src="/logo.png" alt="TELA" className="w-full h-full object-contain" />
           </div>
         )}
 

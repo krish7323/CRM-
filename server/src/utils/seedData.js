@@ -14,7 +14,7 @@ export const seedDatabase = async () => {
             console.log('Database already initialized with seed data.');
             return;
         }
-        console.log('Seeding initial Indian International Academy (IIA) data...');
+        console.log('Seeding initial The European Language Academy (TELA - Kaithal) data...');
         const defaultPassword = await bcrypt.hash('password123', 10);
         // Create Users for 6 roles
         const admin = await User.create({

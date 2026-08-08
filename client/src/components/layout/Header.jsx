@@ -29,8 +29,8 @@ export const Header = ({ onToggleMobileMenu }) => {
 
         <div className="flex items-center space-x-1.5 bg-slate-900/90 border border-slate-800 rounded-full px-2.5 py-1 text-xs">
           <Globe className="w-3.5 h-3.5 text-amber-400 animate-pulse shrink-0" />
-          <span className="text-slate-300 font-medium hidden lg:inline">European Language Hub</span>
-          <span className="text-amber-400 font-bold text-[11px] sm:text-xs">ELH CRM</span>
+          <span className="text-slate-300 font-medium hidden lg:inline">The European Language Academy</span>
+          <span className="text-amber-400 font-bold text-[11px] sm:text-xs">TELA CRM</span>
         </div>
       </div>
 
@@ -65,33 +65,6 @@ export const Header = ({ onToggleMobileMenu }) => {
               <span className="text-xs font-bold text-amber-400">{currentUser.role}</span>
             </>
           )}
-        </div>
-
-        {/* AI Assistant Quick Trigger */}
-        <button
-          onClick={toggleAiDrawer}
-          className="flex items-center space-x-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs px-3 py-1.5 rounded-xl shadow-lg shadow-amber-500/20 transition-all hover:scale-105 active:scale-95"
-        >
-          <Sparkles className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">ELH AI</span>
-        </button>
-
-        {/* Theme Toggle Button */}
-        <button
-          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition"
-          title="Toggle Dark/Light Mode"
-        >
-          {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-cyan-400" />}
-        </button>
-
-        {/* Notifications Icon */}
-        <div className="relative">
-          <button className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition">
-            <Bell className="w-4 h-4" />
-            <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-amber-500 animate-ping" />
-            <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-amber-500" />
-          </button>
         </div>
 
         {/* Active User Avatar */}

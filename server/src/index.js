@@ -54,6 +54,15 @@ app.get('/api/public/verify/:certNumber', async (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api', apiRoutes);
 
+// Process-level Crash Prevention Safety Guards for Render Cloud
+process.on('uncaughtException', (err) => {
+  console.error('🔥 Uncaught Exception Intercepted (Crash Prevented):', err.stack || err.message);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('🔥 Unhandled Promise Rejection Intercepted (Crash Prevented):', reason);
+});
+
 // Serve Client Static Build Files in Production / Render
 import fs from 'fs';
 
@@ -66,6 +75,15 @@ if (fs.existsSync(clientDistPath)) {
     res.sendFile(path.join(clientDistPath, 'index.html'));
   });
 }
+
+// Global Express Error Middleware
+app.use((err, req, res, next) => {
+  console.error('⚠️ Global Express Error Handler:', err.stack || err.message);
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || 'Internal Server Error',
+  });
+});
 
 // Socket.io connection handling
 io.on('connection', (socket) => {
@@ -100,13 +118,13 @@ mongoose
   .then(async () => {
     console.log('✅ Connected to MongoDB successfully.');
     await seedDatabase();
-    server.listen(PORT, () => {
+    server.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 European Language Hub (ELH) Server running on port ${PORT}`);
     });
   })
   .catch((err) => {
     console.warn('⚠️ MongoDB connection warning (will run with in-memory state fallback):', err.message);
-    server.listen(PORT, () => {
+    server.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 European Language Hub (ELH) Server running on port ${PORT} (Standalone API mode)`);
     });
   });

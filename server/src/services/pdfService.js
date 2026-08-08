@@ -9,11 +9,11 @@ export const generateReceiptPDF = (fee, installmentNo) => {
         const inst = fee.installments.find((i) => i.installmentNo === installmentNo) || fee.installments[0];
         // Top Saffron & Navy Header
         doc.fillColor('#0F172A').rect(0, 0, doc.page.width, 100).fill();
-        doc.fillColor('#F59E0B').fontSize(20).font('Helvetica-Bold').text('THE INDIAN INTERNATIONAL ACADEMY', 40, 28);
-        doc.fillColor('#38BDF8').fontSize(9).font('Helvetica').text('Affiliated to CBSE & CEFR Board • Reg. No: IIA-CBSE-2026/881', 40, 54);
-        doc.fillColor('#FFFFFF').fontSize(9).text(`Receipt #: IIA-REC-${inst?.transactionRef || '9981'}`, doc.page.width - 200, 28, { align: 'right' });
+        doc.fillColor('#F59E0B').fontSize(18).font('Helvetica-Bold').text('THE EUROPEAN LANGUAGE ACADEMY', 40, 26);
+        doc.fillColor('#38BDF8').fontSize(9).font('Helvetica').text('TELA — Kaithal • Reg. No: TELA-CEFR-2026/881', 40, 52);
+        doc.fillColor('#FFFFFF').fontSize(9).text(`Receipt #: TELA-REC-${inst?.transactionRef || '9981'}`, doc.page.width - 200, 28, { align: 'right' });
         doc.text(`Date: ${new Date().toLocaleDateString('en-IN')}`, doc.page.width - 200, 44, { align: 'right' });
-        doc.text(`GSTIN: 29AAAAA0000A1Z5`, doc.page.width - 200, 60, { align: 'right' });
+        doc.text(`GSTIN: 06AAAAA0000A1Z5`, doc.page.width - 200, 60, { align: 'right' });
         doc.moveDown(4);
         // Student & Fee Details Box
         doc.fillColor('#1E293B').fontSize(13).font('Helvetica-Bold').text('Student & Payment Fee Summary', 40, 125);
@@ -35,7 +35,7 @@ export const generateReceiptPDF = (fee, installmentNo) => {
         doc.fillColor('#0F172A').font('Helvetica-Bold').text('Total Paid Today:', 50, 305);
         doc.fillColor('#059669').fontSize(13).text(`Rs. ${(inst?.paidAmount || inst?.amount || 0).toLocaleString('en-IN')}`, doc.page.width - 150, 303, { align: 'right' });
         // Official Stamp
-        doc.fontSize(8).fillColor('#64748B').text('This is a computer-generated official payment receipt issued by The Indian International Academy.', 40, 380, { align: 'center' });
+        doc.fontSize(8).fillColor('#64748B').text('This is a computer-generated official payment receipt issued by The European Language Academy (TELA - Kaithal).', 40, 380, { align: 'center' });
         doc.end();
     });
 };

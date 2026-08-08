@@ -40,14 +40,12 @@ export const AdmissionApplicationPage = () => {
       <div className="w-full max-w-2xl glass-panel border border-slate-800 rounded-3xl p-8 shadow-2xl space-y-6">
         {/* Header */}
         <div className="flex items-center space-x-3 pb-6 border-b border-slate-800">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 to-cyan-500 p-0.5 shadow-lg shadow-amber-500/20">
-            <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center font-black text-amber-400 text-lg">
-              IIA
-            </div>
+          <div className="w-14 h-14 rounded-2xl bg-white p-1.5 shadow-lg shadow-amber-500/20 flex items-center justify-center border border-slate-700">
+            <img src="/logo.png" alt="TELA Logo" className="w-full h-full object-contain" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-slate-100 uppercase tracking-wider">The Indian International Academy</h1>
-            <p className="text-xs text-amber-400 font-semibold">Official Online Student Admission Inquiry & Registration Portal</p>
+            <h1 className="text-lg font-extrabold text-slate-100 uppercase tracking-wider">The European Language Academy</h1>
+            <p className="text-xs text-amber-400 font-semibold">TELA — Kaithal | Online Admission Inquiry & Registration Portal</p>
           </div>
         </div>
 
@@ -57,7 +55,7 @@ export const AdmissionApplicationPage = () => {
             </div>
             <h2 className="text-xl font-bold text-slate-100">Application Submitted Successfully!</h2>
             <p className="text-xs text-slate-400 max-w-md mx-auto">
-              Thank you for applying to IIA. Application Reference #: <strong>IIA-APP-2026-992</strong>. Our Academic Admissions Counsellor will contact you on WhatsApp at <strong>{form.phone}</strong> shortly.
+              Thank you for applying to TELA (The European Language Academy, Kaithal). Application Reference #: <strong>TELA-APP-2026-992</strong>. Our Academic Admissions Counsellor will contact you on WhatsApp at <strong>{form.phone}</strong> shortly.
             </p>
             <button onClick={() => setSubmitted(false)} className="px-6 py-2.5 rounded-xl bg-amber-500 text-slate-950 font-bold text-xs hover:bg-amber-400">
               Submit Another Application

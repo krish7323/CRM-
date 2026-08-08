@@ -17,9 +17,9 @@ export const CertificatesPage = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-slate-100 flex items-center gap-2">
-            IIA Certificate Generation & Verification
+            TELA Certificate Generation & Verification
           </h1>
-          <p className="text-xs text-slate-400">Official CBSE & CEFR affiliated gold-embossed merit certificate generator with live QR registry</p>
+          <p className="text-xs text-slate-400">Official CEFR affiliated gold-embossed merit certificate generator with live QR registry • The European Language Academy (Kaithal)</p>
         </div>
 
         {canGenerate && (
@@ -56,13 +56,13 @@ export const CertificatesPage = () => {
 
             {/* Visual Gold Certificate Card */}
             <div className="bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 border-4 border-amber-500/50 p-8 rounded-2xl text-center space-y-4 shadow-2xl relative">
-              <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-tr from-amber-400 via-amber-500 to-amber-600 flex items-center justify-center text-slate-950 font-black text-xl shadow-xl">
-                IIA
+              <div className="w-20 h-20 mx-auto rounded-2xl bg-white p-2 flex items-center justify-center text-slate-950 font-black text-xl shadow-xl border border-amber-500/50">
+                <img src="/logo.png" alt="TELA Logo" className="w-full h-full object-contain" />
               </div>
 
               <div>
-                <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-amber-400">The Indian International Academy</h2>
-                <p className="text-[10px] text-slate-400">Affiliated to CBSE & CEFR Board • Reg. No: IIA-CBSE-2026/881</p>
+                <h2 className="text-sm font-extrabold uppercase tracking-[0.2em] text-amber-400">The European Language Academy</h2>
+                <p className="text-[11px] text-slate-300 font-semibold mt-0.5">TELA — Kaithal • Reg. No: TELA-CEFR-2026/881</p>
                 <h1 className="text-xl font-serif font-bold text-slate-100 mt-2">Certificate of Language & Academic Merit</h1>
                 <p className="text-[11px] text-slate-400 italic">This is to certify that</p>
               </div>
@@ -79,11 +79,11 @@ export const CertificatesPage = () => {
                 <div className="text-left">
                   <p>Issue Date: {selectedCert.issueDate}</p>
                   <p className="font-mono text-amber-400">Certificate ID: {selectedCert.certNumber}</p>
-                  <p className="mt-1 font-bold text-slate-300">Dr. Rajesh Sharma (Principal)</p>
+                  <p className="mt-1 font-bold text-slate-300">Director & Principal (TELA Kaithal)</p>
                 </div>
                 <div className="flex items-center gap-2 bg-slate-950 p-2 rounded-xl border border-slate-800">
                   <QrCode className="w-8 h-8 text-amber-400"/>
-                  <span className="text-[9px] text-slate-400 font-mono text-left">Scan to Verify<br />iia.edu.in/verify</span>
+                  <span className="text-[9px] text-slate-400 font-mono text-left">Scan to Verify<br />tela.edu.in/verify</span>
                 </div>
               </div>
             </div>

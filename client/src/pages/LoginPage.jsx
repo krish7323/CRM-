@@ -52,14 +52,12 @@ export const LoginPage = () => {
         <div className="bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 p-8 flex flex-col justify-between border-b md:border-b-0 md:border-r border-slate-800">
           <div>
             <div className="flex items-center space-x-3 mb-6">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 via-teal-500 to-cyan-500 p-0.5 shadow-xl shadow-amber-500/20">
-                <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center font-black text-amber-400 text-base">
-                  IIA
-                </div>
+              <div className="w-14 h-14 rounded-2xl bg-white p-1.5 shadow-xl shadow-amber-500/20 flex items-center justify-center">
+                <img src="/logo.png" alt="TELA Logo" className="w-full h-full object-contain" />
               </div>
               <div>
-                <h1 className="text-sm font-bold tracking-wider text-slate-100 uppercase">The Indian International Academy</h1>
-                <p className="text-xs text-amber-400 font-semibold">3-Role Institute ERP Suite</p>
+                <h1 className="text-base font-extrabold tracking-wider text-slate-100 uppercase">The European Language Academy</h1>
+                <p className="text-xs text-amber-400 font-semibold">TELA — Kaithal | ERP & CRM Suite</p>
               </div>
             </div>
 
@@ -82,7 +80,7 @@ export const LoginPage = () => {
                 <button
                   key={u.id}
                   type="button"
-                  onClick={() => fillQuickCredentials(u.email)}
+                  onClick={() => fillQuickCredentials(u.email, u.password)}
                   className="p-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 text-left transition flex items-center justify-between group"
                 >
                   <div className="truncate">

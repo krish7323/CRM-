@@ -269,7 +269,7 @@ export const SettingsPage = () => {
                             <button onClick={() => startEditUser(user)} className="p-1.5 rounded-lg bg-slate-800 text-amber-400 hover:bg-slate-700 font-semibold text-[11px] inline-flex items-center gap-1" title="Edit Credentials">
                               <Edit3 className="w-3.5 h-3.5"/> Edit
                             </button>
-                            <button onClick={() => deleteUserAccount(user.id)} className="p-1.5 rounded-lg bg-rose-950 text-rose-400 hover:bg-rose-900 font-semibold text-[11px] inline-flex items-center gap-1" title="Remove Account">
+                            <button onClick={() => deleteUserAccount(user.id || user._id || user.email)} className="p-1.5 rounded-lg bg-rose-950 text-rose-400 hover:bg-rose-900 font-semibold text-[11px] inline-flex items-center gap-1" title="Remove Account">
                               <Trash2 className="w-3.5 h-3.5"/> Remove
                             </button>
                           </>) : (<span className="text-[10px] text-slate-500 italic">Protected</span>)}
