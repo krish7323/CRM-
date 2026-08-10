@@ -19,10 +19,8 @@ import {
   ChevronLeft,
   ChevronRight,
   ShieldAlert,
-  Compass,
   KeyRound,
   CalendarCheck,
-  Home,
   FileText,
 } from 'lucide-react';
 
@@ -168,23 +166,6 @@ const navSections = [
         path: '/settings',
         icon: <KeyRound className="w-4 h-4 text-rose-400" />,
         roles: ['Owner', 'Admin', 'Owner/Admin'],
-      },
-    ],
-  },
-  {
-    category: 'PORTALS',
-    items: [
-      {
-        title: 'Parent Self-Service',
-        path: '/parent-portal',
-        icon: <Home className="w-4 h-4 text-teal-400" />,
-        roles: ['Parent', 'Owner', 'Admin', 'Owner/Admin'],
-      },
-      {
-        title: 'Student Self-Service',
-        path: '/student-portal',
-        icon: <Compass className="w-4 h-4 text-amber-400" />,
-        roles: ['Student', 'Owner', 'Admin', 'Owner/Admin'],
       },
     ],
   },
