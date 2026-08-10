@@ -6,16 +6,7 @@ import User from '../models/User.js';
 const JWT_SECRET = process.env.JWT_SECRET || 'elh_super_secret_jwt_key_2026_european_language_hub';
 
 const fallbackUsers = [
-  { id: 'usr-owner', name: 'Vikramaditya Roy', email: 'owner@elh.edu', role: 'Owner', password: 'password123' },
-  { id: 'usr-admin', name: 'Dr. Rajesh Sharma', email: 'admin@elh.edu', role: 'Admin', password: 'password123' },
-  { id: 'usr-counsellor', name: 'Priya Nair', email: 'counsellor@elh.edu', role: 'Counsellor', password: 'password123' },
-  { id: 'usr-teacher', name: 'Prof. Amit Kulkarni', email: 'teacher@elh.edu', role: 'Teacher', password: 'password123' },
-  { id: 'usr-accountant', name: 'Siddharth Roy', email: 'accountant@elh.edu', role: 'Accountant', password: 'password123' },
-  { id: 'usr-librarian', name: 'Sunita Menon', email: 'librarian@elh.edu', role: 'Librarian', password: 'password123' },
-  { id: 'usr-transport', name: 'Harpreet Singh', email: 'transport@elh.edu', role: 'Transport Manager', password: 'password123' },
-  { id: 'usr-hr', name: 'Anjali Saxena', email: 'hr@elh.edu', role: 'HR', password: 'password123' },
-  { id: 'usr-parent', name: 'Ramesh Gupta', email: 'parent@elh.edu', role: 'Parent', password: 'password123' },
-  { id: 'usr-student', name: 'Aarav Gupta', email: 'student@elh.edu', role: 'Student', password: 'password123' },
+  { id: 'usr-admin', name: 'Master ERP Administrator', email: 'admin@elh.edu', role: 'Admin', password: 'password123' },
 ];
 
 export const login = async (req, res) => {
@@ -68,7 +59,6 @@ export const login = async (req, res) => {
       },
     });
   } catch (error) {
-    // If DB query fails or times out, fallback to in-memory accounts
     const input = (req.body.email || '').toLowerCase().trim();
     const fbUser = fallbackUsers.find((u) => u.email.toLowerCase() === input);
     if (fbUser && fbUser.password === req.body.password) {

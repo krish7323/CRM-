@@ -10,8 +10,8 @@ export const LoginPage = () => {
 
   const from = location.state?.from?.pathname || '/';
 
-  const [emailOrPhone, setEmailOrPhone] = useState('owner@schoolerp.com');
-  const [password, setPassword] = useState('Owner@123');
+  const [emailOrPhone, setEmailOrPhone] = useState('admin@elh.edu');
+  const [password, setPassword] = useState('password123');
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -33,9 +33,9 @@ export const LoginPage = () => {
     }, 400);
   };
 
-  const fillQuickCredentials = (emailVal, passVal) => {
-    setEmailOrPhone(emailVal);
-    setPassword(passVal || 'Owner@123');
+  const fillAdminCredentials = () => {
+    setEmailOrPhone('admin@elh.edu');
+    setPassword('password123');
     setErrorMsg('');
   };
 
@@ -52,44 +52,42 @@ export const LoginPage = () => {
         <div className="bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 p-8 flex flex-col justify-between border-b md:border-b-0 md:border-r border-slate-800">
           <div>
             <div className="flex items-center space-x-3 mb-6">
-              <div className="w-14 h-14 rounded-2xl bg-white p-1.5 shadow-xl shadow-amber-500/20 flex items-center justify-center">
-                <img src="/logo.png" alt="TELA Logo" className="w-full h-full object-contain" />
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 via-teal-500 to-cyan-500 p-0.5 shadow-xl shadow-amber-500/20">
+                <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center font-black text-amber-400 text-base">
+                  IIA
+                </div>
               </div>
               <div>
-                <h1 className="text-base font-extrabold tracking-wider text-slate-100 uppercase">The European Language Academy</h1>
-                <p className="text-xs text-amber-400 font-semibold">TELA — Kaithal | ERP & CRM Suite</p>
+                <h1 className="text-sm font-bold tracking-wider text-slate-100 uppercase">The Indian International Academy</h1>
+                <p className="text-xs text-amber-400 font-semibold">Production ERP & CRM Suite</p>
               </div>
             </div>
 
             <h2 className="text-2xl font-black text-slate-100 leading-tight">
-              Enterprise Access & Operations Sign In
+              Master Admin Access Sign In
             </h2>
             <p className="text-xs text-slate-400 mt-3 leading-relaxed">
-              Role-based operational access strictly enforced across 3 operational roles: <strong>Owner</strong>, <strong>Counsellor</strong>, and <strong>Teacher</strong>.
+              Clean production environment configured with single Master Admin authentication.
             </p>
           </div>
 
-          {/* Quick Roster Buttons */}
+          {/* Master Admin Button */}
           <div className="mt-8 pt-6 border-t border-slate-800/80">
             <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
-              <Crown className="w-3.5 h-3.5 text-amber-400" /> Operational User Accounts
+              <Crown className="w-3.5 h-3.5 text-amber-400" /> Master Admin Login Account
             </p>
 
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5">
-              {users.map((u) => (
-                <button
-                  key={u.id}
-                  type="button"
-                  onClick={() => fillQuickCredentials(u.email, u.password)}
-                  className="p-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 text-left transition flex items-center justify-between group"
-                >
-                  <div className="truncate">
-                    <p className="text-[9px] font-bold text-slate-200 group-hover:text-amber-300 truncate">{u.name.split(' ')[0]}</p>
-                    <p className="text-[8px] text-amber-400 font-semibold truncate">{u.role}</p>
-                  </div>
-                </button>
-              ))}
-            </div>
+            <button
+              type="button"
+              onClick={fillAdminCredentials}
+              className="w-full p-3 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 text-left transition flex items-center justify-between group"
+            >
+              <div>
+                <p className="text-xs font-bold text-slate-200 group-hover:text-amber-300">Master ERP Administrator</p>
+                <p className="text-[10px] text-amber-400 font-semibold">admin@elh.edu</p>
+              </div>
+              <span className="text-xs text-slate-500 group-hover:text-slate-300 font-mono">Auto-fill →</span>
+            </button>
           </div>
         </div>
 
@@ -97,7 +95,7 @@ export const LoginPage = () => {
         <div className="p-8 flex flex-col justify-center bg-slate-950/60">
           <div className="mb-6">
             <h3 className="text-lg font-bold text-slate-100">Sign In</h3>
-            <p className="text-xs text-slate-400">Enter your assigned Email/ID and Password</p>
+            <p className="text-xs text-slate-400">Enter Admin Email and Password</p>
           </div>
 
           {errorMsg && (
@@ -118,7 +116,7 @@ export const LoginPage = () => {
                   value={emailOrPhone}
                   onChange={(e) => setEmailOrPhone(e.target.value)}
                   className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-500 font-mono"
-                  placeholder="owner@elh.edu"
+                  placeholder="admin@elh.edu"
                 />
               </div>
             </div>
