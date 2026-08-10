@@ -18,11 +18,11 @@ import {
 
 export const CoursesPage = () => {
   const {
-    courses,
-    schoolClasses,
-    subjects,
-    academicYears,
-    students,
+    courses = [],
+    schoolClasses = [],
+    subjects = [],
+    academicYears = [],
+    students = [],
     addCourse,
     addSchoolClass,
     addSubject,

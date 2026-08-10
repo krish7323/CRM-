@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { canManageUser, ROLE_RANKS } from '../utils/hierarchy.js';
 
 // Single Master Admin User Roster
 const initialRegisteredUsers = [
@@ -27,8 +26,11 @@ export const useAppStore = create((set, get) => ({
   },
   isAiDrawerOpen: false,
 
+  // User Roster & Roles
   users: initialRegisteredUsers,
   customRoles: [],
+
+  // Core CRM & Student Arrays
   leads: [],
   students: [],
   courses: [],
@@ -36,6 +38,18 @@ export const useAppStore = create((set, get) => ({
   fees: [],
   expenses: [],
   certificates: [],
+
+  // Academic & School Modules
+  schoolClasses: [],
+  subjects: [],
+  academicYears: [],
+  academicSessions: [],
+  attendanceLogs: [],
+  timetableSlots: [],
+  teacherAttendanceLogs: [],
+  studyNotes: [],
+
+  // Resource & Extension Arrays
   books: [],
   bookIssues: [],
   homeworks: [],
@@ -65,7 +79,7 @@ export const useAppStore = create((set, get) => ({
   // Auth Actions
   loginUser: (emailOrPhone, passwordAttempt) => {
     const input = emailOrPhone.trim().toLowerCase();
-    const user = get().users.find(
+    const user = (get().users || []).find(
       (u) => u.email.toLowerCase() === input || (u.phone && u.phone.includes(input)) || u.id.toLowerCase() === input
     );
 
@@ -90,7 +104,60 @@ export const useAppStore = create((set, get) => ({
     set({ isAuthenticated: false });
   },
 
-  // Module 5: Exams Actions
+  // Course & Academics Actions
+  addCourse: (courseData) => {
+    const newCourse = { _id: `crs-${Date.now()}`, ...courseData };
+    set({ courses: [newCourse, ...(get().courses || [])] });
+    get().logActivity(`Added course: ${newCourse.name}`, 'Academics');
+  },
+
+  addSchoolClass: (classData) => {
+    const newClass = { _id: `cls-${Date.now()}`, ...classData };
+    set({ schoolClasses: [newClass, ...(get().schoolClasses || [])] });
+    get().logActivity(`Added school class: ${newClass.name}`, 'Academics');
+  },
+
+  addSubject: (subjectData) => {
+    const newSub = { _id: `sbj-${Date.now()}`, ...subjectData };
+    set({ subjects: [newSub, ...(get().subjects || [])] });
+    get().logActivity(`Added subject: ${newSub.name}`, 'Academics');
+  },
+
+  addAcademicYear: (yearData) => {
+    const newYr = { _id: `yr-${Date.now()}`, ...yearData };
+    set({ academicYears: [newYr, ...(get().academicYears || [])] });
+    get().logActivity(`Added academic year: ${newYr.name}`, 'Academics');
+  },
+
+  promoteStudents: (fromClassId, toClassId) => {
+    get().logActivity(`Promoted students from ${fromClassId} to ${toClassId}`, 'Academics');
+  },
+
+  // Batch & Timetable Actions
+  addBatch: (batchData) => {
+    const newBatch = { _id: `btc-${Date.now()}`, ...batchData };
+    set({ batches: [newBatch, ...(get().batches || [])] });
+    get().logActivity(`Added batch: ${newBatch.code}`, 'Batches');
+  },
+
+  addTimetableSlot: (slotData) => {
+    const newSlot = { _id: `ts-${Date.now()}`, ...slotData };
+    set({ timetableSlots: [newSlot, ...(get().timetableSlots || [])] });
+  },
+
+  saveTeacherAttendance: (logData) => {
+    const newLog = { _id: `ta-${Date.now()}`, ...logData };
+    set({ teacherAttendanceLogs: [newLog, ...(get().teacherAttendanceLogs || [])] });
+  },
+
+  // Attendance Actions
+  saveDailyAttendanceLog: (attData) => {
+    const newLog = { _id: `att-${Date.now()}`, ...attData };
+    set({ attendanceLogs: [newLog, ...(get().attendanceLogs || [])] });
+    get().logActivity(`Recorded daily attendance for ${newLog.date}`, 'Attendance');
+  },
+
+  // Exams Actions
   addExam: (examData) => {
     const newExam = {
       _id: `ex-${Date.now()}`,
@@ -106,7 +173,7 @@ export const useAppStore = create((set, get) => ({
       totalMarks: Number(examData.totalMarks) || 100,
       passingMarks: Number(examData.passingMarks) || 50,
     };
-    set({ exams: [newExam, ...get().exams] });
+    set({ exams: [newExam, ...(get().exams || [])] });
     get().logActivity(`Created exam: ${newExam.title}`, 'Exams');
   },
 
@@ -122,11 +189,11 @@ export const useAppStore = create((set, get) => ({
       rank: 1,
       teacherRemarks: markData.teacherRemarks || '',
     };
-    set({ examMarks: [newMark, ...get().examMarks] });
+    set({ examMarks: [newMark, ...(get().examMarks || [])] });
     get().logActivity(`Recorded exam mark for ${newMark.studentName}`, 'Exams');
   },
 
-  // Module 6: Academic Calendar Actions
+  // Academic Calendar Actions
   addAcademicEvent: (eventData) => {
     const newEvt = {
       _id: `evt-${Date.now()}`,
@@ -137,56 +204,33 @@ export const useAppStore = create((set, get) => ({
       targetRoles: eventData.targetRoles || ['All'],
       description: eventData.description || '',
     };
-    set({ academicEvents: [newEvt, ...get().academicEvents] });
+    set({ academicEvents: [newEvt, ...(get().academicEvents || [])] });
     get().logActivity(`Created academic event: ${newEvt.title}`, 'Calendar');
   },
 
-  // Module 7: Transport Actions
+  // Study Notes Action
+  addStudyNote: (noteData) => {
+    const newNote = { _id: `note-${Date.now()}`, ...noteData };
+    set({ studyNotes: [newNote, ...(get().studyNotes || [])] });
+  },
+
+  // Transport & Asset Actions
   addTransportRoute: (routeData) => {
-    const newRoute = {
-      _id: `rt-${Date.now()}`,
-      routeCode: routeData.routeCode,
-      routeName: routeData.routeName,
-      stops: routeData.stops || [],
-      vehicleNo: routeData.vehicleNo || '',
-      driverName: routeData.driverName || '',
-    };
-    set({ transportRoutes: [newRoute, ...get().transportRoutes] });
-    get().logActivity(`Added transport route: ${newRoute.routeName}`, 'Transport');
+    const newRoute = { _id: `rt-${Date.now()}`, ...routeData };
+    set({ transportRoutes: [newRoute, ...(get().transportRoutes || [])] });
   },
 
-  // Module 8: Inventory Asset Actions
   addAsset: (assetData) => {
-    const newAsset = {
-      _id: `ast-${Date.now()}`,
-      name: assetData.name,
-      assetCode: `IIA-AST-${Math.floor(4000 + Math.random() * 1000)}`,
-      category: assetData.category || 'Computers',
-      purchaseDate: assetData.purchaseDate || new Date().toISOString().split('T')[0],
-      purchasePrice: Number(assetData.purchasePrice) || 0,
-      vendor: assetData.vendor || '',
-      status: 'Available',
-    };
-    set({ assets: [newAsset, ...get().assets] });
-    get().logActivity(`Added asset: ${newAsset.name} (${newAsset.assetCode})`, 'Inventory');
+    const newAsset = { _id: `ast-${Date.now()}`, ...assetData };
+    set({ assets: [newAsset, ...(get().assets || [])] });
   },
 
-  // Module 9: Notice Actions
+  // Notice & Chat & Leave Actions
   addNotice: (noticeData) => {
-    const newNotice = {
-      _id: `ntc-${Date.now()}`,
-      title: noticeData.title,
-      content: noticeData.content,
-      category: noticeData.category || 'General',
-      priority: noticeData.priority || 'Normal',
-      isPinned: noticeData.isPinned || false,
-      createdAt: new Date().toISOString().split('T')[0],
-    };
-    set({ notices: [newNotice, ...get().notices] });
-    get().logActivity(`Published notice: ${newNotice.title}`, 'Notices');
+    const newNotice = { _id: `ntc-${Date.now()}`, ...noticeData };
+    set({ notices: [newNotice, ...(get().notices || [])] });
   },
 
-  // Module 10: Chat Actions
   sendChatMessage: (recipientId, text) => {
     const newMsg = {
       _id: `msg-${Date.now()}`,
@@ -196,33 +240,19 @@ export const useAppStore = create((set, get) => ({
       text,
       createdAt: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }),
     };
-    set({ chatMessages: [...get().chatMessages, newMsg] });
+    set({ chatMessages: [...(get().chatMessages || []), newMsg] });
   },
 
-  // Module 11: Leave Actions
   requestLeave: (leaveData) => {
-    const newLeave = {
-      _id: `lv-${Date.now()}`,
-      applicantId: get().currentUser.id,
-      applicantName: get().currentUser.name,
-      applicantRole: get().currentUser.role,
-      leaveType: leaveData.leaveType || 'Casual',
-      startDate: leaveData.startDate,
-      endDate: leaveData.endDate,
-      reason: leaveData.reason,
-      substituteTeacher: leaveData.substituteTeacher || '',
-      status: 'Pending',
-    };
-    set({ leaveRequests: [newLeave, ...get().leaveRequests] });
-    get().logActivity(`Requested ${newLeave.leaveType} leave`, 'Leaves');
+    const newLeave = { _id: `lv-${Date.now()}`, ...leaveData, status: 'Pending' };
+    set({ leaveRequests: [newLeave, ...(get().leaveRequests || [])] });
   },
 
   approveLeave: (leaveId, isApproved) => {
     const newStatus = isApproved ? 'Approved' : 'Rejected';
     set({
-      leaveRequests: get().leaveRequests.map((l) => (l._id === leaveId ? { ...l, status: newStatus } : l)),
+      leaveRequests: (get().leaveRequests || []).map((l) => (l._id === leaveId ? { ...l, status: newStatus } : l)),
     });
-    get().logActivity(`Leave request ${newStatus} for ID ${leaveId}`, 'Leaves');
   },
 
   // State Helpers
@@ -241,6 +271,6 @@ export const useAppStore = create((set, get) => ({
       module,
       timestamp: new Date().toLocaleString('en-IN'),
     };
-    set({ auditLogs: [newLog, ...get().auditLogs.slice(0, 99)] });
+    set({ auditLogs: [newLog, ...(get().auditLogs || []).slice(0, 99)] });
   },
 }));
