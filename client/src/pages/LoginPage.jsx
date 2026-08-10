@@ -4,7 +4,7 @@ import { Lock, Mail, Shield, ArrowRight, Eye, EyeOff, AlertTriangle, Crown } fro
 import { useNavigate, useLocation } from 'react-router-dom';
 
 export const LoginPage = () => {
-  const { users, loginUser } = useAppStore();
+  const { loginUser } = useAppStore();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -48,33 +48,33 @@ export const LoginPage = () => {
       {/* Main Container */}
       <div className="w-full max-w-5xl glass-panel border border-slate-800/80 rounded-3xl overflow-hidden shadow-2xl grid grid-cols-1 md:grid-cols-2 relative z-10">
         
-        {/* Left Side: Indian International Academy Branding */}
+        {/* Left Side: Branding */}
         <div className="bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 p-8 flex flex-col justify-between border-b md:border-b-0 md:border-r border-slate-800">
           <div>
             <div className="flex items-center space-x-3 mb-6">
               <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 via-teal-500 to-cyan-500 p-0.5 shadow-xl shadow-amber-500/20">
                 <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center font-black text-amber-400 text-base">
-                  IIA
+                  TELA
                 </div>
               </div>
               <div>
-                <h1 className="text-sm font-bold tracking-wider text-slate-100 uppercase">The Indian International Academy</h1>
+                <h1 className="text-sm font-bold tracking-wider text-slate-100 uppercase">The European Language Academy</h1>
                 <p className="text-xs text-amber-400 font-semibold">Production ERP & CRM Suite</p>
               </div>
             </div>
 
             <h2 className="text-2xl font-black text-slate-100 leading-tight">
-              Master Admin Access Sign In
+              Owner & Admin Access Sign In
             </h2>
             <p className="text-xs text-slate-400 mt-3 leading-relaxed">
-              Clean production environment configured with single Master Admin authentication.
+              Clean production environment configured for Dinesha & Niresh (Institute Owners).
             </p>
           </div>
 
-          {/* Master Admin Button */}
+          {/* Owner Account Card */}
           <div className="mt-8 pt-6 border-t border-slate-800/80">
             <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
-              <Crown className="w-3.5 h-3.5 text-amber-400" /> Master Admin Login Account
+              <Crown className="w-3.5 h-3.5 text-amber-400" /> Master Owner Account
             </p>
 
             <button
@@ -83,7 +83,7 @@ export const LoginPage = () => {
               className="w-full p-3 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 text-left transition flex items-center justify-between group"
             >
               <div>
-                <p className="text-xs font-bold text-slate-200 group-hover:text-amber-300">Master ERP Administrator</p>
+                <p className="text-xs font-bold text-slate-200 group-hover:text-amber-300">Dinesha & Niresh</p>
                 <p className="text-[10px] text-amber-400 font-semibold">admin@elh.edu</p>
               </div>
               <span className="text-xs text-slate-500 group-hover:text-slate-300 font-mono">Auto-fill →</span>

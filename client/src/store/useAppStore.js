@@ -1,15 +1,15 @@
 import { create } from 'zustand';
 
-// Single Master Admin User Roster
+// Single Master Admin / Owner Account
 const initialRegisteredUsers = [
   {
     id: 'usr-admin',
-    name: 'Master ERP Administrator',
+    name: 'Dinesha & Niresh',
     email: 'admin@elh.edu',
     phone: '+91 98765 43210',
     password: 'password123',
     role: 'Admin',
-    designation: 'System Administrator & Principal',
+    designation: 'Institute Owners & Directors',
     isActive: true,
     avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
   },
@@ -22,7 +22,7 @@ export const useAppStore = create((set, get) => ({
   currentUser: {
     ...initialRegisteredUsers[0],
     role: localStorage.getItem('elh_user_role') || 'Admin',
-    name: localStorage.getItem('elh_user_name') || 'Master ERP Administrator',
+    name: localStorage.getItem('elh_user_name') || 'Dinesha & Niresh',
   },
   isAiDrawerOpen: false,
 
@@ -68,9 +68,9 @@ export const useAppStore = create((set, get) => ({
   auditLogs: [
     {
       _id: 'log-init',
-      userName: 'Master ERP Administrator',
+      userName: 'Dinesha & Niresh',
       userRole: 'Admin',
-      action: 'System initialized with single Master Admin account',
+      action: 'System initialized with single Master Owner/Admin account',
       module: 'System',
       timestamp: new Date().toLocaleString('en-IN'),
     },

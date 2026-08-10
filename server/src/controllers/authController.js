@@ -6,7 +6,7 @@ import User from '../models/User.js';
 const JWT_SECRET = process.env.JWT_SECRET || 'elh_super_secret_jwt_key_2026_european_language_hub';
 
 const fallbackUsers = [
-  { id: 'usr-admin', name: 'Master ERP Administrator', email: 'admin@elh.edu', role: 'Admin', password: 'password123' },
+  { id: 'usr-admin', name: 'Dinesha & Niresh', email: 'admin@elh.edu', role: 'Admin', password: 'password123' },
 ];
 
 export const login = async (req, res) => {
