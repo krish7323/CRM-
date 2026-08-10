@@ -16,9 +16,9 @@ const BatchesPage = lazy(() => import('./pages/BatchesPage.jsx').then((m) => ({ 
 const AttendancePage = lazy(() => import('./pages/AttendancePage.jsx').then((m) => ({ default: m.AttendancePage })));
 const ExamsPage = lazy(() => import('./pages/ExamsPage.jsx').then((m) => ({ default: m.ExamsPage })));
 const AcademicCalendarPage = lazy(() => import('./pages/AcademicCalendarPage.jsx').then((m) => ({ default: m.AcademicCalendarPage })));
-const TransportPage = null;
-const InventoryPage = null;
-const LibraryPage = null;
+const TransportPage = lazy(() => import('./pages/TransportPage.jsx').then((m) => ({ default: m.TransportPage })));
+const InventoryPage = lazy(() => import('./pages/InventoryPage.jsx').then((m) => ({ default: m.InventoryPage })));
+const LibraryPage = lazy(() => import('./pages/LibraryPage.jsx').then((m) => ({ default: m.LibraryPage })));
 const HomeworkPage = lazy(() => import('./pages/HomeworkPage.jsx').then((m) => ({ default: m.HomeworkPage })));
 const ScholarshipPage = lazy(() => import('./pages/ScholarshipPage.jsx').then((m) => ({ default: m.ScholarshipPage })));
 const PTMPage = lazy(() => import('./pages/PTMPage.jsx').then((m) => ({ default: m.PTMPage })));
@@ -40,7 +40,7 @@ const VerifyCertificatePage = lazy(() => import('./pages/VerifyCertificatePage.j
 const PageLoader = () => (
   <div className="min-h-[400px] flex flex-col items-center justify-center space-y-3 p-8">
     <div className="w-10 h-10 border-4 border-amber-500/30 border-t-amber-500 rounded-full animate-spin"></div>
-    <p className="text-xs text-slate-400 font-semibold tracking-wider uppercase">Loading ELH Module...</p>
+    <p className="text-xs text-slate-400 font-semibold tracking-wider uppercase">Loading Module...</p>
   </div>
 );
 
@@ -65,220 +65,244 @@ export const App = () => {
               <AuthGuard>
                 <MainLayout>
                   <Routes>
-                  <Route
-                    path="/"
-                    element={
-                      <RoleGuard allowedRoles={['Owner', 'Counsellor', 'Teacher']}>
-                        <DashboardPage />
-                      </RoleGuard>
-                    }
-                  />
-                  <Route
-                    path="/crm"
-                    element={
-                      <RoleGuard allowedRoles={['Owner', 'Counsellor']}>
-                        <CRMPage />
-                      </RoleGuard>
-                    }
-                  />
-                  <Route
-                    path="/followups"
-                    element={
-                      <RoleGuard allowedRoles={['Owner', 'Counsellor']}>
-                        <FollowupsPage />
-                      </RoleGuard>
-                    }
-                  />
-                  <Route
-                    path="/students"
-                    element={
-                      <RoleGuard allowedRoles={['Owner', 'Counsellor', 'Teacher']}>
-                        <StudentsPage />
-                      </RoleGuard>
-                    }
-                  />
-                  <Route
-                    path="/admissions"
-                    element={
-                      <RoleGuard allowedRoles={['Owner', 'Counsellor']}>
-                        <AdmissionsPage />
-                      </RoleGuard>
-                    }
-                  />
-                  <Route
-                    path="/courses"
-                    element={
-                      <RoleGuard allowedRoles={['Owner', 'Counsellor', 'Teacher']}>
-                        <CoursesPage />
-                      </RoleGuard>
-                    }
-                  />
-                  <Route
-                    path="/batches"
-                    element={
-                      <RoleGuard allowedRoles={['Owner', 'Teacher', 'Counsellor']}>
-                        <BatchesPage />
-                      </RoleGuard>
-                    }
-                  />
-                  <Route
-                    path="/attendance"
-                    element={
-                      <RoleGuard allowedRoles={['Owner', 'Teacher']}>
-                        <AttendancePage />
-                      </RoleGuard>
-                    }
-                  />
-                  <Route
-                    path="/exams"
-                    element={
-                      <RoleGuard allowedRoles={['Owner', 'Teacher', 'Counsellor']}>
-                        <ExamsPage />
-                      </RoleGuard>
-                    }
-                  />
-                  <Route
-                    path="/academic-calendar"
-                    element={
-                      <RoleGuard allowedRoles={['Owner', 'Counsellor', 'Teacher']}>
-                        <AcademicCalendarPage />
-                      </RoleGuard>
-                    }
-                  />
-                  <Route
-                    path="/homework"
-                    element={
-                      <RoleGuard allowedRoles={['Owner', 'Teacher', 'Counsellor']}>
-                        <HomeworkPage />
-                      </RoleGuard>
-                    }
-                  />
-                  <Route
-                    path="/scholarships"
-                    element={
-                      <RoleGuard allowedRoles={['Owner', 'Counsellor']}>
-                        <ScholarshipPage />
-                      </RoleGuard>
-                    }
-                  />
-                  <Route
-                    path="/ptm"
-                    element={
-                      <RoleGuard allowedRoles={['Owner', 'Teacher', 'Counsellor']}>
-                        <PTMPage />
-                      </RoleGuard>
-                    }
-                  />
-                  <Route
-                    path="/notices"
-                    element={
-                      <RoleGuard allowedRoles={['Owner', 'Counsellor', 'Teacher']}>
-                        <NoticePage />
-                      </RoleGuard>
-                    }
-                  />
-                  <Route
-                    path="/chat"
-                    element={
-                      <RoleGuard allowedRoles={['Owner', 'Counsellor', 'Teacher']}>
-                        <ChatPage />
-                      </RoleGuard>
-                    }
-                  />
-                  <Route
-                    path="/leaves"
-                    element={
-                      <RoleGuard allowedRoles={['Owner', 'Teacher', 'Counsellor']}>
-                        <LeavePage />
-                      </RoleGuard>
-                    }
-                  />
-                  <Route
-                    path="/fees"
-                    element={
-                      <RoleGuard allowedRoles={['Owner', 'Counsellor']}>
-                        <FeesPage />
-                      </RoleGuard>
-                    }
-                  />
-                  <Route
-                    path="/expenses"
-                    element={
-                      <RoleGuard allowedRoles={['Owner']}>
-                        <ExpensesPage />
-                      </RoleGuard>
-                    }
-                  />
-                  <Route
-                    path="/whatsapp"
-                    element={
-                      <RoleGuard allowedRoles={['Owner', 'Counsellor']}>
-                        <WhatsAppPage />
-                      </RoleGuard>
-                    }
-                  />
-                  <Route
-                    path="/documents"
-                    element={
-                      <RoleGuard allowedRoles={['Owner', 'Counsellor']}>
-                        <DocumentsPage />
-                      </RoleGuard>
-                    }
-                  />
-                  <Route
-                    path="/certificates"
-                    element={
-                      <RoleGuard allowedRoles={['Owner', 'Teacher', 'Counsellor']}>
-                        <CertificatesPage />
-                      </RoleGuard>
-                    }
-                  />
-                  <Route
-                    path="/staff"
-                    element={
-                      <RoleGuard allowedRoles={['Owner']}>
-                        <StaffPage />
-                      </RoleGuard>
-                    }
-                  />
-                  <Route
-                    path="/settings"
-                    element={
-                      <RoleGuard allowedRoles={['Owner']}>
-                        <SettingsPage />
-                      </RoleGuard>
-                    }
-                  />
-                  <Route
-                    path="/reports"
-                    element={
-                      <RoleGuard allowedRoles={['Owner', 'Counsellor']}>
-                        <ReportsPage />
-                      </RoleGuard>
-                    }
-                  />
-                  <Route
-                    path="/parent-portal"
-                    element={
-                      <RoleGuard allowedRoles={['Parent', 'Owner', 'Admin']}>
-                        <ParentPortalPage />
-                      </RoleGuard>
-                    }
-                  />
-                  <Route
-                    path="/student-portal"
-                    element={
-                      <RoleGuard allowedRoles={['Student', 'Owner', 'Admin']}>
-                        <StudentPortalPage />
-                      </RoleGuard>
-                    }
-                  />
-                </Routes>
-              </MainLayout>
-            </AuthGuard>
-          }
-        />
-      </Routes>
+                    <Route
+                      path="/"
+                      element={
+                        <RoleGuard allowedRoles={['Owner', 'Admin', 'Owner/Admin', 'Counsellor', 'Teacher', 'Accountant', 'Librarian', 'Transport Manager', 'HR']}>
+                          <DashboardPage />
+                        </RoleGuard>
+                      }
+                    />
+                    <Route
+                      path="/crm"
+                      element={
+                        <RoleGuard allowedRoles={['Owner', 'Admin', 'Owner/Admin', 'Counsellor']}>
+                          <CRMPage />
+                        </RoleGuard>
+                      }
+                    />
+                    <Route
+                      path="/followups"
+                      element={
+                        <RoleGuard allowedRoles={['Owner', 'Admin', 'Owner/Admin', 'Counsellor']}>
+                          <FollowupsPage />
+                        </RoleGuard>
+                      }
+                    />
+                    <Route
+                      path="/students"
+                      element={
+                        <RoleGuard allowedRoles={['Owner', 'Admin', 'Owner/Admin', 'Counsellor', 'Teacher']}>
+                          <StudentsPage />
+                        </RoleGuard>
+                      }
+                    />
+                    <Route
+                      path="/admissions"
+                      element={
+                        <RoleGuard allowedRoles={['Owner', 'Admin', 'Owner/Admin', 'Counsellor']}>
+                          <AdmissionsPage />
+                        </RoleGuard>
+                      }
+                    />
+                    <Route
+                      path="/courses"
+                      element={
+                        <RoleGuard allowedRoles={['Owner', 'Admin', 'Owner/Admin', 'Counsellor', 'Teacher']}>
+                          <CoursesPage />
+                        </RoleGuard>
+                      }
+                    />
+                    <Route
+                      path="/batches"
+                      element={
+                        <RoleGuard allowedRoles={['Owner', 'Admin', 'Owner/Admin', 'Teacher', 'Counsellor']}>
+                          <BatchesPage />
+                        </RoleGuard>
+                      }
+                    />
+                    <Route
+                      path="/attendance"
+                      element={
+                        <RoleGuard allowedRoles={['Owner', 'Admin', 'Owner/Admin', 'Teacher']}>
+                          <AttendancePage />
+                        </RoleGuard>
+                      }
+                    />
+                    <Route
+                      path="/exams"
+                      element={
+                        <RoleGuard allowedRoles={['Owner', 'Admin', 'Owner/Admin', 'Teacher', 'Counsellor', 'Student', 'Parent']}>
+                          <ExamsPage />
+                        </RoleGuard>
+                      }
+                    />
+                    <Route
+                      path="/academic-calendar"
+                      element={
+                        <RoleGuard allowedRoles={['Owner', 'Admin', 'Owner/Admin', 'Counsellor', 'Teacher', 'Accountant', 'Librarian', 'Transport Manager', 'HR', 'Parent', 'Student']}>
+                          <AcademicCalendarPage />
+                        </RoleGuard>
+                      }
+                    />
+                    <Route
+                      path="/transport"
+                      element={
+                        <RoleGuard allowedRoles={['Owner', 'Admin', 'Owner/Admin', 'Transport Manager', 'Parent']}>
+                          <TransportPage />
+                        </RoleGuard>
+                      }
+                    />
+                    <Route
+                      path="/inventory"
+                      element={
+                        <RoleGuard allowedRoles={['Owner', 'Admin', 'Owner/Admin', 'Librarian']}>
+                          <InventoryPage />
+                        </RoleGuard>
+                      }
+                    />
+                    <Route
+                      path="/library"
+                      element={
+                        <RoleGuard allowedRoles={['Owner', 'Admin', 'Owner/Admin', 'Librarian', 'Teacher', 'Student']}>
+                          <LibraryPage />
+                        </RoleGuard>
+                      }
+                    />
+                    <Route
+                      path="/homework"
+                      element={
+                        <RoleGuard allowedRoles={['Owner', 'Admin', 'Owner/Admin', 'Teacher', 'Counsellor', 'Student']}>
+                          <HomeworkPage />
+                        </RoleGuard>
+                      }
+                    />
+                    <Route
+                      path="/scholarships"
+                      element={
+                        <RoleGuard allowedRoles={['Owner', 'Admin', 'Owner/Admin', 'Counsellor', 'Accountant']}>
+                          <ScholarshipPage />
+                        </RoleGuard>
+                      }
+                    />
+                    <Route
+                      path="/ptm"
+                      element={
+                        <RoleGuard allowedRoles={['Owner', 'Admin', 'Owner/Admin', 'Teacher', 'Counsellor', 'Parent']}>
+                          <PTMPage />
+                        </RoleGuard>
+                      }
+                    />
+                    <Route
+                      path="/notices"
+                      element={
+                        <RoleGuard allowedRoles={['Owner', 'Admin', 'Owner/Admin', 'Counsellor', 'Teacher', 'Accountant', 'Librarian', 'Transport Manager', 'HR', 'Parent', 'Student']}>
+                          <NoticePage />
+                        </RoleGuard>
+                      }
+                    />
+                    <Route
+                      path="/chat"
+                      element={
+                        <RoleGuard allowedRoles={['Owner', 'Admin', 'Owner/Admin', 'Counsellor', 'Teacher', 'Accountant', 'Librarian', 'Transport Manager', 'HR', 'Parent', 'Student']}>
+                          <ChatPage />
+                        </RoleGuard>
+                      }
+                    />
+                    <Route
+                      path="/leaves"
+                      element={
+                        <RoleGuard allowedRoles={['Owner', 'Admin', 'Owner/Admin', 'HR', 'Teacher', 'Counsellor']}>
+                          <LeavePage />
+                        </RoleGuard>
+                      }
+                    />
+                    <Route
+                      path="/fees"
+                      element={
+                        <RoleGuard allowedRoles={['Owner', 'Admin', 'Owner/Admin', 'Accountant', 'Counsellor']}>
+                          <FeesPage />
+                        </RoleGuard>
+                      }
+                    />
+                    <Route
+                      path="/expenses"
+                      element={
+                        <RoleGuard allowedRoles={['Owner', 'Admin', 'Owner/Admin', 'Accountant']}>
+                          <ExpensesPage />
+                        </RoleGuard>
+                      }
+                    />
+                    <Route
+                      path="/whatsapp"
+                      element={
+                        <RoleGuard allowedRoles={['Owner', 'Admin', 'Owner/Admin', 'Counsellor']}>
+                          <WhatsAppPage />
+                        </RoleGuard>
+                      }
+                    />
+                    <Route
+                      path="/documents"
+                      element={
+                        <RoleGuard allowedRoles={['Owner', 'Admin', 'Owner/Admin', 'Counsellor']}>
+                          <DocumentsPage />
+                        </RoleGuard>
+                      }
+                    />
+                    <Route
+                      path="/certificates"
+                      element={
+                        <RoleGuard allowedRoles={['Owner', 'Admin', 'Owner/Admin', 'Teacher', 'Counsellor']}>
+                          <CertificatesPage />
+                        </RoleGuard>
+                      }
+                    />
+                    <Route
+                      path="/staff"
+                      element={
+                        <RoleGuard allowedRoles={['Owner', 'Admin', 'Owner/Admin', 'HR']}>
+                          <StaffPage />
+                        </RoleGuard>
+                      }
+                    />
+                    <Route
+                      path="/settings"
+                      element={
+                        <RoleGuard allowedRoles={['Owner', 'Admin', 'Owner/Admin']}>
+                          <SettingsPage />
+                        </RoleGuard>
+                      }
+                    />
+                    <Route
+                      path="/reports"
+                      element={
+                        <RoleGuard allowedRoles={['Owner', 'Admin', 'Owner/Admin', 'Accountant', 'Counsellor', 'Librarian', 'Transport Manager', 'HR']}>
+                          <ReportsPage />
+                        </RoleGuard>
+                      }
+                    />
+                    <Route
+                      path="/parent-portal"
+                      element={
+                        <RoleGuard allowedRoles={['Parent', 'Owner', 'Admin', 'Owner/Admin']}>
+                          <ParentPortalPage />
+                        </RoleGuard>
+                      }
+                    />
+                    <Route
+                      path="/student-portal"
+                      element={
+                        <RoleGuard allowedRoles={['Student', 'Owner', 'Admin', 'Owner/Admin']}>
+                          <StudentPortalPage />
+                        </RoleGuard>
+                      }
+                    />
+                  </Routes>
+                </MainLayout>
+              </AuthGuard>
+            }
+          />
+        </Routes>
       </Suspense>
     </BrowserRouter>
   );
