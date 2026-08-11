@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-// Single Master Admin / Owner Account
+// Single Master Owner / Admin Account
 const initialRegisteredUsers = [
   {
     id: 'usr-admin',
@@ -104,6 +104,235 @@ export const useAppStore = create((set, get) => ({
     set({ isAuthenticated: false });
   },
 
+  // CRM Lead Actions
+  addLead: (leadData) => {
+    const newLead = {
+      _id: `ld-${Date.now()}`,
+      name: leadData.name || 'New Applicant',
+      parentName: leadData.parentName || '',
+      aadhaarNo: leadData.aadhaarNo || '',
+      phone: leadData.phone || '',
+      whatsapp: leadData.whatsapp || leadData.phone || '',
+      email: leadData.email || '',
+      course: leadData.course || 'German',
+      language: leadData.language || leadData.course || 'German',
+      level: leadData.level || 'A1',
+      quotedFee: Number(leadData.quotedFee) || 25000,
+      source: leadData.source || 'Walk-in',
+      city: leadData.city || 'Kaithal',
+      status: 'New',
+      counsellorName: get().currentUser.name,
+      createdAt: new Date(),
+      notes: [],
+      calls: [],
+    };
+    set({ leads: [newLead, ...(get().leads || [])] });
+    get().logActivity(`Created new lead inquiry: ${newLead.name}`, 'CRM');
+  },
+
+  updateLeadStatus: (leadId, newStatus) => {
+    set({
+      leads: (get().leads || []).map((l) => (l._id === leadId ? { ...l, status: newStatus } : l)),
+    });
+    get().logActivity(`Updated lead status to ${newStatus} for ID ${leadId}`, 'CRM');
+  },
+
+  addLeadNote: (leadId, text) => {
+    const newNote = { text, by: get().currentUser.name, at: new Date() };
+    set({
+      leads: (get().leads || []).map((l) =>
+        l._id === leadId ? { ...l, notes: [newNote, ...(l.notes || [])] } : l
+      ),
+    });
+  },
+
+  addCallHistory: (leadId, callData) => {
+    const newCall = { ...callData, by: get().currentUser.name, at: new Date() };
+    set({
+      leads: (get().leads || []).map((l) =>
+        l._id === leadId ? { ...l, calls: [newCall, ...(l.calls || [])] } : l
+      ),
+    });
+  },
+
+  convertLeadToStudent: (leadId) => {
+    const lead = (get().leads || []).find((l) => l._id === leadId);
+    if (!lead) return;
+
+    const studentCode = `IIA-${Math.floor(1000 + Math.random() * 9000)}`;
+    const newStudent = {
+      _id: `std-${Date.now()}`,
+      studentId: studentCode,
+      name: lead.name,
+      parentName: lead.parentName || 'N/A',
+      phone: lead.phone,
+      whatsapp: lead.whatsapp || lead.phone,
+      email: lead.email,
+      courseName: lead.course || 'German',
+      level: lead.level || 'A1',
+      batchCode: `${(lead.course || 'GER').substring(0, 3).toUpperCase()}-A1-B01`,
+      joiningDate: new Date(),
+      isActive: true,
+      verificationStatus: 'Verified',
+    };
+
+    const newFee = {
+      _id: `fee-${Date.now()}`,
+      studentId: newStudent._id,
+      studentCode,
+      studentName: newStudent.name,
+      courseName: newStudent.courseName,
+      totalFee: lead.quotedFee || 25000,
+      discount: 0,
+      netFee: lead.quotedFee || 25000,
+      paidTotal: 0,
+      remainingTotal: lead.quotedFee || 25000,
+      status: 'Unpaid',
+      installments: [
+        {
+          installmentNo: 1,
+          amount: (lead.quotedFee || 25000) / 2,
+          dueDate: new Date(Date.now() + 7 * 86400000),
+          paidAmount: 0,
+          status: 'Pending',
+        },
+        {
+          installmentNo: 2,
+          amount: (lead.quotedFee || 25000) / 2,
+          dueDate: new Date(Date.now() + 30 * 86400000),
+          paidAmount: 0,
+          status: 'Pending',
+        },
+      ],
+    };
+
+    set({
+      leads: (get().leads || []).map((l) => (l._id === leadId ? { ...l, status: 'Admission' } : l)),
+      students: [newStudent, ...(get().students || [])],
+      fees: [newFee, ...(get().fees || [])],
+    });
+    get().logActivity(`Converted lead ${lead.name} to Student (${studentCode})`, 'Admissions');
+  },
+
+  // Student Direct Actions
+  registerDirectStudent: (studentData) => {
+    const studentCode = `IIA-${Math.floor(1000 + Math.random() * 9000)}`;
+    const newStudent = {
+      _id: `std-${Date.now()}`,
+      studentId: studentCode,
+      ...studentData,
+      joiningDate: new Date(),
+      isActive: true,
+      verificationStatus: 'Verified',
+    };
+    set({ students: [newStudent, ...(get().students || [])] });
+    get().logActivity(`Registered student ${newStudent.name} (${studentCode})`, 'Students');
+  },
+
+  updateStudentVerificationStatus: (studentId, status) => {
+    set({
+      students: (get().students || []).map((s) => (s._id === studentId ? { ...s, verificationStatus: status } : s)),
+    });
+  },
+
+  // Fee Actions
+  payInstallment: (feeId, installmentNo, paidAmount, paymentMode, txRef) => {
+    set({
+      fees: (get().fees || []).map((f) => {
+        if (f._id !== feeId) return f;
+        const updatedInsts = f.installments.map((inst) => {
+          if (inst.installmentNo !== installmentNo) return inst;
+          return { ...inst, paidAmount, mode: paymentMode, transactionRef: txRef, status: 'Paid', paidDate: new Date() };
+        });
+        const newPaidTotal = updatedInsts.reduce((sum, i) => sum + (i.paidAmount || 0), 0);
+        const newRemaining = f.netFee - newPaidTotal;
+        const newStatus = newRemaining <= 0 ? 'Paid' : newPaidTotal > 0 ? 'Partial' : 'Unpaid';
+        return { ...f, installments: updatedInsts, paidTotal: newPaidTotal, remainingTotal: newRemaining, status: newStatus };
+      }),
+    });
+    get().logActivity(`Processed fee payment for Fee ID ${feeId}`, 'Fees');
+  },
+
+  recordManualPayment: (feeId, amount, mode, txRef) => {
+    set({
+      fees: (get().fees || []).map((f) => {
+        if (f._id !== feeId) return f;
+        const newPaidTotal = f.paidTotal + Number(amount);
+        const newRemaining = Math.max(0, f.netFee - newPaidTotal);
+        const newStatus = newRemaining <= 0 ? 'Paid' : 'Partial';
+        return { ...f, paidTotal: newPaidTotal, remainingTotal: newRemaining, status: newStatus };
+      }),
+    });
+  },
+
+  updateFeeNote: (feeId, note) => {
+    set({
+      fees: (get().fees || []).map((f) => (f._id === feeId ? { ...f, internalNotes: note } : f)),
+    });
+  },
+
+  updateFeeDueDate: (feeId, installmentNo, newDueDate) => {
+    set({
+      fees: (get().fees || []).map((f) => {
+        if (f._id !== feeId) return f;
+        const updatedInsts = f.installments.map((inst) =>
+          inst.installmentNo === installmentNo ? { ...inst, dueDate: newDueDate } : inst
+        );
+        return { ...f, installments: updatedInsts };
+      }),
+    });
+  },
+
+  // Expense Actions
+  addExpense: (expenseData) => {
+    const newExp = { _id: `exp-${Date.now()}`, ...expenseData, date: new Date() };
+    set({ expenses: [newExp, ...(get().expenses || [])] });
+    get().logActivity(`Recorded expense: ₹${newExp.amount} (${newExp.category})`, 'Expenses');
+  },
+
+  // Certificate Actions
+  generateCertificate: (certData) => {
+    const certNumber = `IIA-CERT-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const newCert = {
+      _id: `cert-${Date.now()}`,
+      certNumber,
+      studentName: certData.studentName,
+      courseName: certData.courseName || 'German Language',
+      issueDate: new Date(),
+      qrUrl: `https://iia.edu.in/verify/${certNumber}`,
+      ...certData,
+    };
+    set({ certificates: [newCert, ...(get().certificates || [])] });
+    get().logActivity(`Generated certificate ${certNumber} for ${newCert.studentName}`, 'Certificates');
+  },
+
+  // User Administration Actions
+  addUserAccount: (userData) => {
+    const newUser = { id: `usr-${Date.now()}`, isActive: true, ...userData };
+    set({ users: [...(get().users || []), newUser] });
+    get().logActivity(`Created user account: ${newUser.name} (${newUser.role})`, 'Administration');
+  },
+
+  updateUserAccount: (userId, userData) => {
+    set({
+      users: (get().users || []).map((u) => (u.id === userId ? { ...u, ...userData } : u)),
+    });
+  },
+
+  deleteUserAccount: (userId) => {
+    set({
+      users: (get().users || []).filter((u) => u.id !== userId),
+    });
+  },
+
+  addCustomRole: (roleData) => {
+    set({ customRoles: [...(get().customRoles || []), roleData] });
+  },
+
+  deleteCustomRole: (roleName) => {
+    set({ customRoles: (get().customRoles || []).filter((r) => r.name !== roleName) });
+  },
+
   // Course & Academics Actions
   addCourse: (courseData) => {
     const newCourse = { _id: `crs-${Date.now()}`, ...courseData };
@@ -157,6 +386,29 @@ export const useAppStore = create((set, get) => ({
     get().logActivity(`Recorded daily attendance for ${newLog.date}`, 'Attendance');
   },
 
+  // PTM & Scholarship Actions
+  schedulePTM: (ptmData) => {
+    const newPtm = { _id: `ptm-${Date.now()}`, ...ptmData, status: 'Scheduled' };
+    set({ ptms: [newPtm, ...(get().ptms || [])] });
+    get().logActivity(`Scheduled PTM with ${newPtm.parentName || 'Parent'}`, 'PTM');
+  },
+
+  updatePTMStatus: (ptmId, status) => {
+    set({ ptms: (get().ptms || []).map((p) => (p._id === ptmId ? { ...p, status } : p)) });
+  },
+
+  requestScholarship: (schData) => {
+    const newSch = { _id: `sch-${Date.now()}`, ...schData, status: 'Pending' };
+    set({ scholarships: [newSch, ...(get().scholarships || [])] });
+    get().logActivity(`Requested scholarship for ${newSch.studentName}`, 'Scholarships');
+  },
+
+  approveScholarship: (schId, isApproved) => {
+    const newStatus = isApproved ? 'Approved' : 'Rejected';
+    set({ scholarships: (get().scholarships || []).map((s) => (s._id === schId ? { ...s, status: newStatus } : s)) });
+    get().logActivity(`Scholarship ${newStatus} for ID ${schId}`, 'Scholarships');
+  },
+
   // Exams Actions
   addExam: (examData) => {
     const newExam = {
@@ -191,6 +443,26 @@ export const useAppStore = create((set, get) => ({
     };
     set({ examMarks: [newMark, ...(get().examMarks || [])] });
     get().logActivity(`Recorded exam mark for ${newMark.studentName}`, 'Exams');
+  },
+
+  // Homework Actions
+  addHomework: (hwData) => {
+    const newHw = { _id: `hw-${Date.now()}`, ...hwData, createdAt: new Date() };
+    set({ homeworks: [newHw, ...(get().homeworks || [])] });
+    get().logActivity(`Created homework assignment: ${newHw.title}`, 'Homework');
+  },
+
+  submitHomework: (subData) => {
+    const newSub = { _id: `sub-${Date.now()}`, ...subData, submittedAt: new Date(), status: 'Submitted' };
+    set({ homeworkSubmissions: [newSub, ...(get().homeworkSubmissions || [])] });
+  },
+
+  gradeHomework: (subId, grade, remarks) => {
+    set({
+      homeworkSubmissions: (get().homeworkSubmissions || []).map((s) =>
+        s._id === subId ? { ...s, grade, remarks, status: 'Graded' } : s
+      ),
+    });
   },
 
   // Academic Calendar Actions
