@@ -15,6 +15,19 @@ const initialRegisteredUsers = [
   },
 ];
 
+// Default Active Courses & Batches for clean setup
+const defaultCourses = [
+  { _id: 'crs-ger', code: 'GER', name: 'German Language Program', description: 'Goethe & CEFR German A1-B2' },
+  { _id: 'crs-fre', code: 'FRE', name: 'French Language Program', description: 'DELF A1-B2' },
+  { _id: 'crs-eng', code: 'ENG', name: 'Business English & Public Speaking', description: 'Professional Communication' },
+];
+
+const defaultBatches = [
+  { _id: 'btc-101', code: 'GER-A1-B01', courseName: 'German', level: 'A1', teacherName: 'Prof. Amit Kulkarni', room: 'Room 102' },
+  { _id: 'btc-102', code: 'FRE-A1-B01', courseName: 'French', level: 'A1', teacherName: 'Prof. Amit Kulkarni', room: 'Room 103' },
+  { _id: 'btc-103', code: 'ENG-B1-B01', courseName: 'English', level: 'B1', teacherName: 'Prof. Amit Kulkarni', room: 'Room 104' },
+];
+
 export const useAppStore = create((set, get) => ({
   isAuthenticated: !!localStorage.getItem('elh_auth_token'),
   theme: 'dark',
@@ -33,8 +46,8 @@ export const useAppStore = create((set, get) => ({
   // Core CRM & Student Arrays
   leads: [],
   students: [],
-  courses: [],
-  batches: [],
+  courses: defaultCourses,
+  batches: defaultBatches,
   fees: [],
   expenses: [],
   certificates: [],
@@ -170,7 +183,7 @@ export const useAppStore = create((set, get) => ({
       email: lead.email,
       courseName: lead.course || 'German',
       level: lead.level || 'A1',
-      batchCode: `${(lead.course || 'GER').substring(0, 3).toUpperCase()}-A1-B01`,
+      batchCode: 'GER-A1-B01',
       joiningDate: new Date(),
       isActive: true,
       verificationStatus: 'Verified',
@@ -220,6 +233,7 @@ export const useAppStore = create((set, get) => ({
     const newStudent = {
       _id: `std-${Date.now()}`,
       studentId: studentCode,
+      batchCode: studentData.batchCode || 'GER-A1-B01',
       ...studentData,
       joiningDate: new Date(),
       isActive: true,
@@ -380,10 +394,19 @@ export const useAppStore = create((set, get) => ({
   },
 
   // Attendance Actions
-  saveDailyAttendanceLog: (attData) => {
-    const newLog = { _id: `att-${Date.now()}`, ...attData };
-    set({ attendanceLogs: [newLog, ...(get().attendanceLogs || [])] });
-    get().logActivity(`Recorded daily attendance for ${newLog.date}`, 'Attendance');
+  saveDailyAttendanceLog: (batchCode, date, entries) => {
+    const newLog = {
+      _id: `log-${Date.now()}`,
+      batchCode,
+      date,
+      entries,
+      markedBy: get().currentUser.name,
+      createdAt: new Date(),
+    };
+    set({
+      attendanceLogs: [newLog, ...(get().attendanceLogs || []).filter((l) => !(l.batchCode === batchCode && l.date === date))],
+    });
+    get().logActivity(`Saved daily attendance log for ${batchCode} on ${date}`, 'Attendance');
   },
 
   // PTM & Scholarship Actions

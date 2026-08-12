@@ -29,7 +29,9 @@ export const AttendancePage = () => {
   const [selectedStudentDetail, setSelectedStudentDetail] = useState(null);
 
   // Filter students for the selected batch
-  const batchStudents = students.filter((s) => !s.batchCode || s.batchCode === selectedBatch);
+  const batchStudents = (students || []).filter(
+    (s) => selectedBatch === 'All' || !s.batchCode || s.batchCode === selectedBatch
+  );
 
   // Existing saved log for selected batch & date
   const existingLog = (attendanceLogs || []).find(
@@ -162,6 +164,9 @@ export const AttendancePage = () => {
                   onChange={(e) => setSelectedBatch(e.target.value)}
                   className="bg-transparent font-bold text-amber-400 focus:outline-none cursor-pointer"
                 >
+                  <option value="All" className="bg-slate-900 font-bold text-amber-400">
+                    All Batches / All Enrolled Students
+                  </option>
                   {batches.map((b) => (
                     <option key={b._id} value={b.code} className="bg-slate-900 text-slate-200">
                       {b.code} ({b.courseName} {b.level})
