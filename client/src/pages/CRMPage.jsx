@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAppStore } from '../store/useAppStore';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { Plus, Search, X, Star, Video, PhoneCall, History, } from 'lucide-react';
+import { Plus, Search, X, Star, Video, PhoneCall, History, UserCheck } from 'lucide-react';
 const stages = [
     'New',
     'Contacted',
@@ -195,9 +195,23 @@ export const CRMPage = () => {
                 </h3>
                 <p className="text-xs text-slate-400">Parent: {selectedLead.parentName || 'N/A'} • Contact: {selectedLead.phone}</p>
               </div>
-              <button onClick={() => setSelectedLead(null)} className="text-slate-400 hover:text-slate-200">
-                <X className="w-5 h-5"/>
-              </button>
+              <div className="flex items-center gap-3">
+                {selectedLead.status !== 'Admission' && (
+                  <button
+                    onClick={() => {
+                      convertLeadToStudent(selectedLead._id);
+                      setSelectedLead(null);
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 hover:scale-105 transition"
+                  >
+                    <UserCheck className="w-4 h-4" />
+                    <span>Convert to Student Admission</span>
+                  </button>
+                )}
+                <button onClick={() => setSelectedLead(null)} className="text-slate-400 hover:text-slate-200">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             {/* Candidate Overview Grid */}
