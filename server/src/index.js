@@ -77,12 +77,34 @@ const potentialPaths = [
 
 let clientDistPath = potentialPaths.find((p) => fs.existsSync(p));
 
+// Health Check Endpoint
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'healthy',
+    service: 'TELA CRM & ERP Backend API',
+    uptime: `${Math.floor(process.uptime())}s`,
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    timestamp: new Date().toISOString(),
+  });
+});
+
 if (clientDistPath) {
   console.log(`📦 Serving production client build from: ${clientDistPath}`);
   app.use(express.static(clientDistPath));
   app.get('*', (req, res, next) => {
     if (req.path.startsWith('/api')) return next();
     res.sendFile(path.join(clientDistPath, 'index.html'));
+  });
+} else {
+  app.get('/', (req, res) => {
+    res.json({
+      status: 'online',
+      service: 'TELA CRM & ERP Backend API',
+      version: '1.0.0',
+      message: 'Backend server is running successfully',
+      health: '/api/health',
+      timestamp: new Date().toISOString(),
+    });
   });
 }
 
