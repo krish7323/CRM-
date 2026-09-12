@@ -9,6 +9,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import authRoutes from './routes/authRoutes.js';
 import apiRoutes from './routes/apiRoutes.js';
+import admissionRoutes from './routes/admissionRoutes.js';
 import { seedDatabase } from './utils/seedData.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -52,6 +53,7 @@ app.get('/api/public/verify/:certNumber', async (req, res) => {
 
 // API Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/admissions', admissionRoutes);
 app.use('/api', apiRoutes);
 
 // Process-level Crash Prevention Safety Guards for Render Cloud

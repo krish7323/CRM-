@@ -1,11 +1,26 @@
 import React, { useState } from 'react';
 import { useAppStore } from '../store/useAppStore';
-import { Search, FileCheck, ShieldCheck, X, UserPlus, CalendarCheck } from 'lucide-react';
+import { Search, FileCheck, ShieldCheck, X, UserPlus, CalendarCheck, Upload, AlertTriangle, CheckCircle2 } from 'lucide-react';
 export const StudentsPage = () => {
-    const { students, attendanceLogs, registerDirectStudent, updateStudentVerificationStatus, currentUser } = useAppStore();
+    const {
+        students = [],
+        batches = [],
+        attendanceLogs = [],
+        registerDirectStudent,
+        updateStudentVerificationStatus,
+        assignStudentBatch,
+        uploadStudentDocument,
+        currentUser,
+    } = useAppStore();
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedStudent, setSelectedStudent] = useState(null);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [reassignBatchCode, setReassignBatchCode] = useState('');
+    const [batchAssignMsg, setBatchAssignMsg] = useState('');
+    const [batchAssignError, setBatchAssignError] = useState('');
+    const [newDocType, setNewDocType] = useState('Academic Transcript');
+    const [newDocName, setNewDocName] = useState('');
+    const [docUploadMsg, setDocUploadMsg] = useState('');
 
     const canRegister = currentUser?.role === 'Owner' || currentUser?.role === 'Admin' || currentUser?.role === 'Counsellor';
     const isTeacher = currentUser?.role === 'Teacher';
@@ -25,8 +40,8 @@ export const StudentsPage = () => {
         courseName: 'German',
         level: 'A1',
         packageType: 'Quarterly Package',
-        batchCode: 'GER-A1-B01',
-        address: 'Bengaluru, India',
+        batchCode: batches[0]?.code || 'GER-A1-B01',
+        address: 'Kaithal, Haryana',
     });
 
     const handleRegisterStudent = (e) => {
@@ -48,20 +63,63 @@ export const StudentsPage = () => {
             courseName: 'German',
             level: 'A1',
             packageType: 'Quarterly Package',
-            batchCode: 'GER-A1-B01',
-            address: 'Bengaluru, India',
+            batchCode: batches[0]?.code || 'GER-A1-B01',
+            address: 'Kaithal, Haryana',
         });
     };
 
-    // Filter students: If teacher, show only assigned students!
+    const handleReassignBatch = (e) => {
+        e.preventDefault();
+        if (!selectedStudent || !reassignBatchCode) return;
+        const res = assignStudentBatch(selectedStudent._id, reassignBatchCode);
+        if (!res.success) {
+            setBatchAssignError(res.message);
+            setBatchAssignMsg('');
+        } else {
+            setBatchAssignMsg(res.message);
+            setBatchAssignError('');
+            setSelectedStudent((prev) => (prev ? { ...prev, batchCode: reassignBatchCode } : null));
+        }
+    };
+
+    const handleUploadDoc = (e) => {
+        e.preventDefault();
+        if (!selectedStudent) return;
+        const docName = newDocName.trim() || `${newDocType.replace(/\s+/g, '_')}_${selectedStudent.name.replace(/\s+/g, '_')}.pdf`;
+        uploadStudentDocument(selectedStudent._id, {
+            type: newDocType,
+            name: docName,
+            fileSize: '1.6 MB',
+        });
+        setDocUploadMsg(`Document '${docName}' uploaded to vault!`);
+        setNewDocName('');
+        setSelectedStudent((prev) => {
+            if (!prev) return null;
+            const newDoc = {
+                id: `doc-${Date.now()}`,
+                type: newDocType,
+                name: docName,
+                status: 'Verified',
+                fileSize: '1.6 MB',
+            };
+            return { ...prev, documents: [newDoc, ...(prev.documents || [])] };
+        });
+        setTimeout(() => setDocUploadMsg(''), 3000);
+    };
+
+    // Filter students: Search by student ID, roll number, batch, course, name
     const filteredStudents = students.filter((s) => {
         if (isTeacher) {
             const matchesTeacher = s.teacherName === currentUser.name || s.batchCode === 'GER-A1-B01';
             if (!matchesTeacher) return false;
         }
-        const matchesQuery = s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            s.studentId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            s.phone.includes(searchQuery);
+        const q = searchQuery.toLowerCase();
+        const matchesQuery =
+            s.name.toLowerCase().includes(q) ||
+            s.studentId.toLowerCase().includes(q) ||
+            (s.batchCode && s.batchCode.toLowerCase().includes(q)) ||
+            (s.courseName && s.courseName.toLowerCase().includes(q)) ||
+            s.phone.includes(q);
         return matchesQuery;
     });
 
@@ -308,6 +366,124 @@ export const StudentsPage = () => {
               <div className="bg-slate-950 p-3 rounded-xl border border-slate-800">
                 <span className="text-slate-400 block text-[10px]">Assigned Teacher</span>
                 <span className="font-semibold text-cyan-400">{selectedStudent.teacherName || 'Prof. Amit Kulkarni'}</span>
+              </div>
+            </div>
+
+            {/* Batch Reassignment & Capacity Enforcement Control */}
+            {canRegister && (
+              <div className="p-3.5 bg-slate-950 rounded-xl border border-slate-800 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+                    Batch Allocation & Capacity Control
+                  </h4>
+                  <span className="text-[11px] font-mono text-cyan-400 font-semibold">
+                    Current: {selectedStudent.batchCode}
+                  </span>
+                </div>
+
+                {batchAssignError && (
+                  <div className="p-2.5 rounded-lg bg-rose-950/80 border border-rose-800 text-rose-300 text-xs flex items-center gap-1.5">
+                    <AlertTriangle className="w-4 h-4 shrink-0" />
+                    <span>{batchAssignError}</span>
+                  </div>
+                )}
+
+                {batchAssignMsg && (
+                  <div className="p-2.5 rounded-lg bg-emerald-950/80 border border-emerald-800 text-emerald-300 text-xs flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4 shrink-0" />
+                    <span>{batchAssignMsg}</span>
+                  </div>
+                )}
+
+                <form onSubmit={handleReassignBatch} className="flex gap-2 items-center">
+                  <select
+                    value={reassignBatchCode}
+                    onChange={(e) => {
+                      setReassignBatchCode(e.target.value);
+                      setBatchAssignError('');
+                      setBatchAssignMsg('');
+                    }}
+                    className="flex-1 bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500"
+                  >
+                    <option value="">-- Choose New Batch to Assign --</option>
+                    {batches.map((b) => (
+                      <option key={b._id || b.code} value={b.code}>
+                        {b.code} ({b.courseName} {b.level}) — Seats: {b.currentEnrolledCount || 0}/{b.maxStudents || 15}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="submit"
+                    className="px-3.5 py-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs rounded-lg transition shrink-0"
+                  >
+                    Reassign Batch
+                  </button>
+                </form>
+              </div>
+            )}
+
+            {/* Student Document Vault & Upload Section */}
+            <div className="space-y-3 p-3.5 bg-slate-950 rounded-xl border border-slate-800">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+                  <FileCheck className="w-4 h-4 text-cyan-400" /> Student Document Vault & IDs
+                </h4>
+                <span className="text-[10px] text-slate-400 font-semibold">
+                  {(selectedStudent.documents || []).length} Verified Files
+                </span>
+              </div>
+
+              {docUploadMsg && (
+                <div className="p-2 rounded-lg bg-emerald-950/80 border border-emerald-800 text-emerald-300 text-xs flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>{docUploadMsg}</span>
+                </div>
+              )}
+
+              {/* Upload Form */}
+              <form onSubmit={handleUploadDoc} className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                <select
+                  value={newDocType}
+                  onChange={(e) => setNewDocType(e.target.value)}
+                  className="bg-slate-900 border border-slate-800 rounded-lg px-2 py-1.5 text-slate-200"
+                >
+                  <option value="Academic Transcript">Academic Transcript</option>
+                  <option value="Aadhaar / ID Proof">Aadhaar / ID Proof</option>
+                  <option value="Passport / Visa">Passport / Visa</option>
+                  <option value="Admission Agreement">Admission Agreement</option>
+                </select>
+                <input
+                  type="text"
+                  placeholder="File label (optional)..."
+                  value={newDocName}
+                  onChange={(e) => setNewDocName(e.target.value)}
+                  className="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-slate-200 placeholder-slate-500 font-mono text-xs"
+                />
+                <button
+                  type="submit"
+                  className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-lg flex items-center justify-center gap-1.5 transition"
+                >
+                  <Upload className="w-3.5 h-3.5" />
+                  <span>Upload Doc</span>
+                </button>
+              </form>
+
+              {/* Document Files List */}
+              <div className="space-y-1.5 max-h-32 overflow-y-auto">
+                {(selectedStudent.documents || []).map((doc) => (
+                  <div
+                    key={doc.id || doc.name}
+                    className="p-2 bg-slate-900 rounded-lg border border-slate-800 flex justify-between items-center text-xs"
+                  >
+                    <div>
+                      <span className="font-bold text-slate-200 block text-[11px]">{doc.type}</span>
+                      <span className="text-[10px] text-slate-400 font-mono">{doc.name}</span>
+                    </div>
+                    <span className="px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 font-bold text-[9px] border border-emerald-800">
+                      {doc.status || 'Verified'}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
 

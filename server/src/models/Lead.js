@@ -1,40 +1,64 @@
 import mongoose, { Schema } from 'mongoose';
-const LeadSchema = new Schema({
+
+const FollowUpSchema = new Schema({
+  date: { type: Date, default: Date.now },
+  outcome: {
+    type: String,
+    enum: ['interested', 'not interested', 'no response', 'call back later', 'demo scheduled', 'other'],
+    required: true,
+  },
+  notes: { type: String, required: true },
+  nextFollowUpDate: { type: Date, index: true },
+  by: { type: String, required: true },
+});
+
+const StatusHistorySchema = new Schema({
+  fromStatus: { type: String },
+  toStatus: { type: String, required: true },
+  changedBy: { type: String, required: true },
+  changedAt: { type: Date, default: Date.now },
+  reason: { type: String, default: '' },
+});
+
+const LeadSchema = new Schema(
+  {
     name: { type: String, required: true, trim: true },
+    parentName: { type: String, default: '' },
+    aadhaarNo: { type: String, default: '' },
     phone: { type: String, required: true, trim: true },
     whatsapp: { type: String, required: true, trim: true },
     email: { type: String, required: true, lowercase: true, trim: true },
-    city: { type: String, default: 'Online' },
+    city: { type: String, default: 'Kaithal' },
     course: { type: String, required: true },
     language: {
-        type: String,
-        enum: ['German', 'French', 'Spanish', 'Italian', 'Portuguese', 'English'],
-        default: 'German',
+      type: String,
+      default: 'German',
     },
     level: {
-        type: String,
-        enum: ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'],
-        default: 'A1',
+      type: String,
+      default: 'A1',
     },
     source: { type: String, default: 'Walk-in' },
-    quotedFee: { type: Number, required: true, default: 0 },
+    quotedFee: { type: Number, required: true, default: 25000 },
     counsellorId: { type: Schema.Types.ObjectId, ref: 'User' },
     counsellorName: { type: String },
     status: {
-        type: String,
-        enum: ['New', 'Contacted', 'Interested', 'Demo', 'Follow-up', 'Admission', 'Lost'],
-        default: 'New',
+      type: String,
+      enum: ['new', 'contacted', 'interested', 'not_interested', 'converted', 'lost'],
+      default: 'new',
+      lowercase: true,
+      index: true,
     },
-    notes: [
-        {
-            text: { type: String, required: true },
-            by: { type: String, required: true },
-            at: { type: Date, default: Date.now },
-        },
-    ],
-    nextFollowUpAt: { type: Date },
-    lastConversation: { type: String },
-    createdBy: { type: Schema.Types.ObjectId, ref: 'User' },
-    updatedBy: { type: Schema.Types.ObjectId, ref: 'User' },
-}, { timestamps: true });
+    statusHistory: [StatusHistorySchema],
+    followUps: [FollowUpSchema],
+    nextFollowUpDate: { type: Date, index: true },
+    convertedStudentId: { type: Schema.Types.ObjectId, ref: 'Student' },
+    createdBy: { type: String, default: 'System' },
+    updatedBy: { type: String, default: 'System' },
+  },
+  { timestamps: true }
+);
+
+LeadSchema.index({ status: 1, nextFollowUpDate: 1 });
+
 export default mongoose.model('Lead', LeadSchema);

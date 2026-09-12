@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 // Single Master Owner / Admin Account
 const initialRegisteredUsers = [
@@ -23,12 +24,50 @@ const defaultCourses = [
 ];
 
 const defaultBatches = [
-  { _id: 'btc-101', code: 'GER-A1-B01', courseName: 'German', level: 'A1', teacherName: 'Prof. Amit Kulkarni', room: 'Room 102' },
-  { _id: 'btc-102', code: 'FRE-A1-B01', courseName: 'French', level: 'A1', teacherName: 'Prof. Amit Kulkarni', room: 'Room 103' },
-  { _id: 'btc-103', code: 'ENG-B1-B01', courseName: 'English', level: 'B1', teacherName: 'Prof. Amit Kulkarni', room: 'Room 104' },
+  {
+    _id: 'btc-101',
+    code: 'GER-A1-B01',
+    courseName: 'German',
+    level: 'A1',
+    teacherName: 'Prof. Amit Kulkarni',
+    room: 'Aryabhata Hall (Room 102)',
+    days: ['Mon', 'Wed', 'Fri'],
+    timing: '09:00 AM - 11:00 AM',
+    status: 'Ongoing',
+    currentEnrolledCount: 12,
+    maxStudents: 15,
+  },
+  {
+    _id: 'btc-102',
+    code: 'FRE-A1-B01',
+    courseName: 'French',
+    level: 'A1',
+    teacherName: 'Prof. Amit Kulkarni',
+    room: 'Room 103',
+    days: ['Tue', 'Thu', 'Sat'],
+    timing: '11:30 AM - 01:30 PM',
+    status: 'Ongoing',
+    currentEnrolledCount: 10,
+    maxStudents: 15,
+  },
+  {
+    _id: 'btc-103',
+    code: 'ENG-B1-B01',
+    courseName: 'English',
+    level: 'B1',
+    teacherName: 'Prof. Amit Kulkarni',
+    room: 'Room 104',
+    days: ['Mon', 'Tue', 'Thu'],
+    timing: '03:00 PM - 05:00 PM',
+    status: 'Ongoing',
+    currentEnrolledCount: 14,
+    maxStudents: 20,
+  },
 ];
 
-export const useAppStore = create((set, get) => ({
+export const useAppStore = create(
+  persist(
+    (set, get) => ({
   isAuthenticated: !!localStorage.getItem('elh_auth_token'),
   theme: 'dark',
   activeRole: localStorage.getItem('elh_user_role') || 'Admin',
@@ -144,8 +183,23 @@ export const useAppStore = create((set, get) => ({
   },
 
   updateLeadStatus: (leadId, newStatus) => {
+    const prevLead = (get().leads || []).find((l) => l._id === leadId);
+    const historyEntry = {
+      fromStatus: prevLead?.status || 'New',
+      toStatus: newStatus,
+      changedBy: get().currentUser.name,
+      changedAt: new Date(),
+    };
     set({
-      leads: (get().leads || []).map((l) => (l._id === leadId ? { ...l, status: newStatus } : l)),
+      leads: (get().leads || []).map((l) =>
+        l._id === leadId
+          ? {
+              ...l,
+              status: newStatus,
+              statusHistory: [historyEntry, ...(l.statusHistory || [])],
+            }
+          : l
+      ),
     });
     get().logActivity(`Updated lead status to ${newStatus} for ID ${leadId}`, 'CRM');
   },
@@ -160,33 +214,87 @@ export const useAppStore = create((set, get) => ({
   },
 
   addCallHistory: (leadId, callData) => {
-    const newCall = { ...callData, by: get().currentUser.name, at: new Date() };
+    const newCall = {
+      ...callData,
+      id: `call-${Date.now()}`,
+      by: get().currentUser.name,
+      calledBy: get().currentUser.name,
+      at: new Date(),
+      calledAt: new Date(),
+    };
     set({
       leads: (get().leads || []).map((l) =>
-        l._id === leadId ? { ...l, calls: [newCall, ...(l.calls || [])] } : l
+        l._id === leadId
+          ? {
+              ...l,
+              calls: [newCall, ...(l.calls || [])],
+              callHistory: [newCall, ...(l.callHistory || [])],
+              followUps: [
+                {
+                  date: new Date(),
+                  outcome: callData.outcome || 'Interested',
+                  notes: callData.notes || '',
+                  nextFollowUpDate: callData.nextFollowUpDate,
+                  loggedBy: get().currentUser.name,
+                },
+                ...(l.followUps || []),
+              ],
+              nextFollowUpDate: callData.nextFollowUpDate || l.nextFollowUpDate,
+              nextFollowUpAt: callData.nextFollowUpDate || l.nextFollowUpAt,
+            }
+          : l
       ),
     });
   },
 
-  convertLeadToStudent: (leadId) => {
+  convertLeadToStudent: (leadId, targetBatchCode = 'GER-A1-B01') => {
     const lead = (get().leads || []).find((l) => l._id === leadId);
-    if (!lead) return;
+    if (!lead) return { success: false, message: 'Lead not found.' };
 
-    const studentCode = `IIA-${Math.floor(1000 + Math.random() * 9000)}`;
+    const batch = (get().batches || []).find((b) => b.code === targetBatchCode) || (get().batches || [])[0];
+    if (batch && (batch.currentEnrolledCount || 0) >= (batch.maxStudents || 15)) {
+      return {
+        success: false,
+        message: `Batch Capacity Full! Batch ${batch.code} already has ${batch.currentEnrolledCount}/${batch.maxStudents} students enrolled.`,
+      };
+    }
+
+    const studentCode = `TELA-${Math.floor(1000 + Math.random() * 9000)}`;
     const newStudent = {
       _id: `std-${Date.now()}`,
       studentId: studentCode,
       name: lead.name,
-      parentName: lead.parentName || 'N/A',
+      parentName: lead.parentName || 'Guardian',
       phone: lead.phone,
       whatsapp: lead.whatsapp || lead.phone,
       email: lead.email,
-      courseName: lead.course || 'German',
+      courseName: lead.course || lead.language || 'German',
+      language: lead.language || 'German',
       level: lead.level || 'A1',
-      batchCode: 'GER-A1-B01',
+      batchCode: batch ? batch.code : 'GER-A1-B01',
+      city: lead.city || 'Kaithal',
+      aadhaarNo: lead.aadhaarNo || '',
       joiningDate: new Date(),
       isActive: true,
       verificationStatus: 'Verified',
+      documents: [
+        {
+          id: `doc-${Date.now()}-1`,
+          type: 'Aadhaar / ID Proof',
+          name: `${lead.name.replace(/\s+/g, '_')}_Aadhaar_Verified.pdf`,
+          status: 'Verified',
+          uploadedAt: new Date().toISOString(),
+          fileSize: '1.2 MB',
+        },
+        {
+          id: `doc-${Date.now()}-2`,
+          type: 'Academic Transcript',
+          name: `${lead.name.replace(/\s+/g, '_')}_Transcript_Marksheet.pdf`,
+          status: 'Verified',
+          uploadedAt: new Date().toISOString(),
+          fileSize: '2.4 MB',
+        },
+      ],
     };
 
     const newFee = {
@@ -205,31 +313,126 @@ export const useAppStore = create((set, get) => ({
         {
           installmentNo: 1,
           amount: (lead.quotedFee || 25000) / 2,
-          dueDate: new Date(Date.now() + 7 * 86400000),
+          dueDate: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
           paidAmount: 0,
           status: 'Pending',
         },
         {
           installmentNo: 2,
           amount: (lead.quotedFee || 25000) / 2,
-          dueDate: new Date(Date.now() + 30 * 86400000),
+          dueDate: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0],
           paidAmount: 0,
           status: 'Pending',
         },
       ],
     };
 
+    // Increment batch enrolled count
+    const updatedBatches = (get().batches || []).map((b) =>
+      b.code === (batch ? batch.code : '')
+        ? { ...b, currentEnrolledCount: (b.currentEnrolledCount || 0) + 1 }
+        : b
+    );
+
+    const historyEntry = {
+      fromStatus: lead.status,
+      toStatus: 'Converted',
+      changedBy: get().currentUser.name,
+      changedAt: new Date(),
+      reason: `Enrolled as ${studentCode} in batch ${batch ? batch.code : 'GER-A1-B01'}`,
+    };
+
     set({
-      leads: (get().leads || []).map((l) => (l._id === leadId ? { ...l, status: 'Admission' } : l)),
+      leads: (get().leads || []).map((l) =>
+        l._id === leadId
+          ? {
+              ...l,
+              status: 'Converted',
+              convertedStudentId: newStudent._id,
+              statusHistory: [historyEntry, ...(l.statusHistory || [])],
+            }
+          : l
+      ),
       students: [newStudent, ...(get().students || [])],
+      batches: updatedBatches,
       fees: [newFee, ...(get().fees || [])],
     });
     get().logActivity(`Converted lead ${lead.name} to Student (${studentCode})`, 'Admissions');
+    return { success: true, student: newStudent, batch: batch || updatedBatches[0] };
+  },
+
+  assignStudentBatch: (studentId, newBatchCode) => {
+    const targetBatch = (get().batches || []).find((b) => b.code === newBatchCode);
+    if (!targetBatch) {
+      return { success: false, message: `Batch ${newBatchCode} not found.` };
+    }
+
+    if ((targetBatch.currentEnrolledCount || 0) >= (targetBatch.maxStudents || 15)) {
+      return {
+        success: false,
+        message: `Capacity Full! Cannot assign to ${targetBatch.code}. Maximum ${targetBatch.maxStudents} seats already reached (${targetBatch.currentEnrolledCount}/${targetBatch.maxStudents}).`,
+      };
+    }
+
+    const student = (get().students || []).find((s) => s._id === studentId || s.studentId === studentId);
+    if (!student) {
+      return { success: false, message: 'Student record not found.' };
+    }
+
+    const oldBatchCode = student.batchCode;
+
+    const updatedBatches = (get().batches || []).map((b) => {
+      if (b.code === oldBatchCode && b.code !== newBatchCode) {
+        return { ...b, currentEnrolledCount: Math.max(0, (b.currentEnrolledCount || 0) - 1) };
+      }
+      if (b.code === newBatchCode) {
+        return { ...b, currentEnrolledCount: (b.currentEnrolledCount || 0) + 1 };
+      }
+      return b;
+    });
+
+    const updatedStudents = (get().students || []).map((s) =>
+      s._id === studentId || s.studentId === studentId ? { ...s, batchCode: newBatchCode } : s
+    );
+
+    set({ batches: updatedBatches, students: updatedStudents });
+    get().logActivity(`Reassigned student ${student.name} from ${oldBatchCode} to ${newBatchCode}`, 'Batches');
+    return { success: true, message: `Successfully assigned ${student.name} to ${newBatchCode}!` };
+  },
+
+  uploadStudentDocument: (studentId, docData) => {
+    const newDoc = {
+      id: `doc-${Date.now()}`,
+      type: docData.type || 'Identity Proof',
+      name: docData.name || 'document.pdf',
+      status: 'Verified',
+      uploadedAt: new Date().toISOString(),
+      fileSize: docData.fileSize || '1.5 MB',
+    };
+
+    set({
+      students: (get().students || []).map((s) =>
+        s._id === studentId || s.studentId === studentId
+          ? { ...s, documents: [newDoc, ...(s.documents || [])] }
+          : s
+      ),
+    });
+    get().logActivity(`Uploaded document (${newDoc.type}) for student ID ${studentId}`, 'Documents');
+    return { success: true, document: newDoc };
   },
 
   // Student Direct Actions
   registerDirectStudent: (studentData) => {
-    const studentCode = `IIA-${Math.floor(1000 + Math.random() * 9000)}`;
+    const studentCode = `TELA-${Math.floor(1000 + Math.random() * 9000)}`;
+    const targetBatch = (get().batches || []).find((b) => b.code === (studentData.batchCode || 'GER-A1-B01'));
+
+    if (targetBatch && (targetBatch.currentEnrolledCount || 0) >= (targetBatch.maxStudents || 15)) {
+      return {
+        success: false,
+        message: `Batch ${targetBatch.code} is full (${targetBatch.currentEnrolledCount}/${targetBatch.maxStudents})! Cannot assign student.`,
+      };
+    }
+
     const newStudent = {
       _id: `std-${Date.now()}`,
       studentId: studentCode,
@@ -238,9 +441,70 @@ export const useAppStore = create((set, get) => ({
       joiningDate: new Date(),
       isActive: true,
       verificationStatus: 'Verified',
+      documents: [
+        {
+          id: `doc-${Date.now()}-1`,
+          type: 'Aadhaar / ID Proof',
+          name: `${(studentData.name || 'Student').replace(/\s+/g, '_')}_Aadhaar.pdf`,
+          status: 'Verified',
+          uploadedAt: new Date().toISOString(),
+          fileSize: '1.2 MB',
+        },
+        {
+          id: `doc-${Date.now()}-2`,
+          type: 'Academic Transcript',
+          name: `${(studentData.name || 'Student').replace(/\s+/g, '_')}_Transcript.pdf`,
+          status: 'Verified',
+          uploadedAt: new Date().toISOString(),
+          fileSize: '2.1 MB',
+        },
+      ],
     };
-    set({ students: [newStudent, ...(get().students || [])] });
+
+    const feeAmount = Number(studentData.totalFee) || 25000;
+    const newFee = {
+      _id: `fee-${Date.now()}`,
+      studentId: newStudent._id,
+      studentCode,
+      studentName: newStudent.name,
+      courseName: newStudent.courseName,
+      totalFee: feeAmount,
+      discount: 0,
+      netFee: feeAmount,
+      paidTotal: 0,
+      remainingTotal: feeAmount,
+      status: 'Unpaid',
+      installments: [
+        {
+          installmentNo: 1,
+          amount: Math.round(feeAmount / 2),
+          dueDate: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
+          paidAmount: 0,
+          status: 'Pending',
+        },
+        {
+          installmentNo: 2,
+          amount: Math.round(feeAmount / 2),
+          dueDate: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0],
+          paidAmount: 0,
+          status: 'Pending',
+        },
+      ],
+    };
+
+    const updatedBatches = (get().batches || []).map((b) =>
+      b.code === (targetBatch ? targetBatch.code : '')
+        ? { ...b, currentEnrolledCount: (b.currentEnrolledCount || 0) + 1 }
+        : b
+    );
+
+    set({
+      students: [newStudent, ...(get().students || [])],
+      batches: updatedBatches,
+      fees: [newFee, ...(get().fees || [])],
+    });
     get().logActivity(`Registered student ${newStudent.name} (${studentCode})`, 'Students');
+    return { success: true, student: newStudent, fee: newFee };
   },
 
   updateStudentVerificationStatus: (studentId, status) => {
@@ -251,32 +515,122 @@ export const useAppStore = create((set, get) => ({
 
   // Fee Actions
   payInstallment: (feeId, installmentNo, paidAmount, paymentMode, txRef) => {
+    const receiptNumber = `REC-2026-${Math.floor(10000 + Math.random() * 90000)}`;
     set({
       fees: (get().fees || []).map((f) => {
         if (f._id !== feeId) return f;
         const updatedInsts = f.installments.map((inst) => {
           if (inst.installmentNo !== installmentNo) return inst;
-          return { ...inst, paidAmount, mode: paymentMode, transactionRef: txRef, status: 'Paid', paidDate: new Date() };
+          return {
+            ...inst,
+            paidAmount: (inst.paidAmount || 0) + Number(paidAmount),
+            mode: paymentMode,
+            transactionRef: txRef || `TXN-${receiptNumber}`,
+            receiptNumber,
+            status: ((inst.paidAmount || 0) + Number(paidAmount)) >= inst.amount ? 'Paid' : 'Partial',
+            paidDate: new Date().toISOString().split('T')[0],
+          };
         });
         const newPaidTotal = updatedInsts.reduce((sum, i) => sum + (i.paidAmount || 0), 0);
-        const newRemaining = f.netFee - newPaidTotal;
-        const newStatus = newRemaining <= 0 ? 'Paid' : newPaidTotal > 0 ? 'Partial' : 'Unpaid';
+        const newRemaining = Math.max(0, f.netFee - newPaidTotal);
+        const newStatus = newRemaining <= 0 ? 'Paid' : newPaidTotal > 0 ? 'Partial' : 'Pending';
         return { ...f, installments: updatedInsts, paidTotal: newPaidTotal, remainingTotal: newRemaining, status: newStatus };
       }),
     });
     get().logActivity(`Processed fee payment for Fee ID ${feeId}`, 'Fees');
+    return { success: true, receiptNumber };
   },
 
-  recordManualPayment: (feeId, amount, mode, txRef) => {
-    set({
-      fees: (get().fees || []).map((f) => {
-        if (f._id !== feeId) return f;
-        const newPaidTotal = f.paidTotal + Number(amount);
-        const newRemaining = Math.max(0, f.netFee - newPaidTotal);
-        const newStatus = newRemaining <= 0 ? 'Paid' : 'Partial';
-        return { ...f, paidTotal: newPaidTotal, remainingTotal: newRemaining, status: newStatus };
-      }),
-    });
+  recordManualPayment: (arg1, arg2, arg3, arg4) => {
+    let feeId = typeof arg1 === 'string' ? arg1 : null;
+    let studentId = typeof arg1 === 'object' ? arg1.studentId : null;
+    let studentCode = typeof arg1 === 'object' ? arg1.studentCode : null;
+    let amount = typeof arg1 === 'object' ? Number(arg1.amount) : Number(arg2);
+    let mode = typeof arg1 === 'object' ? arg1.payMode : arg3 || 'UPI';
+    let txRef = typeof arg1 === 'object' ? arg1.refText : arg4 || `TXN-${Date.now()}`;
+    const receiptNumber = `REC-2026-${Math.floor(10000 + Math.random() * 90000)}`;
+
+    let targetFee = null;
+    if (feeId) {
+      targetFee = (get().fees || []).find((f) => f._id === feeId);
+    } else if (studentId || studentCode) {
+      targetFee = (get().fees || []).find(
+        (f) => f.studentId === studentId || f.studentCode === studentCode
+      );
+    }
+
+    if (!targetFee) {
+      // If no fee ledger exists, create one dynamically
+      const std = (get().students || []).find(
+        (s) => s._id === studentId || s.studentId === studentCode
+      );
+      targetFee = {
+        _id: `fee-${Date.now()}`,
+        studentId: std?._id || studentId || `std-${Date.now()}`,
+        studentCode: std?.studentId || studentCode || 'TELA-0000',
+        studentName: std?.name || arg1.studentName || 'Student',
+        courseName: std?.courseName || arg1.courseName || 'German',
+        totalFee: 25000,
+        discount: 0,
+        netFee: 25000,
+        paidTotal: 0,
+        remainingTotal: 25000,
+        status: 'Pending',
+        installments: [
+          {
+            installmentNo: 1,
+            amount: 12500,
+            dueDate: new Date().toISOString().split('T')[0],
+            paidAmount: 0,
+            status: 'Pending',
+          },
+          {
+            installmentNo: 2,
+            amount: 12500,
+            dueDate: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0],
+            paidAmount: 0,
+            status: 'Pending',
+          },
+        ],
+      };
+    }
+
+    const newPaidTotal = (targetFee.paidTotal || 0) + amount;
+    const newRemaining = Math.max(0, targetFee.netFee - newPaidTotal);
+    const newStatus = newRemaining <= 0 ? 'Paid' : newPaidTotal > 0 ? 'Partial' : 'Pending';
+
+    const newInst = {
+      installmentNo: (targetFee.installments?.length || 0) + 1,
+      amount,
+      paidAmount: amount,
+      payMode: mode,
+      mode,
+      refText: txRef,
+      transactionRef: txRef,
+      receiptNumber,
+      paidDate: new Date().toISOString().split('T')[0],
+      status: 'Paid',
+    };
+
+    const updatedFee = {
+      ...targetFee,
+      paidTotal: newPaidTotal,
+      remainingTotal: newRemaining,
+      status: newStatus,
+      installments: [...(targetFee.installments || []), newInst],
+    };
+
+    const existingIndex = (get().fees || []).findIndex((f) => f._id === targetFee._id);
+    let updatedFeesList;
+    if (existingIndex >= 0) {
+      updatedFeesList = (get().fees || []).map((f) => (f._id === targetFee._id ? updatedFee : f));
+    } else {
+      updatedFeesList = [updatedFee, ...(get().fees || [])];
+    }
+
+    set({ fees: updatedFeesList });
+    get().logActivity(`Recorded payment of ₹${amount} with Receipt #${receiptNumber}`, 'Fees');
+    return { success: true, fee: updatedFee, inst: newInst, receiptNumber };
   },
 
   updateFeeNote: (feeId, note) => {
@@ -568,4 +922,9 @@ export const useAppStore = create((set, get) => ({
     };
     set({ auditLogs: [newLog, ...(get().auditLogs || []).slice(0, 99)] });
   },
-}));
+}),
+    {
+      name: 'tela_erp_storage',
+    }
+  )
+);

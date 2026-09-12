@@ -28,9 +28,9 @@ export const AttendancePage = () => {
   const [attendanceRecords, setAttendanceRecords] = useState({});
   const [selectedStudentDetail, setSelectedStudentDetail] = useState(null);
 
-  // Filter students for the selected batch
+  // Filter students strictly for the selected batch (Attendance roster = current batch roster)
   const batchStudents = (students || []).filter(
-    (s) => selectedBatch === 'All' || !s.batchCode || s.batchCode === selectedBatch
+    (s) => selectedBatch === 'All' || s.batchCode === selectedBatch
   );
 
   // Existing saved log for selected batch & date

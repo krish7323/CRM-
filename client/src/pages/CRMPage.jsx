@@ -1,21 +1,31 @@
 import React, { useState } from 'react';
 import { useAppStore } from '../store/useAppStore';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { Plus, Search, X, Star, Video, PhoneCall, History, UserCheck } from 'lucide-react';
+import { Plus, Search, X, Star, Video, PhoneCall, History, UserCheck, CheckCircle2, AlertTriangle, Calendar, Award } from 'lucide-react';
+
 const stages = [
     'New',
     'Contacted',
     'Interested',
-    'Demo',
-    'Follow-up',
-    'Admission',
+    'Not Interested',
+    'Converted',
     'Lost',
 ];
+
 export const CRMPage = () => {
-    const { leads, updateLeadStatus, addLead, addLeadNote, addCallHistory, convertLeadToStudent } = useAppStore();
+    const { leads, updateLeadStatus, addLead, addLeadNote, addCallHistory, convertLeadToStudent, batches = [] } = useAppStore();
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedLanguage, setSelectedLanguage] = useState('All');
     const [selectedLead, setSelectedLead] = useState(null);
+
+    // Admission Conversion Modal State (Section 1 & 2 Integrity)
+    const [isEnrollModalOpen, setIsEnrollModalOpen] = useState(false);
+    const [leadToEnroll, setLeadToEnroll] = useState(null);
+    const [selectedBatchCode, setSelectedBatchCode] = useState(batches[0]?.code || 'GER-A1-B01');
+    const [customFee, setCustomFee] = useState(25000);
+    const [enrollError, setEnrollError] = useState('');
+    const [enrollSuccessMsg, setEnrollSuccessMsg] = useState('');
+
     // New Lead Modal State
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [newLeadForm, setNewLeadForm] = useState({
@@ -38,6 +48,7 @@ export const CRMPage = () => {
     const [callNotes, setCallNotes] = useState('');
     const [callDuration, setCallDuration] = useState('180');
     const [callOutcome, setCallOutcome] = useState('Interested');
+    const [nextFollowUpDate, setNextFollowUpDate] = useState(new Date(Date.now() + 86400000).toISOString().split('T')[0]);
     const onDragEnd = (result) => {
         if (!result.destination)
             return;
@@ -79,6 +90,53 @@ export const CRMPage = () => {
         addLeadNote(selectedLead._id, noteText);
         setNoteText('');
     };
+
+    const handleOpenEnrollModal = (lead) => {
+        if (!lead) return;
+        if (lead.status !== 'Interested') {
+            alert(`Data Integrity Rule: Only leads with status 'Interested' can be enrolled (current: '${lead.status}').`);
+            return;
+        }
+        const hasFollowUps = (lead.calls && lead.calls.length > 0) || (lead.callHistory && lead.callHistory.length > 0) || (lead.followUps && lead.followUps.length > 0);
+        if (!hasFollowUps) {
+            alert('Data Integrity Policy Violation: Cannot enroll lead without at least one recorded follow-up interaction. Please log a follow-up interaction before enrollment.');
+            return;
+        }
+
+        setLeadToEnroll(lead);
+        const matchingBatch = batches.find((b) => b.courseName?.toLowerCase().includes(lead.course?.toLowerCase())) || batches[0];
+        setSelectedBatchCode(matchingBatch?.code || 'GER-A1-B01');
+        setCustomFee(lead.quotedFee || 25000);
+        setEnrollError('');
+        setIsEnrollModalOpen(true);
+    };
+
+    const handleConfirmEnroll = (e) => {
+        e.preventDefault();
+        if (!leadToEnroll || !selectedBatchCode) {
+            setEnrollError('Batch selection is mandatory. Every student must be assigned to a batch.');
+            return;
+        }
+
+        const targetBatch = batches.find((b) => b.code === selectedBatchCode);
+        if (targetBatch && (targetBatch.currentEnrolledCount || 0) >= (targetBatch.maxStudents || 15)) {
+            setEnrollError(`Capacity Exceeded! Batch '${targetBatch.code}' has ${targetBatch.currentEnrolledCount}/${targetBatch.maxStudents} seats taken. Please select an available batch.`);
+            return;
+        }
+
+        const res = convertLeadToStudent(leadToEnroll._id, selectedBatchCode);
+        if (!res.success) {
+            setEnrollError(res.message);
+            return;
+        }
+
+        setEnrollSuccessMsg(`✓ Admission complete! ${res.student.name} enrolled as ${res.student.studentId} in batch ${selectedBatchCode}. Initial fee ledger created.`);
+        setIsEnrollModalOpen(false);
+        setLeadToEnroll(null);
+        setSelectedLead(null);
+        setTimeout(() => setEnrollSuccessMsg(''), 6000);
+    };
+
     const handleLogCall = (e) => {
         e.preventDefault();
         if (!selectedLead || !callNotes.trim())
@@ -87,7 +145,12 @@ export const CRMPage = () => {
             durationSeconds: Number(callDuration),
             notes: callNotes,
             outcome: callOutcome,
+            nextFollowUpDate,
         });
+        if (callOutcome === 'Interested' && selectedLead.status !== 'Interested') {
+            updateLeadStatus(selectedLead._id, 'Interested');
+            setSelectedLead({ ...selectedLead, status: 'Interested' });
+        }
         setCallNotes('');
     };
     return (<div className="space-y-6 font-sans">
@@ -165,12 +228,23 @@ export const CRMPage = () => {
 
                               <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px]">
                                 <span className="text-slate-500 font-medium">By {lead.counsellorName || 'Priya Nair'}</span>
-                                {lead.status !== 'Admission' ? (<button onClick={(e) => {
-                                    e.stopPropagation();
-                                    convertLeadToStudent(lead._id);
-                                }} className="text-[9px] font-bold px-2 py-0.5 rounded bg-amber-500 text-slate-950 hover:bg-amber-400 transition">
+                                {lead.status === 'Interested' ? (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleOpenEnrollModal(lead);
+                                    }}
+                                    className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-emerald-500 text-slate-950 hover:bg-emerald-400 transition shadow-sm"
+                                  >
                                     Enroll →
-                                  </button>) : (<span className="text-emerald-400 font-bold">Enrolled</span>)}
+                                  </button>
+                                ) : lead.status === 'Converted' ? (
+                                  <span className="text-emerald-400 font-bold text-[10px] flex items-center gap-1">
+                                    <CheckCircle2 className="w-3 h-3" /> Enrolled
+                                  </span>
+                                ) : (
+                                  <span className="text-slate-500 text-[10px]">{lead.status}</span>
+                                )}
                               </div>
                             </div>)}
                         </Draggable>))}
@@ -196,17 +270,19 @@ export const CRMPage = () => {
                 <p className="text-xs text-slate-400">Parent: {selectedLead.parentName || 'N/A'} • Contact: {selectedLead.phone}</p>
               </div>
               <div className="flex items-center gap-3">
-                {selectedLead.status !== 'Admission' && (
+                {selectedLead.status === 'Interested' && (
                   <button
-                    onClick={() => {
-                      convertLeadToStudent(selectedLead._id);
-                      setSelectedLead(null);
-                    }}
+                    onClick={() => handleOpenEnrollModal(selectedLead)}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 hover:scale-105 transition"
                   >
                     <UserCheck className="w-4 h-4" />
-                    <span>Convert to Student Admission</span>
+                    <span>Convert to Student Admission (Enroll)</span>
                   </button>
+                )}
+                {selectedLead.status === 'Converted' && (
+                  <span className="px-3 py-1 rounded-xl bg-emerald-500/20 text-emerald-400 font-bold text-xs border border-emerald-500/30 flex items-center gap-1">
+                    <CheckCircle2 className="w-4 h-4" /> Converted & Enrolled
+                  </span>
                 )}
                 <button onClick={() => setSelectedLead(null)} className="text-slate-400 hover:text-slate-200">
                   <X className="w-5 h-5" />
@@ -232,24 +308,45 @@ export const CRMPage = () => {
               </div>
             </div>
 
-            {/* Log Call History Form */}
+            {/* Log Call & Follow-up History Form */}
             <form onSubmit={handleLogCall} className="p-3.5 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
               <h4 className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
-                <PhoneCall className="w-3.5 h-3.5 text-amber-400"/> Log Phone Call History Notes
+                <PhoneCall className="w-3.5 h-3.5 text-amber-400"/> Log Structured Follow-up & Call Interaction
               </h4>
-              <div className="grid grid-cols-2 gap-2">
-                <input type="text" placeholder="Call Notes & Counseling Discussion..." value={callNotes} onChange={(e) => setCallNotes(e.target.value)} className="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-amber-500"/>
-                <select value={callOutcome} onChange={(e) => setCallOutcome(e.target.value)} className="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
-                  <option value="Interested">Interested</option>
-                  <option value="Scheduled Demo">Scheduled Demo</option>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                <input
+                  type="text"
+                  placeholder="Discussion details..."
+                  value={callNotes}
+                  onChange={(e) => setCallNotes(e.target.value)}
+                  className="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-amber-500"
+                />
+                <select
+                  value={callOutcome}
+                  onChange={(e) => setCallOutcome(e.target.value)}
+                  className="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200"
+                >
+                  <option value="Interested">Interested (Eligible for Admission)</option>
                   <option value="Call Back Later">Call Back Later</option>
-                  <option value="Not Answering">Not Answering</option>
+                  <option value="No Response">No Response</option>
                   <option value="Not Interested">Not Interested</option>
                 </select>
+                <div>
+                  <input
+                    type="date"
+                    title="Next Follow-up Due Date"
+                    value={nextFollowUpDate}
+                    onChange={(e) => setNextFollowUpDate(e.target.value)}
+                    className="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono"
+                  />
+                </div>
               </div>
-              <div className="flex justify-end">
+              <div className="flex justify-between items-center pt-1">
+                <span className="text-[10px] text-slate-500">
+                  Note: Marking outcome as 'Interested' unlocks the Enroll action.
+                </span>
                 <button type="submit" className="px-3 py-1 rounded-lg bg-amber-500 text-slate-950 font-bold text-xs hover:bg-amber-400">
-                  Save Call Log
+                  Save Follow-up Log
                 </button>
               </div>
             </form>
@@ -257,7 +354,7 @@ export const CRMPage = () => {
             {/* Call History Timeline */}
             {selectedLead.callHistory && selectedLead.callHistory.length > 0 && (<div className="space-y-2">
                 <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                  <History className="w-3.5 h-3.5 text-cyan-400"/> Call History Timeline
+                  <History className="w-3.5 h-3.5 text-cyan-400"/> Follow-up Audit Trail ({selectedLead.callHistory.length} Interactions)
                 </h4>
                 <div className="space-y-1.5 max-h-32 overflow-y-auto">
                   {selectedLead.callHistory.map((c) => (<div key={c.id} className="p-2 bg-slate-950 rounded-lg border border-slate-800 text-[11px] flex justify-between">
@@ -273,6 +370,89 @@ export const CRMPage = () => {
               </div>)}
           </div>
         </div>)}
+
+      {/* Admission Conversion Modal (Section 1 & 2 Integrity) */}
+      {isEnrollModalOpen && leadToEnroll && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+          <form onSubmit={handleConfirmEnroll} className="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <div className="flex items-center gap-2">
+                <Award className="w-5 h-5 text-emerald-400" />
+                <h3 className="text-sm font-bold text-slate-100">Enroll Lead — Path A (CRM Conversion)</h3>
+              </div>
+              <button type="button" onClick={() => setIsEnrollModalOpen(false)} className="text-slate-400 hover:text-slate-200">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {enrollError && (
+              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 shrink-0" />
+                <span>{enrollError}</span>
+              </div>
+            )}
+
+            <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs space-y-1">
+              <p className="text-slate-300 font-bold">{leadToEnroll.name} <span className="text-slate-500 font-normal">({leadToEnroll.phone})</span></p>
+              <p className="text-[11px] text-slate-400">Course: <span className="text-amber-400 font-semibold">{leadToEnroll.course} {leadToEnroll.level}</span> • Parent: {leadToEnroll.parentName || 'N/A'}</p>
+            </div>
+
+            <div className="space-y-3">
+              {/* Batch Assignment (Required by Section 0 & Section 2) */}
+              <div>
+                <label className="text-[11px] font-bold text-amber-400 flex items-center justify-between">
+                  <span>Assign Batch * (Mandatory Step)</span>
+                  <span className="text-[10px] text-slate-400 font-normal">Capacity enforced at commit time</span>
+                </label>
+                <select
+                  required
+                  value={selectedBatchCode}
+                  onChange={(e) => setSelectedBatchCode(e.target.value)}
+                  className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-amber-500"
+                >
+                  {batches.map((b) => {
+                    const isFull = (b.currentEnrolledCount || 0) >= (b.maxStudents || 15);
+                    return (
+                      <option key={b._id} value={b.code} disabled={isFull}>
+                        {b.code} ({b.courseName}) — {b.currentEnrolledCount}/{b.maxStudents} seats {isFull ? '(FULL - NO SEATS)' : `(${b.maxStudents - b.currentEnrolledCount} left)`}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+
+              {/* Initial Fee Plan Amount */}
+              <div>
+                <label className="text-[11px] font-semibold text-slate-400">Initial Course Fee Plan (INR)</label>
+                <input
+                  type="number"
+                  required
+                  value={customFee}
+                  onChange={(e) => setCustomFee(Number(e.target.value))}
+                  className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-amber-500 font-mono"
+                />
+                <p className="text-[10px] text-slate-500 mt-1">Generates initial fee invoice ledger with 2 installments (50% each).</p>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4 border-t border-slate-800">
+              <button
+                type="button"
+                onClick={() => setIsEnrollModalOpen(false)}
+                className="px-4 py-2 rounded-xl bg-slate-800 text-xs font-semibold text-slate-300"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-bold text-xs hover:scale-105 transition shadow-lg shadow-emerald-500/20"
+              >
+                Confirm Admission & Enroll
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {/* New Lead Modal */}
       {isAddModalOpen && (<div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">

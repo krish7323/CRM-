@@ -3,7 +3,14 @@ import { useAppStore } from '../store/useAppStore';
 import { Clock, User, MapPin, Plus, X, AlertTriangle, Grid, UserCheck } from 'lucide-react';
 const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 export const BatchesPage = () => {
-    const { batches, addBatch, timetableSlots, addTimetableSlot, saveTeacherAttendance, teacherAttendanceLogs, currentUser } = useAppStore();
+    const store = useAppStore();
+    const batches = store.batches || [];
+    const addBatch = store.addBatch;
+    const timetableSlots = store.timetableSlots || [];
+    const addTimetableSlot = store.addTimetableSlot;
+    const saveTeacherAttendance = store.saveTeacherAttendance;
+    const teacherAttendanceLogs = store.teacherAttendanceLogs || [];
+    const currentUser = store.currentUser || {};
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isSlotModalOpen, setIsSlotModalOpen] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
@@ -33,12 +40,22 @@ export const BatchesPage = () => {
     const [teacherAttSuccess, setTeacherAttSuccess] = useState(false);
     const handleCreate = (e) => {
         e.preventDefault();
-        const conflict = batches.find((b) => b.room === form.room && b.timing === form.timing && b.status === 'Ongoing');
-        if (conflict) {
-            setErrorMsg(`Schedule Conflict: '${form.room}' is already booked for timing '${form.timing}'.`);
+        const roomConflict = batches.find((b) => (b.room || '').trim().toLowerCase() === form.room.trim().toLowerCase() && b.timing === form.timing);
+        if (roomConflict) {
+            setErrorMsg(`Classroom Conflict: '${form.room}' is already booked for batch ${roomConflict.code} at '${form.timing}'. Overlapping classroom scheduling is blocked.`);
             return;
         }
-        addBatch(form);
+        const teacherConflict = batches.find((b) => (b.teacherName || '').trim().toLowerCase() === form.teacherName.trim().toLowerCase() && b.timing === form.timing);
+        if (teacherConflict) {
+            setErrorMsg(`Faculty Conflict: Faculty '${form.teacherName}' is already assigned to batch ${teacherConflict.code} at '${form.timing}'. Simultaneous faculty scheduling is blocked.`);
+            return;
+        }
+        addBatch({
+            ...form,
+            status: 'Ongoing',
+            currentEnrolledCount: 0,
+            maxStudents: Number(form.maxStudents) || 15,
+        });
         setIsModalOpen(false);
         setErrorMsg('');
     };
@@ -157,13 +174,13 @@ export const BatchesPage = () => {
 
             <div className="space-y-1.5 text-xs text-slate-300">
               <p className="flex items-center gap-2">
-                <User className="w-3.5 h-3.5 text-slate-400"/> {b.teacherName}
+                <User className="w-3.5 h-3.5 text-slate-400"/> {b.teacherName || 'Faculty Assigned'}
               </p>
               <p className="flex items-center gap-2">
-                <MapPin className="w-3.5 h-3.5 text-slate-400"/> {b.room}
+                <MapPin className="w-3.5 h-3.5 text-slate-400"/> {b.room || 'Room 101'}
               </p>
               <p className="flex items-center gap-2 text-cyan-300 font-medium">
-                <Clock className="w-3.5 h-3.5 text-cyan-400"/> {b.days.join(', ')} • {b.timing}
+                <Clock className="w-3.5 h-3.5 text-cyan-400"/> {(b.days && Array.isArray(b.days) ? b.days.join(', ') : 'Mon, Wed, Fri')} • {b.timing || '09:00 AM - 11:00 AM'}
               </p>
             </div>
 
@@ -171,10 +188,10 @@ export const BatchesPage = () => {
             <div className="pt-2 border-t border-slate-800/80">
               <div className="flex justify-between text-[11px] mb-1">
                 <span className="text-slate-400">Enrolled Capacity</span>
-                <span className="text-slate-200 font-semibold">{b.currentEnrolledCount} / {b.maxStudents} Students</span>
+                <span className="text-slate-200 font-semibold">{b.currentEnrolledCount || 0} / {b.maxStudents || 20} Students</span>
               </div>
               <div className="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-cyan-500 to-teal-500 rounded-full" style={{ width: `${(b.currentEnrolledCount / b.maxStudents) * 100}%` }}/>
+                <div className="h-full bg-gradient-to-r from-cyan-500 to-teal-500 rounded-full" style={{ width: `${Math.min(100, Math.round(((b.currentEnrolledCount || 0) / (b.maxStudents || 20)) * 100))}%` }}/>
               </div>
             </div>
           </div>))}

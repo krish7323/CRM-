@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAppStore } from '../store/useAppStore';
 import { CheckCircle2 } from 'lucide-react';
 export const AdmissionApplicationPage = () => {
-    const { addLead } = useAppStore();
+    const { addLead, courses = [] } = useAppStore();
     const [submitted, setSubmitted] = useState(false);
     const [form, setForm] = useState({
         studentName: '',
@@ -10,8 +10,8 @@ export const AdmissionApplicationPage = () => {
         parentName: '',
         phone: '',
         email: '',
-        city: 'Bengaluru',
-        gradeApplied: 'Grade 10 (CBSE)',
+        city: 'Kaithal',
+        gradeApplied: courses[0]?.name || 'German Language Program',
         language: 'German',
         aadhaarNo: '',
         previousSchool: '',
@@ -21,14 +21,16 @@ export const AdmissionApplicationPage = () => {
     const handleSubmit = (e) => {
         e.preventDefault();
         addLead({
-            name: `${form.studentName} (Parent: ${form.parentName})`,
+            name: form.studentName,
+            parentName: form.parentName,
             phone: form.phone,
             whatsapp: form.phone,
             email: form.email,
             city: form.city,
-            course: `${form.gradeApplied} - ${form.language}`,
+            course: form.gradeApplied,
             language: form.language,
             level: 'A1',
+            aadhaarNo: form.aadhaarNo,
             source: 'Online Application Portal',
             quotedFee: 45000,
         });
@@ -88,15 +90,17 @@ export const AdmissionApplicationPage = () => {
               </div>
 
               <div>
-                <label className="font-semibold text-slate-400">Class / Grade Applied For</label>
+                <label className="font-semibold text-slate-400">Class / Program Applied For</label>
                 <select value={form.gradeApplied} onChange={(e) => setForm({ ...form, gradeApplied: e.target.value })} className="w-full mt-1 bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5 text-slate-100 focus:outline-none focus:border-amber-500">
-                  <option value="Grade 8 (CBSE)">Grade 8 (CBSE)</option>
-                  <option value="Grade 9 (CBSE)">Grade 9 (CBSE)</option>
-                  <option value="Grade 10 (CBSE)">Grade 10 (CBSE)</option>
-                  <option value="Grade 11 Science (CBSE)">Grade 11 Science (CBSE)</option>
-                  <option value="Grade 12 Commerce (CBSE)">Grade 12 Commerce (CBSE)</option>
-                  <option value="CEFR German Program">CEFR German Program</option>
-                  <option value="CEFR French Program">CEFR French Program</option>
+                  {courses.map((c) => (
+                    <option key={c._id || c.code} value={c.name}>
+                      {c.name} ({c.code})
+                    </option>
+                  ))}
+                  <option value="German Language Program">German Language Program (A1-B2)</option>
+                  <option value="French Language Program">French Language Program (DELF)</option>
+                  <option value="Spanish Language Program">Spanish Language Program (DELE)</option>
+                  <option value="Business English & Public Speaking">Business English & Public Speaking</option>
                 </select>
               </div>
 

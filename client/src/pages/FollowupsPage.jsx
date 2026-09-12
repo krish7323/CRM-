@@ -4,7 +4,20 @@ import { Phone, MessageSquare, Clock } from 'lucide-react';
 export const FollowupsPage = () => {
     const { leads } = useAppStore();
     const [tab, setTab] = useState('today');
-    const followUpLeads = leads.filter((l) => l.status === 'Follow-up' || l.nextFollowUpAt);
+    const todayStr = new Date().toISOString().split('T')[0];
+    const tomorrowStr = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+
+    const followUpLeads = leads.filter((l) => {
+      if (l.status === 'Converted' || l.status === 'Admission' || l.status === 'Lost') return false;
+      const dueDate = l.nextFollowUpDate || l.nextFollowUpAt;
+      if (!dueDate) return tab === 'all' || tab === 'today';
+      const dueDateStr = typeof dueDate === 'string' ? dueDate.split('T')[0] : new Date(dueDate).toISOString().split('T')[0];
+      
+      if (tab === 'today') return dueDateStr <= todayStr;
+      if (tab === 'overdue') return dueDateStr < todayStr;
+      if (tab === 'tomorrow') return dueDateStr === tomorrowStr;
+      return true;
+    });
     return (<div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>

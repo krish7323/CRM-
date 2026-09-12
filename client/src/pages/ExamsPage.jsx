@@ -21,7 +21,8 @@ import {
 } from 'lucide-react';
 
 export const ExamsPage = () => {
-  const { exams, examMarks, addExam, recordExamMarks, batches, students, currentUser } = useAppStore();
+  const { exams, examMarks, addExam, recordExamMarks, batches, students, academicEvents = [], currentUser } = useAppStore();
+  const [conflictWarning, setConflictWarning] = useState('');
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState('All');
@@ -46,9 +47,9 @@ export const ExamsPage = () => {
   });
 
   const [marksForm, setMarksForm] = useState({
-    studentId: 'std-1',
-    studentCode: 'IIA-1001',
-    studentName: 'Aarav Gupta',
+    studentId: '',
+    studentCode: '',
+    studentName: '',
     marksObtained: 88,
     teacherRemarks: 'Excellent syntax formation and oral articulation',
   });
@@ -61,6 +62,27 @@ export const ExamsPage = () => {
 
   const handleCreateExam = (e) => {
     e.preventDefault();
+
+    // Section 5 Conflict Detection: Room Double-Booking Check
+    const roomConflict = exams.find(
+      (ex) => ex.room === examForm.room && ex.examDate === examForm.examDate && ex.startTime === examForm.startTime
+    );
+    if (roomConflict) {
+      setConflictWarning(`Double-Booking Conflict: Room '${examForm.room}' is already booked for '${roomConflict.title}' at ${examForm.startTime} on ${examForm.examDate}.`);
+      return;
+    }
+
+    // Section 6 Academic Calendar Check: Warning if scheduled on marked Holiday
+    const holidayConflict = (academicEvents || []).find(
+      (ev) => (ev.eventType === 'Holiday' || ev.eventType === 'Vacation') &&
+              ev.startDate <= examForm.examDate && ev.endDate >= examForm.examDate
+    );
+    if (holidayConflict) {
+      const confirmHoliday = window.confirm(`Academic Calendar Warning: '${holidayConflict.title}' is scheduled on ${examForm.examDate}. Do you still want to schedule this exam?`);
+      if (!confirmHoliday) return;
+    }
+
+    setConflictWarning('');
     addExam(examForm);
     setIsAddExamModalOpen(false);
     setExamForm({
@@ -376,8 +398,14 @@ export const ExamsPage = () => {
             </div>
 
             <div>
-              <label className="text-[11px] font-semibold text-slate-400">Select Student</label>
+              <div className="flex items-center justify-between">
+                <label className="text-[11px] font-semibold text-slate-400">Select Student (Batch Roster: {selectedExamForMarks.batchCode})</label>
+                <span className="text-[10px] text-cyan-400 font-mono">
+                  {students.filter((s) => s.batchCode === selectedExamForMarks.batchCode).length} Enrolled
+                </span>
+              </div>
               <select
+                required
                 value={marksForm.studentId}
                 onChange={(e) => {
                   const s = students.find((std) => std._id === e.target.value);
@@ -385,9 +413,12 @@ export const ExamsPage = () => {
                 }}
                 className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-amber-500"
               >
-                {students.map((s) => (
-                  <option key={s._id} value={s._id}>{s.name} ({s.studentId})</option>
-                ))}
+                <option value="">-- Choose student enrolled in {selectedExamForMarks.batchCode} --</option>
+                {students
+                  .filter((s) => s.batchCode === selectedExamForMarks.batchCode)
+                  .map((s) => (
+                    <option key={s._id} value={s._id}>{s.name} ({s.studentId})</option>
+                  ))}
               </select>
             </div>
 
