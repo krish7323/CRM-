@@ -10,7 +10,7 @@ const initialRegisteredUsers = [
     phone: '+91 98765 43210',
     password: 'password123',
     role: 'Admin',
-    designation: 'Institute Owners & Directors',
+    designation: 'Director',
     isActive: true,
     avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
   },
@@ -511,6 +511,128 @@ export const useAppStore = create(
     set({
       students: (get().students || []).map((s) => (s._id === studentId ? { ...s, verificationStatus: status } : s)),
     });
+  },
+
+  graduateStudent: (studentId, { grade = 'Pass', scorePercentage = 85, issueCertificate = true, remarks = '', completionDate = new Date().toISOString().split('T')[0] } = {}) => {
+    const student = (get().students || []).find((s) => s._id === studentId || s.studentId === studentId);
+    if (!student) return { success: false, message: 'Student not found.' };
+
+    const oldBatchCode = student.batchCode;
+
+    // 1. Relieve seat in the active batch
+    const updatedBatches = (get().batches || []).map((b) =>
+      b.code === oldBatchCode
+        ? { ...b, currentEnrolledCount: Math.max(0, (b.currentEnrolledCount || 0) - 1) }
+        : b
+    );
+
+    // 2. Auto-issue certificate if requested
+    let certNumber = null;
+    let newCert = null;
+    if (issueCertificate) {
+      certNumber = `TELA-CERT-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+      newCert = {
+        _id: `cert-${Date.now()}`,
+        certNumber,
+        studentId: student._id,
+        studentName: student.name,
+        studentCode: student.studentId,
+        courseName: student.courseName,
+        level: student.level || 'A1',
+        grade,
+        scorePercentage: Number(scorePercentage) || 85,
+        issueDate: new Date(),
+        qrUrl: `https://tela.edu.in/verify/${certNumber}`,
+      };
+    }
+
+    const timelineEntry = {
+      title: 'Course Passed & Graduated',
+      detail: `Successfully completed ${student.courseName} (${student.level || 'A1'}) in batch ${oldBatchCode}. Grade: ${grade} (${scorePercentage}%). Relieved from class roster to Alumni Registry. ${remarks}`,
+      by: get().currentUser.name || 'Director',
+      at: new Date().toLocaleDateString('en-IN'),
+    };
+
+    const updatedStudent = {
+      ...student,
+      status: 'Graduated',
+      graduationDate: completionDate,
+      finalGrade: grade,
+      finalScore: scorePercentage,
+      certificateNumber: certNumber || student.certificateNumber,
+      timeline: [timelineEntry, ...(student.timeline || [])],
+    };
+
+    const updatedStudents = (get().students || []).map((s) =>
+      s._id === student._id ? updatedStudent : s
+    );
+
+    const updatedCertificates = newCert
+      ? [newCert, ...(get().certificates || [])]
+      : (get().certificates || []);
+
+    set({
+      students: updatedStudents,
+      batches: updatedBatches,
+      certificates: updatedCertificates,
+    });
+
+    get().logActivity(
+      `Graduated student ${student.name} (${student.studentId}) from ${oldBatchCode} with grade ${grade}. Seat freed.`,
+      'Students'
+    );
+
+    return {
+      success: true,
+      message: `Student ${student.name} marked as Passed/Graduated! Seat in ${oldBatchCode} has been freed. Record saved in Alumni Registry.`,
+      student: updatedStudent,
+      certificate: newCert,
+    };
+  },
+
+  reEnrollStudent: (studentId, targetBatchCode) => {
+    const student = (get().students || []).find((s) => s._id === studentId || s.studentId === studentId);
+    if (!student) return { success: false, message: 'Student not found.' };
+
+    const targetBatch = (get().batches || []).find((b) => b.code === targetBatchCode);
+    if (!targetBatch) return { success: false, message: `Batch ${targetBatchCode} not found.` };
+
+    if ((targetBatch.currentEnrolledCount || 0) >= (targetBatch.maxStudents || 15)) {
+      return {
+        success: false,
+        message: `Batch ${targetBatch.code} is full (${targetBatch.currentEnrolledCount}/${targetBatch.maxStudents})!`,
+      };
+    }
+
+    const updatedBatches = (get().batches || []).map((b) =>
+      b.code === targetBatchCode
+        ? { ...b, currentEnrolledCount: (b.currentEnrolledCount || 0) + 1 }
+        : b
+    );
+
+    const timelineEntry = {
+      title: `Promoted & Re-Enrolled to ${targetBatchCode}`,
+      detail: `Re-enrolled into active class for ${targetBatch.courseName} ${targetBatch.level || ''}.`,
+      by: get().currentUser.name || 'Director',
+      at: new Date().toLocaleDateString('en-IN'),
+    };
+
+    const updatedStudent = {
+      ...student,
+      status: 'Active',
+      batchCode: targetBatch.code,
+      courseName: targetBatch.courseName || student.courseName,
+      level: targetBatch.level || student.level,
+      timeline: [timelineEntry, ...(student.timeline || [])],
+    };
+
+    set({
+      students: (get().students || []).map((s) => (s._id === student._id ? updatedStudent : s)),
+      batches: updatedBatches,
+    });
+
+    get().logActivity(`Re-enrolled alumni ${student.name} into ${targetBatchCode}`, 'Students');
+    return { success: true, message: `Student promoted and re-enrolled into ${targetBatchCode}!`, student: updatedStudent };
   },
 
   // Fee Actions

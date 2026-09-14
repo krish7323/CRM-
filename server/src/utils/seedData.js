@@ -16,7 +16,7 @@ export const seedDatabase = async () => {
         phone: '+91 98765 43210',
         passwordHash: defaultPassword,
         role: 'Admin',
-        designation: 'Institute Owners & Directors',
+        designation: 'Director',
         avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
         isActive: true,
       });

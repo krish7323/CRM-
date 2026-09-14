@@ -1,6 +1,21 @@
 import React, { useState } from 'react';
 import { useAppStore } from '../store/useAppStore';
-import { Search, FileCheck, ShieldCheck, X, UserPlus, CalendarCheck, Upload, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import {
+    Search,
+    FileCheck,
+    ShieldCheck,
+    X,
+    UserPlus,
+    CalendarCheck,
+    Upload,
+    AlertTriangle,
+    CheckCircle2,
+    GraduationCap,
+    Award,
+    Sparkles,
+    RotateCcw,
+    BadgeCheck
+} from 'lucide-react';
 export const StudentsPage = () => {
     const {
         students = [],
@@ -10,9 +25,12 @@ export const StudentsPage = () => {
         updateStudentVerificationStatus,
         assignStudentBatch,
         uploadStudentDocument,
+        graduateStudent,
+        reEnrollStudent,
         currentUser,
     } = useAppStore();
     const [searchQuery, setSearchQuery] = useState('');
+    const [statusFilter, setStatusFilter] = useState('active'); // 'active' | 'alumni' | 'all'
     const [selectedStudent, setSelectedStudent] = useState(null);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [reassignBatchCode, setReassignBatchCode] = useState('');
@@ -21,6 +39,16 @@ export const StudentsPage = () => {
     const [newDocType, setNewDocType] = useState('Academic Transcript');
     const [newDocName, setNewDocName] = useState('');
     const [docUploadMsg, setDocUploadMsg] = useState('');
+    const [showGradForm, setShowGradForm] = useState(false);
+    const [gradForm, setGradForm] = useState({
+        grade: 'Distinction',
+        scorePercentage: 92,
+        issueCertificate: true,
+        remarks: 'Passed final CEFR proficiency examination.',
+    });
+    const [gradSuccessMsg, setGradSuccessMsg] = useState('');
+    const [promoteBatchCode, setPromoteBatchCode] = useState('');
+    const [promoteMsg, setPromoteMsg] = useState('');
 
     const canRegister = currentUser?.role === 'Owner' || currentUser?.role === 'Admin' || currentUser?.role === 'Counsellor';
     const isTeacher = currentUser?.role === 'Teacher';
@@ -107,12 +135,42 @@ export const StudentsPage = () => {
         setTimeout(() => setDocUploadMsg(''), 3000);
     };
 
-    // Filter students: Search by student ID, roll number, batch, course, name
+    const handleGraduateStudent = (e) => {
+        e.preventDefault();
+        if (!selectedStudent) return;
+        const res = graduateStudent(selectedStudent._id, gradForm);
+        if (res.success) {
+            setGradSuccessMsg(res.message);
+            setSelectedStudent(res.student);
+            setShowGradForm(false);
+            setTimeout(() => setGradSuccessMsg(''), 4000);
+        }
+    };
+
+    const handlePromoteStudent = (e) => {
+        e.preventDefault();
+        if (!selectedStudent || !promoteBatchCode) return;
+        const res = reEnrollStudent(selectedStudent._id, promoteBatchCode);
+        if (res.success) {
+            setPromoteMsg(res.message);
+            setSelectedStudent(res.student);
+            setPromoteBatchCode('');
+            setTimeout(() => setPromoteMsg(''), 4000);
+        }
+    };
+
+    const activeCount = students.filter((s) => s.status !== 'Graduated' && s.isActive !== false).length;
+    const alumniCount = students.filter((s) => s.status === 'Graduated').length;
+
+    // Filter students: Search by student ID, roll number, batch, course, name & tab
     const filteredStudents = students.filter((s) => {
         if (isTeacher) {
             const matchesTeacher = s.teacherName === currentUser.name || s.batchCode === 'GER-A1-B01';
             if (!matchesTeacher) return false;
         }
+        if (statusFilter === 'active' && (s.status === 'Graduated' || s.isActive === false)) return false;
+        if (statusFilter === 'alumni' && s.status !== 'Graduated') return false;
+
         const q = searchQuery.toLowerCase();
         const matchesQuery =
             s.name.toLowerCase().includes(q) ||
@@ -172,24 +230,73 @@ export const StudentsPage = () => {
         </div>
       </div>
 
+      {/* Active vs Graduated Alumni Status Tabs */}
+      <div className="flex flex-wrap items-center gap-2 border-b border-slate-800 pb-3">
+        <button
+          type="button"
+          onClick={() => setStatusFilter('active')}
+          className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+            statusFilter === 'active'
+              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-sm shadow-emerald-500/20'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+          }`}
+        >
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span>Active Class Students ({activeCount})</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setStatusFilter('alumni')}
+          className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+            statusFilter === 'alumni'
+              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm shadow-amber-500/20'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+          }`}
+        >
+          <GraduationCap className="w-4 h-4 text-amber-400" />
+          <span>Passed & Graduated Alumni ({alumniCount})</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setStatusFilter('all')}
+          className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+            statusFilter === 'all'
+              ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 shadow-sm shadow-cyan-500/20'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+          }`}
+        >
+          <span>All Registry Records ({students.length})</span>
+        </button>
+      </div>
+
       {/* Grid of Student Cards with Verification & Live Attendance % */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredStudents.map((std) => {
             const attStats = getStudentAttendanceStats(std);
             const status = std.verificationStatus || 'Verified';
-            return (<div key={std._id} onClick={() => setSelectedStudent(std)} className="glass-card p-5 rounded-2xl border border-slate-800 hover:border-cyan-500/40 transition cursor-pointer flex flex-col justify-between">
+            const isGraduated = std.status === 'Graduated';
+            return (<div key={std._id} onClick={() => setSelectedStudent(std)} className={`glass-card p-5 rounded-2xl border transition cursor-pointer flex flex-col justify-between ${isGraduated ? 'border-amber-500/30 hover:border-amber-500/60 bg-amber-950/10' : 'border-slate-800 hover:border-cyan-500/40'}`}>
               <div>
                 <div className="flex items-start justify-between">
                   <div className="flex items-center space-x-3">
-                    <img src={std.photoUrl || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150'} alt={std.name} className="w-10 h-10 rounded-full border border-cyan-500/30 object-cover"/>
+                    <img src={std.photoUrl || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150'} alt={std.name} className={`w-10 h-10 rounded-full border object-cover ${isGraduated ? 'border-amber-500/60' : 'border-cyan-500/30'}`}/>
                     <div>
                       <h3 className="text-sm font-bold text-slate-100">{std.name}</h3>
                       <p className="text-[11px] text-amber-400 font-semibold">{std.studentId}</p>
                     </div>
                   </div>
-                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${status === 'Verified' ? 'bg-emerald-950 text-emerald-400 border-emerald-800/40' : status === 'Pending' ? 'bg-amber-950 text-amber-400 border-amber-800/40' : 'bg-rose-950 text-rose-400 border-rose-800/40'}`}>
-                    {status}
-                  </span>
+                  {isGraduated ? (
+                    <span className="px-2 py-0.5 rounded text-[10px] font-black border bg-amber-950 text-amber-300 border-amber-600/50 flex items-center gap-1">
+                      <GraduationCap className="w-3.5 h-3.5 text-amber-400" />
+                      Alumni / Passed
+                    </span>
+                  ) : (
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${status === 'Verified' ? 'bg-emerald-950 text-emerald-400 border-emerald-800/40' : status === 'Pending' ? 'bg-amber-950 text-amber-400 border-amber-800/40' : 'bg-rose-950 text-rose-400 border-rose-800/40'}`}>
+                      {status}
+                    </span>
+                  )}
                 </div>
 
                 <div className="mt-4 space-y-1.5 text-xs text-slate-300">
@@ -206,20 +313,39 @@ export const StudentsPage = () => {
                     <span className="font-semibold text-cyan-400">{std.teacherName || 'Prof. Amit Kulkarni'}</span>
                   </p>
 
-                  <div className="p-2 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between mt-2">
-                    <span className="text-slate-400 text-[10px] flex items-center gap-1">
-                      <CalendarCheck className="w-3.5 h-3.5 text-emerald-400"/> Live Attendance:
-                    </span>
-                    <span className={`font-black text-xs ${attStats.percentage >= 75 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                      {attStats.percentage}% ({attStats.totalPresent}/{attStats.totalLogs} Days)
-                    </span>
-                  </div>
+                  {isGraduated ? (
+                    <div className="p-2 rounded-xl bg-amber-950/40 border border-amber-500/40 flex items-center justify-between mt-2">
+                      <span className="text-amber-400 text-[10px] flex items-center gap-1 font-bold">
+                        <GraduationCap className="w-3.5 h-3.5 text-amber-400"/> Course Completed:
+                      </span>
+                      <span className="font-black text-xs text-amber-300">
+                        {std.finalGrade || 'Graduated'} ({std.finalScore || 90}%)
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="p-2 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between mt-2">
+                      <span className="text-slate-400 text-[10px] flex items-center gap-1">
+                        <CalendarCheck className="w-3.5 h-3.5 text-emerald-400"/> Live Attendance:
+                      </span>
+                      <span className={`font-black text-xs ${attStats.percentage >= 75 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                        {attStats.percentage}% ({attStats.totalPresent}/{attStats.totalLogs} Days)
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
 
               <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px]">
                 <span className="text-slate-400 flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400"/> Status: {status}
+                  {isGraduated ? (
+                    <span className="text-amber-400 flex items-center gap-1">
+                      <Award className="w-3.5 h-3.5" /> Certified
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1">
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-400"/> Status: {status}
+                    </span>
+                  )}
                 </span>
                 <span className="text-cyan-400 font-semibold hover:underline">Full Profile & Timeline →</span>
               </div>
@@ -334,6 +460,189 @@ export const StudentsPage = () => {
                   </button>
                 </div>
               </div>
+            )}
+
+            {/* Graduation / Alumni Lifecycle Control */}
+            {selectedStudent.status === 'Graduated' ? (
+              <div className="p-4 bg-gradient-to-r from-amber-950/40 via-slate-900 to-amber-950/40 border-2 border-amber-500/50 rounded-2xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2.5">
+                    <div className="p-2 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                      <GraduationCap className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <Sparkles className="w-3.5 h-3.5" /> Official Alumni Record • Course Passed
+                      </h4>
+                      <p className="text-[11px] text-slate-300">
+                        Relieved from active class batch. Full historical record permanently saved in TELA Alumni Archive.
+                      </p>
+                    </div>
+                  </div>
+                  <span className="px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-black border border-amber-500/40">
+                    {selectedStudent.finalGrade || 'Distinction'} ({selectedStudent.finalScore || 90}%)
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs pt-1">
+                  <div className="bg-slate-950/80 p-2.5 rounded-xl border border-slate-800">
+                    <span className="text-slate-400 text-[10px] block">Completed Course</span>
+                    <span className="font-bold text-slate-200">{selectedStudent.courseName} ({selectedStudent.level || 'A1'})</span>
+                  </div>
+                  <div className="bg-slate-950/80 p-2.5 rounded-xl border border-slate-800">
+                    <span className="text-slate-400 text-[10px] block">Completion Date</span>
+                    <span className="font-bold text-slate-200">{selectedStudent.graduationDate || 'Recent'}</span>
+                  </div>
+                  <div className="bg-slate-950/80 p-2.5 rounded-xl border border-slate-800">
+                    <span className="text-slate-400 text-[10px] block">Issued Certificate</span>
+                    <span className="font-mono text-[11px] font-bold text-amber-400">
+                      {selectedStudent.certificateNumber || 'TELA-CERT-VERIFIED'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Re-enroll / Promote to Next Level */}
+                {canRegister && (
+                  <div className="pt-2 border-t border-slate-800">
+                    <h5 className="text-[11px] font-bold text-cyan-400 mb-1.5 flex items-center gap-1.5">
+                      <RotateCcw className="w-3.5 h-3.5" /> Re-Enroll / Promote to Next Level (e.g. Next CEFR Level):
+                    </h5>
+                    {promoteMsg && (
+                      <div className="p-2 mb-2 rounded-lg bg-emerald-950/80 border border-emerald-800 text-emerald-300 text-xs flex items-center gap-1.5">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                        <span>{promoteMsg}</span>
+                      </div>
+                    )}
+                    <form onSubmit={handlePromoteStudent} className="flex gap-2">
+                      <select
+                        value={promoteBatchCode}
+                        onChange={(e) => setPromoteBatchCode(e.target.value)}
+                        className="flex-1 bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500"
+                      >
+                        <option value="">-- Choose Batch to Re-Enroll into (e.g. GER-A2-B01) --</option>
+                        {batches.map((b) => (
+                          <option key={b._id || b.code} value={b.code}>
+                            {b.code} ({b.courseName} {b.level}) — Seats: {b.currentEnrolledCount || 0}/{b.maxStudents || 15}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        type="submit"
+                        className="px-3.5 py-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs rounded-lg transition shrink-0"
+                      >
+                        Re-Enroll in Class
+                      </button>
+                    </form>
+                  </div>
+                )}
+              </div>
+            ) : (
+              canRegister && (
+                <div className="p-3.5 bg-gradient-to-r from-amber-950/30 to-slate-900 rounded-xl border border-amber-500/30 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <GraduationCap className="w-4 h-4 text-amber-400" /> Course Completion & Graduation Protocol
+                      </h4>
+                      <p className="text-[11px] text-slate-400 mt-0.5">
+                        Mark student as passed, relieve seat from active class batch, and archive record into Alumni Registry.
+                      </p>
+                    </div>
+
+                    {!showGradForm && (
+                      <button
+                        type="button"
+                        onClick={() => setShowGradForm(true)}
+                        className="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 transition shrink-0"
+                      >
+                        <Award className="w-3.5 h-3.5" />
+                        <span>Pass & Graduate</span>
+                      </button>
+                    )}
+                  </div>
+
+                  {gradSuccessMsg && (
+                    <div className="p-2.5 rounded-lg bg-emerald-950/80 border border-emerald-800 text-emerald-300 text-xs flex items-center gap-1.5">
+                      <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+                      <span>{gradSuccessMsg}</span>
+                    </div>
+                  )}
+
+                  {showGradForm && (
+                    <form onSubmit={handleGraduateStudent} className="p-3 bg-slate-950 rounded-xl border border-amber-500/20 space-y-3">
+                      <div className="grid grid-cols-2 gap-3 text-xs">
+                        <div>
+                          <label className="text-[11px] font-semibold text-slate-400">Final Grade Awarded</label>
+                          <select
+                            value={gradForm.grade}
+                            onChange={(e) => setGradForm({ ...gradForm, grade: e.target.value })}
+                            className="w-full mt-1 bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200"
+                          >
+                            <option value="Distinction">Distinction (Grade A+)</option>
+                            <option value="First Class">First Class (Grade A)</option>
+                            <option value="Merit">Merit (Grade B+)</option>
+                            <option value="Pass">Pass</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="text-[11px] font-semibold text-slate-400">Score Percentage (%)</label>
+                          <input
+                            type="number"
+                            min="0"
+                            max="100"
+                            value={gradForm.scorePercentage}
+                            onChange={(e) => setGradForm({ ...gradForm, scorePercentage: e.target.value })}
+                            className="w-full mt-1 bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-[11px] font-semibold text-slate-400">Faculty / Director Remarks</label>
+                        <input
+                          type="text"
+                          value={gradForm.remarks}
+                          onChange={(e) => setGradForm({ ...gradForm, remarks: e.target.value })}
+                          placeholder="e.g. Successfully completed German A1 curriculum."
+                          className="w-full mt-1 bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200"
+                        />
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="issueCertCheck"
+                          checked={gradForm.issueCertificate}
+                          onChange={(e) => setGradForm({ ...gradForm, issueCertificate: e.target.checked })}
+                          className="rounded border-slate-700 text-amber-500 focus:ring-0 cursor-pointer"
+                        />
+                        <label htmlFor="issueCertCheck" className="text-xs text-slate-300 font-medium cursor-pointer flex items-center gap-1.5">
+                          <Award className="w-3.5 h-3.5 text-amber-400" />
+                          Auto-generate & verify official TELA Certificate in vault
+                        </label>
+                      </div>
+
+                      <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
+                        <button
+                          type="button"
+                          onClick={() => setShowGradForm(false)}
+                          className="px-3 py-1.5 bg-slate-800 text-slate-300 text-xs font-semibold rounded-lg"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          className="px-4 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-lg transition flex items-center gap-1.5"
+                        >
+                          <GraduationCap className="w-4 h-4" />
+                          <span>Confirm Graduation & Free Class Seat</span>
+                        </button>
+                      </div>
+                    </form>
+                  )}
+                </div>
+              )
             )}
 
             {/* Comprehensive Parent & Enrolment Details */}

@@ -74,6 +74,99 @@ router.get('/students', requireRoles(['Counsellor', 'Teacher']), async (req, res
   }
 });
 
+router.post('/students/:id/graduate', requireRoles(['Owner', 'Admin', 'Teacher']), async (req, res) => {
+  const { id } = req.params;
+  const { grade = 'Distinction', scorePercentage = 90, issueCertificate = true, promoteToBatchCode, remarks = '' } = req.body;
+
+  try {
+    if (!isDbConnected()) {
+      return res.json({ success: true, message: 'Student graduated (in-memory mode).' });
+    }
+
+    const result = await runWithTransaction(async (session) => {
+      const student = await Student.findById(id).session(session);
+      if (!student) throw new Error('Student not found.');
+
+      const oldBatchCode = student.batchCode;
+      const oldBatchId = student.batchId;
+
+      // 1. Relieve seat in old batch
+      if (oldBatchId) {
+        await Batch.findByIdAndUpdate(
+          oldBatchId,
+          { $inc: { currentEnrolledCount: -1 } },
+          { session }
+        );
+      }
+
+      // 2. Optional Certificate Generation
+      let cert = null;
+      if (issueCertificate) {
+        const certNumber = await getNextSequence('certificate_number', session, 'TELA-CERT-2026-', 4);
+        [cert] = await Certificate.create(
+          [
+            {
+              certNumber,
+              studentId: student._id,
+              studentName: student.name,
+              studentCode: student.studentId,
+              courseName: student.courseName,
+              level: student.level || 'A1',
+              grade,
+              scorePercentage: Number(scorePercentage) || 90,
+              issueDate: new Date(),
+              qrUrl: `/verify/${certNumber}`,
+            },
+          ],
+          { session }
+        );
+      }
+
+      // 3. Promote or Archive to Alumni
+      if (promoteToBatchCode) {
+        const targetBatch = await Batch.findOne({ code: promoteToBatchCode }).session(session);
+        if (!targetBatch) throw new Error(`Target batch ${promoteToBatchCode} not found.`);
+        if (targetBatch.currentEnrolledCount >= targetBatch.maxStudents) {
+          throw new Error(`Batch ${targetBatch.code} is full (${targetBatch.currentEnrolledCount}/${targetBatch.maxStudents}).`);
+        }
+        await Batch.findByIdAndUpdate(targetBatch._id, { $inc: { currentEnrolledCount: 1 } }, { session });
+
+        student.batchId = targetBatch._id;
+        student.batchCode = targetBatch.code;
+        student.level = targetBatch.level || student.level;
+        student.status = 'Active';
+        student.timeline.unshift({
+          title: `Promoted to ${targetBatch.code}`,
+          detail: `Graduated from ${oldBatchCode} with grade ${grade}. Promoted to next level in ${targetBatch.code}.`,
+          by: req.user?.name || 'Director',
+          at: new Date(),
+        });
+      } else {
+        student.status = 'Graduated';
+        student.timeline.unshift({
+          title: 'Course Passed & Graduated',
+          detail: `Completed ${student.courseName} in batch ${oldBatchCode}. Grade: ${grade} (${scorePercentage}%). Relieved from active class to Alumni Registry. ${remarks}`,
+          by: req.user?.name || 'Director',
+          at: new Date(),
+        });
+      }
+
+      await student.save({ session });
+      return { student, certificate: cert };
+    });
+
+    res.json({
+      success: true,
+      message: promoteToBatchCode
+        ? `Student promoted to ${promoteToBatchCode} successfully!`
+        : `Student successfully graduated and archived to Alumni Registry! Class seat freed.`,
+      ...result,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 /* ==================== DIGITAL LIBRARY ==================== */
 router.get('/library/books', requireRoles(['Owner', 'Admin', 'Librarian', 'Teacher', 'Student']), async (req, res) => {
   try {
