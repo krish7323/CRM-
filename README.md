@@ -312,8 +312,8 @@ The database automatically seeds a master administrator account upon first launc
 | :--- | :--- |
 | **Email** | `admin@elh.edu` |
 | **Password** | `password123` |
-| **Name** | Dinesha & Niresh |
-| **Role** | Owner / Admin |
+| **Name** | Director |
+| **Role** | Director / Admin |
 
 > **Tip:** You can switch roles live using the **"Test View"** role selector in the top-right header to experience the app as a Counsellor, Teacher, Accountant, etc.
 
