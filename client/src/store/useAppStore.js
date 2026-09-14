@@ -5,7 +5,7 @@ import { persist } from 'zustand/middleware';
 const initialRegisteredUsers = [
   {
     id: 'usr-admin',
-    name: 'Dinesha & Niresh',
+    name: 'Director',
     email: 'admin@elh.edu',
     phone: '+91 98765 43210',
     password: 'password123',
@@ -74,7 +74,7 @@ export const useAppStore = create(
   currentUser: {
     ...initialRegisteredUsers[0],
     role: localStorage.getItem('elh_user_role') || 'Admin',
-    name: localStorage.getItem('elh_user_name') || 'Dinesha & Niresh',
+    name: (!localStorage.getItem('elh_user_name') || localStorage.getItem('elh_user_name') === 'Dinesha & Niresh') ? 'Director' : localStorage.getItem('elh_user_name'),
   },
   isAiDrawerOpen: false,
 
@@ -120,7 +120,7 @@ export const useAppStore = create(
   auditLogs: [
     {
       _id: 'log-init',
-      userName: 'Dinesha & Niresh',
+      userName: 'Director',
       userRole: 'Admin',
       action: 'System initialized with single Master Owner/Admin account',
       module: 'System',

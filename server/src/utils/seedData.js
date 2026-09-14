@@ -11,7 +11,7 @@ export const seedDatabase = async () => {
       const defaultPassword = await bcrypt.hash('password123', 10);
 
       await User.create({
-        name: 'Dinesha & Niresh',
+        name: 'Director',
         email: 'admin@elh.edu',
         phone: '+91 98765 43210',
         passwordHash: defaultPassword,
@@ -20,7 +20,7 @@ export const seedDatabase = async () => {
         avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
         isActive: true,
       });
-      console.log('Master Owner/Admin account created successfully (Dinesha & Niresh - admin@elh.edu).');
+      console.log('Master Director account created successfully (admin@elh.edu).');
     }
 
     // Seed Default Courses if none exist

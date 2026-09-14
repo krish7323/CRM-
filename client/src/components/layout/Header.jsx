@@ -75,12 +75,14 @@ export const Header = ({ onToggleMobileMenu }) => {
             className="w-8 h-8 rounded-full border border-amber-500/40 object-cover"
           />
           <div className="hidden lg:block text-left">
-            <p className="text-xs font-semibold text-slate-200 leading-none">{currentUser.name}</p>
-            <p className="text-[10px] text-amber-400 font-medium leading-tight mt-0.5">
-              {currentUser.role === 'Admin' || currentUser.role === 'Owner' || currentUser.role === 'Owner/Admin'
-                ? 'Director'
-                : (currentUser.designation || currentUser.role)}
+            <p className="text-xs font-bold text-slate-100 leading-none">
+              {currentUser.name === 'Dinesha & Niresh' ? 'Director' : currentUser.name}
             </p>
+            {currentUser.name !== 'Director' && currentUser.name !== 'Dinesha & Niresh' && (
+              <p className="text-[10px] text-amber-400 font-medium leading-tight mt-0.5">
+                {currentUser.role}
+              </p>
+            )}
           </div>
         </div>
 

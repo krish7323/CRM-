@@ -67,14 +67,14 @@ export const LoginPage = () => {
               Owner & Admin Access Sign In
             </h2>
             <p className="text-xs text-slate-400 mt-3 leading-relaxed">
-              Clean production environment configured for Dinesha & Niresh (Institute Owners).
+              Clean production environment configured for Director.
             </p>
           </div>
 
           {/* Owner Account Card */}
           <div className="mt-8 pt-6 border-t border-slate-800/80">
             <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
-              <Crown className="w-3.5 h-3.5 text-amber-400" /> Master Owner Account
+              <Crown className="w-3.5 h-3.5 text-amber-400" /> Master Director Account
             </p>
 
             <button
@@ -83,7 +83,7 @@ export const LoginPage = () => {
               className="w-full p-3 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 text-left transition flex items-center justify-between group"
             >
               <div>
-                <p className="text-xs font-bold text-slate-200 group-hover:text-amber-300">Dinesha & Niresh</p>
+                <p className="text-xs font-bold text-slate-200 group-hover:text-amber-300">Director</p>
                 <p className="text-[10px] text-amber-400 font-semibold">admin@elh.edu</p>
               </div>
               <span className="text-xs text-slate-500 group-hover:text-slate-300 font-mono">Auto-fill →</span>
