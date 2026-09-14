@@ -47,7 +47,7 @@ export const DashboardPage = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-slate-900 via-slate-900/90 to-amber-950/40 p-6 rounded-2xl border border-slate-800 shadow-xl">
         <div>
           <h1 className="text-xl md:text-2xl font-black tracking-tight text-slate-100 flex items-center gap-2">
-            Welcome back, <span className="text-amber-400">{currentUser.name}</span> 👋
+            Welcome back, <span className="text-amber-400">{(currentUser.name && !currentUser.name.includes('Dinesh') && !currentUser.name.includes('Niresh')) ? currentUser.name : 'Director'}</span> 👋
           </h1>
           <p className="text-xs text-slate-400 mt-1">
             {isOwnerOrAdmin

@@ -1,7 +1,9 @@
 import { io } from 'socket.io-client';
 
 // Determine Socket.IO server URL (relative proxy in dev/production or explicit backend URL)
-const SOCKET_URL = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' && window.location.port === '5173' ? 'http://localhost:5000' : '/');
+const isRenderCloud = typeof window !== 'undefined' && (window.location.hostname.includes('render.com') || window.location.hostname.includes('onrender.com'));
+const SOCKET_URL = import.meta.env.VITE_API_URL 
+  || (isRenderCloud ? 'https://crm-ed2t.onrender.com' : (typeof window !== 'undefined' && window.location.port === '5173' ? 'http://localhost:5000' : '/'));
 
 export const socket = io(SOCKET_URL, {
   autoConnect: true,

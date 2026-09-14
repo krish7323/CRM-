@@ -39,6 +39,30 @@ app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors());
 app.use(express.json());
 
+// Root & Health Check Endpoints (Registered early so they ALWAYS respond)
+app.get('/', (req, res) => {
+  res.json({
+    status: 'online',
+    service: 'TELA CRM & ERP Backend API',
+    version: '1.0.0',
+    message: 'Backend server is running successfully',
+    health: '/api/health',
+    uptime: `${Math.floor(process.uptime())}s`,
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    timestamp: new Date().toISOString(),
+  });
+});
+
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'healthy',
+    service: 'TELA CRM & ERP Backend API',
+    uptime: `${Math.floor(process.uptime())}s`,
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    timestamp: new Date().toISOString(),
+  });
+});
+
 // Public verification endpoint for QR code certificates
 app.get('/api/public/verify/:certNumber', async (req, res) => {
   try {
@@ -79,34 +103,12 @@ const potentialPaths = [
 
 let clientDistPath = potentialPaths.find((p) => fs.existsSync(p));
 
-// Health Check Endpoint
-app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'healthy',
-    service: 'TELA CRM & ERP Backend API',
-    uptime: `${Math.floor(process.uptime())}s`,
-    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
-    timestamp: new Date().toISOString(),
-  });
-});
-
 if (clientDistPath) {
   console.log(`📦 Serving production client build from: ${clientDistPath}`);
   app.use(express.static(clientDistPath));
   app.get('*', (req, res, next) => {
     if (req.path.startsWith('/api')) return next();
     res.sendFile(path.join(clientDistPath, 'index.html'));
-  });
-} else {
-  app.get('/', (req, res) => {
-    res.json({
-      status: 'online',
-      service: 'TELA CRM & ERP Backend API',
-      version: '1.0.0',
-      message: 'Backend server is running successfully',
-      health: '/api/health',
-      timestamp: new Date().toISOString(),
-    });
   });
 }
 

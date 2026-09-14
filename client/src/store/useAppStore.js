@@ -2,6 +2,9 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { socket, joinRoleChannel } from '../services/socket';
 
+const isRenderCloud = typeof window !== 'undefined' && (window.location.hostname.includes('render.com') || window.location.hostname.includes('onrender.com'));
+export const API_BASE = import.meta.env.VITE_API_URL || (isRenderCloud ? 'https://crm-ed2t.onrender.com' : '');
+
 // Single Master Owner / Admin Account
 const initialRegisteredUsers = [
   {
@@ -563,7 +566,7 @@ export const useAppStore = create(
     // Asynchronously call backend to persist in MongoDB and emit socket events
     try {
       const token = localStorage.getItem('elh_auth_token');
-      const res = await fetch('/api/students', {
+      const res = await fetch(`${API_BASE}/api/students`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -709,7 +712,7 @@ export const useAppStore = create(
     // Call backend API asynchronously
     try {
       const token = localStorage.getItem('elh_auth_token');
-      await fetch(`/api/students/${student._id}/change-status`, {
+      await fetch(`${API_BASE}/api/students/${student._id}/change-status`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -784,7 +787,7 @@ export const useAppStore = create(
 
     try {
       const token = localStorage.getItem('elh_auth_token');
-      await fetch(`/api/students/${student._id}?confirmTestEntry=true`, {
+      await fetch(`${API_BASE}/api/students/${student._id}?confirmTestEntry=true`, {
         method: 'DELETE',
         headers: {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -1210,6 +1213,13 @@ export const useAppStore = create(
 }),
     {
       name: 'tela_erp_storage',
+      onRehydrateStorage: () => (state) => {
+        if (state && state.currentUser) {
+          if (!state.currentUser.name || state.currentUser.name.includes('Dinesh') || state.currentUser.name.includes('Niresh')) {
+            state.currentUser.name = 'Director';
+          }
+        }
+      },
     }
   )
 );

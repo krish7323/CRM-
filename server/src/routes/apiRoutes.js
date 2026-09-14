@@ -42,6 +42,17 @@ const isDbConnected = () => mongoose.connection.readyState === 1;
 // Clean empty fallback arrays for production
 const emptyArray = [];
 
+/* ==================== SYSTEM HEALTH ==================== */
+router.get('/health', (req, res) => {
+  res.json({
+    status: 'healthy',
+    service: 'TELA CRM & ERP Backend API',
+    uptime: `${Math.floor(process.uptime())}s`,
+    database: isDbConnected() ? 'connected' : 'disconnected',
+    timestamp: new Date().toISOString(),
+  });
+});
+
 /* ==================== CRM LEADS ==================== */
 router.get('/leads', requireRoles(['Counsellor']), async (req, res) => {
   try {
