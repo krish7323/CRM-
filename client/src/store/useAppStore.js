@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { socket, joinRoleChannel } from '../services/socket';
 
 // Single Master Owner / Admin Account
 const initialRegisteredUsers = [
@@ -422,25 +423,69 @@ export const useAppStore = create(
   },
 
   // Student Direct Actions
-  registerDirectStudent: (studentData) => {
-    const studentCode = `TELA-${Math.floor(1000 + Math.random() * 9000)}`;
+  registerDirectStudent: async (studentData) => {
+    const studentCode = studentData.studentId || `TELA-2026-${Math.floor(1000 + Math.random() * 9000)}`;
     const targetBatch = (get().batches || []).find((b) => b.code === (studentData.batchCode || 'GER-A1-B01'));
 
+    // Duplicate contact number check
+    const existingStudent = (get().students || []).find(
+      (s) => s.phone === studentData.phone && s.status === 'Active' && !s.isArchived
+    );
+    if (existingStudent) {
+      return {
+        success: false,
+        message: `Validation Error: Student with contact ${studentData.phone} is already actively enrolled as ${existingStudent.studentId} (${existingStudent.name}).`,
+      };
+    }
+
+    // Capacity verification
     if (targetBatch && (targetBatch.currentEnrolledCount || 0) >= (targetBatch.maxStudents || 15)) {
       return {
         success: false,
-        message: `Batch ${targetBatch.code} is full (${targetBatch.currentEnrolledCount}/${targetBatch.maxStudents})! Cannot assign student.`,
+        message: `Batch Capacity Full! Batch ${targetBatch.code} already has ${targetBatch.currentEnrolledCount}/${targetBatch.maxStudents} seats occupied. Please choose an open batch.`,
       };
     }
+
+    const feeNum = Number(studentData.totalFee) || 25000;
+    const discountNum = Number(studentData.discount) || 0;
+    const netFeeNum = Math.max(0, feeNum - discountNum);
 
     const newStudent = {
       _id: `std-${Date.now()}`,
       studentId: studentCode,
-      batchCode: studentData.batchCode || 'GER-A1-B01',
-      ...studentData,
-      joiningDate: new Date(),
+      batchCode: targetBatch ? targetBatch.code : studentData.batchCode || 'GER-A1-B01',
+      batchId: targetBatch ? targetBatch._id : undefined,
+      courseName: targetBatch ? targetBatch.courseName : studentData.courseName || 'German',
+      level: targetBatch ? targetBatch.level : studentData.level || 'A1',
+      status: 'Active',
+      isArchived: false,
       isActive: true,
+      joiningDate: new Date(),
+      admissionDate: new Date(),
       verificationStatus: 'Verified',
+      feePlan: studentData.feePlan || 'Full',
+      totalFee: feeNum,
+      discount: discountNum,
+      netFee: netFeeNum,
+      paidFee: 0,
+      feeBalance: netFeeNum,
+      statusHistory: [
+        {
+          fromStatus: 'None',
+          toStatus: 'Active',
+          reason: 'Direct Walk-In Admission',
+          changedBy: get().currentUser.name || 'Director',
+          date: new Date().toISOString(),
+        },
+      ],
+      timeline: [
+        {
+          title: 'Student Admitted',
+          detail: `Enrolled in batch ${targetBatch ? targetBatch.code : 'GER-A1-B01'}. Fee plan: ${studentData.feePlan || 'Full'}.`,
+          by: get().currentUser.name || 'Director',
+          at: new Date().toLocaleDateString('en-IN'),
+        },
+      ],
       documents: [
         {
           id: `doc-${Date.now()}-1`,
@@ -459,37 +504,48 @@ export const useAppStore = create(
           fileSize: '2.1 MB',
         },
       ],
+      ...studentData,
     };
 
-    const feeAmount = Number(studentData.totalFee) || 25000;
     const newFee = {
       _id: `fee-${Date.now()}`,
       studentId: newStudent._id,
       studentCode,
       studentName: newStudent.name,
       courseName: newStudent.courseName,
-      totalFee: feeAmount,
-      discount: 0,
-      netFee: feeAmount,
+      totalFee: feeNum,
+      discount: discountNum,
+      netFee: netFeeNum,
       paidTotal: 0,
-      remainingTotal: feeAmount,
+      remainingTotal: netFeeNum,
       status: 'Unpaid',
-      installments: [
-        {
-          installmentNo: 1,
-          amount: Math.round(feeAmount / 2),
-          dueDate: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
-          paidAmount: 0,
-          status: 'Pending',
-        },
-        {
-          installmentNo: 2,
-          amount: Math.round(feeAmount / 2),
-          dueDate: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0],
-          paidAmount: 0,
-          status: 'Pending',
-        },
-      ],
+      installments:
+        studentData.feePlan === 'Installment'
+          ? [
+              {
+                installmentNo: 1,
+                amount: Math.round(netFeeNum / 2),
+                dueDate: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
+                paidAmount: 0,
+                status: 'Pending',
+              },
+              {
+                installmentNo: 2,
+                amount: Math.round(netFeeNum / 2),
+                dueDate: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0],
+                paidAmount: 0,
+                status: 'Pending',
+              },
+            ]
+          : [
+              {
+                installmentNo: 1,
+                amount: netFeeNum,
+                dueDate: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
+                paidAmount: 0,
+                status: 'Pending',
+              },
+            ],
     };
 
     const updatedBatches = (get().batches || []).map((b) =>
@@ -503,6 +559,28 @@ export const useAppStore = create(
       batches: updatedBatches,
       fees: [newFee, ...(get().fees || [])],
     });
+
+    // Asynchronously call backend to persist in MongoDB and emit socket events
+    try {
+      const token = localStorage.getItem('elh_auth_token');
+      const res = await fetch('/api/students', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(studentData),
+      });
+      const data = await res.json();
+      if (data.student) {
+        set({
+          students: (get().students || []).map((s) => (s._id === newStudent._id ? data.student : s)),
+        });
+      }
+    } catch (err) {
+      console.warn('Backend admission API warning (using local optimistic state):', err.message);
+    }
+
     get().logActivity(`Registered student ${newStudent.name} (${studentCode})`, 'Students');
     return { success: true, student: newStudent, fee: newFee };
   },
@@ -513,23 +591,28 @@ export const useAppStore = create(
     });
   },
 
-  graduateStudent: (studentId, { grade = 'Pass', scorePercentage = 85, issueCertificate = true, remarks = '', completionDate = new Date().toISOString().split('T')[0] } = {}) => {
+  // Unified Student Status Transition (Graduated, Dropped Out, Fee Defaulter, Inactive, Active)
+  changeStudentStatus: async (
+    studentId,
+    {
+      status,
+      reason = 'Status updated',
+      finalScore = 85,
+      grade = 'Pass',
+      remarks = '',
+      promoteToBatchCode = '',
+      issueCertificate = false,
+    } = {}
+  ) => {
     const student = (get().students || []).find((s) => s._id === studentId || s.studentId === studentId);
-    if (!student) return { success: false, message: 'Student not found.' };
+    if (!student) return { success: false, message: 'Student record not found.' };
 
+    const oldStatus = student.status;
     const oldBatchCode = student.batchCode;
 
-    // 1. Relieve seat in the active batch
-    const updatedBatches = (get().batches || []).map((b) =>
-      b.code === oldBatchCode
-        ? { ...b, currentEnrolledCount: Math.max(0, (b.currentEnrolledCount || 0) - 1) }
-        : b
-    );
-
-    // 2. Auto-issue certificate if requested
     let certNumber = null;
     let newCert = null;
-    if (issueCertificate) {
+    if (status === 'Graduated' && issueCertificate) {
       certNumber = `TELA-CERT-2026-${Math.floor(1000 + Math.random() * 9000)}`;
       newCert = {
         _id: `cert-${Date.now()}`,
@@ -540,36 +623,82 @@ export const useAppStore = create(
         courseName: student.courseName,
         level: student.level || 'A1',
         grade,
-        scorePercentage: Number(scorePercentage) || 85,
+        scorePercentage: Number(finalScore) || 85,
         issueDate: new Date(),
         qrUrl: `https://tela.edu.in/verify/${certNumber}`,
       };
     }
 
-    const timelineEntry = {
-      title: 'Course Passed & Graduated',
-      detail: `Successfully completed ${student.courseName} (${student.level || 'A1'}) in batch ${oldBatchCode}. Grade: ${grade} (${scorePercentage}%). Relieved from class roster to Alumni Registry. ${remarks}`,
-      by: get().currentUser.name || 'Director',
-      at: new Date().toLocaleDateString('en-IN'),
+    let updatedBatches = get().batches || [];
+    // 1. Relieve seat if moving away from Active
+    if (oldStatus === 'Active' && status !== 'Active') {
+      updatedBatches = updatedBatches.map((b) =>
+        b.code === oldBatchCode
+          ? { ...b, currentEnrolledCount: Math.max(0, (b.currentEnrolledCount || 0) - 1) }
+          : b
+      );
+    }
+
+    // 2. Increment seat if moving back to Active or Promoted
+    if (status === 'Active' || promoteToBatchCode) {
+      const targetCode = promoteToBatchCode || student.batchCode;
+      const targetBatch = updatedBatches.find((b) => b.code === targetCode);
+      if (targetBatch && (targetBatch.currentEnrolledCount || 0) >= (targetBatch.maxStudents || 15)) {
+        return {
+          success: false,
+          message: `Batch Capacity Full! Cannot assign to ${targetCode} (${targetBatch.currentEnrolledCount}/${targetBatch.maxStudents}).`,
+        };
+      }
+      updatedBatches = updatedBatches.map((b) =>
+        b.code === targetCode
+          ? { ...b, currentEnrolledCount: (b.currentEnrolledCount || 0) + 1 }
+          : b
+      );
+    }
+
+    const auditEntry = {
+      fromStatus: oldStatus,
+      toStatus: status,
+      reason,
+      changedBy: get().currentUser.name || 'Director',
+      date: new Date().toISOString(),
+      finalScore: Number(finalScore) || undefined,
+      grade: grade || undefined,
+      remarks,
+      certificateNo: certNumber || undefined,
     };
+
+    const isNonActive = status !== 'Active';
 
     const updatedStudent = {
       ...student,
-      status: 'Graduated',
-      graduationDate: completionDate,
-      finalGrade: grade,
-      finalScore: scorePercentage,
+      status,
+      isArchived: isNonActive,
+      isActive: !isNonActive,
+      batchCode: promoteToBatchCode || student.batchCode,
+      graduationDate: status === 'Graduated' ? new Date().toISOString().split('T')[0] : student.graduationDate,
+      finalGrade: grade || student.finalGrade,
+      finalScore: finalScore || student.finalScore,
       certificateNumber: certNumber || student.certificateNumber,
-      timeline: [timelineEntry, ...(student.timeline || [])],
+      statusHistory: [auditEntry, ...(student.statusHistory || [])],
+      timeline: [
+        {
+          title: `Status: ${status}`,
+          detail: `Reason: ${reason}. Historical records preserved.`,
+          by: get().currentUser.name || 'Director',
+          at: new Date().toLocaleDateString('en-IN'),
+        },
+        ...(student.timeline || []),
+      ],
     };
 
     const updatedStudents = (get().students || []).map((s) =>
-      s._id === student._id ? updatedStudent : s
+      s._id === student._id || s.studentId === student.studentId ? updatedStudent : s
     );
 
     const updatedCertificates = newCert
       ? [newCert, ...(get().certificates || [])]
-      : (get().certificates || []);
+      : get().certificates || [];
 
     set({
       students: updatedStudents,
@@ -577,62 +706,96 @@ export const useAppStore = create(
       certificates: updatedCertificates,
     });
 
+    // Call backend API asynchronously
+    try {
+      const token = localStorage.getItem('elh_auth_token');
+      await fetch(`/api/students/${student._id}/change-status`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          status,
+          reason,
+          finalScore,
+          grade,
+          remarks,
+          promoteToBatchCode,
+          issueCertificate,
+        }),
+      });
+    } catch (err) {
+      console.warn('Backend change-status sync warning:', err.message);
+    }
+
     get().logActivity(
-      `Graduated student ${student.name} (${student.studentId}) from ${oldBatchCode} with grade ${grade}. Seat freed.`,
+      `Status changed to ${status} for student ${student.name} (${student.studentId})`,
       'Students'
     );
 
     return {
       success: true,
-      message: `Student ${student.name} marked as Passed/Graduated! Seat in ${oldBatchCode} has been freed. Record saved in Alumni Registry.`,
+      message: `Status updated to '${status}'. Batch capacity updated and record archived.`,
       student: updatedStudent,
       certificate: newCert,
     };
   },
 
+  graduateStudent: (studentId, options = {}) => {
+    return get().changeStudentStatus(studentId, {
+      status: 'Graduated',
+      reason: options.remarks || 'Course Passed & Graduated',
+      ...options,
+    });
+  },
+
   reEnrollStudent: (studentId, targetBatchCode) => {
+    return get().changeStudentStatus(studentId, {
+      status: 'Active',
+      promoteToBatchCode: targetBatchCode,
+      reason: `Promoted / Re-enrolled to batch ${targetBatchCode}`,
+    });
+  },
+
+  deleteTestStudent: async (studentId, confirmTestEntry = false) => {
+    if (!confirmTestEntry) {
+      return {
+        success: false,
+        message: 'Safety Guard: confirmTestEntry must be true to remove duplicate/test records.',
+      };
+    }
     const student = (get().students || []).find((s) => s._id === studentId || s.studentId === studentId);
     if (!student) return { success: false, message: 'Student not found.' };
 
-    const targetBatch = (get().batches || []).find((b) => b.code === targetBatchCode);
-    if (!targetBatch) return { success: false, message: `Batch ${targetBatchCode} not found.` };
-
-    if ((targetBatch.currentEnrolledCount || 0) >= (targetBatch.maxStudents || 15)) {
-      return {
-        success: false,
-        message: `Batch ${targetBatch.code} is full (${targetBatch.currentEnrolledCount}/${targetBatch.maxStudents})!`,
-      };
+    let updatedBatches = get().batches || [];
+    if (student.status === 'Active' && !student.isArchived && student.batchCode) {
+      updatedBatches = updatedBatches.map((b) =>
+        b.code === student.batchCode
+          ? { ...b, currentEnrolledCount: Math.max(0, (b.currentEnrolledCount || 0) - 1) }
+          : b
+      );
     }
 
-    const updatedBatches = (get().batches || []).map((b) =>
-      b.code === targetBatchCode
-        ? { ...b, currentEnrolledCount: (b.currentEnrolledCount || 0) + 1 }
-        : b
-    );
-
-    const timelineEntry = {
-      title: `Promoted & Re-Enrolled to ${targetBatchCode}`,
-      detail: `Re-enrolled into active class for ${targetBatch.courseName} ${targetBatch.level || ''}.`,
-      by: get().currentUser.name || 'Director',
-      at: new Date().toLocaleDateString('en-IN'),
-    };
-
-    const updatedStudent = {
-      ...student,
-      status: 'Active',
-      batchCode: targetBatch.code,
-      courseName: targetBatch.courseName || student.courseName,
-      level: targetBatch.level || student.level,
-      timeline: [timelineEntry, ...(student.timeline || [])],
-    };
-
     set({
-      students: (get().students || []).map((s) => (s._id === student._id ? updatedStudent : s)),
+      students: (get().students || []).filter((s) => s._id !== student._id && s.studentId !== student.studentId),
       batches: updatedBatches,
     });
 
-    get().logActivity(`Re-enrolled alumni ${student.name} into ${targetBatchCode}`, 'Students');
-    return { success: true, message: `Student promoted and re-enrolled into ${targetBatchCode}!`, student: updatedStudent };
+    try {
+      const token = localStorage.getItem('elh_auth_token');
+      await fetch(`/api/students/${student._id}?confirmTestEntry=true`, {
+        method: 'DELETE',
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+    } catch (err) {
+      console.warn('Backend delete sync warning:', err.message);
+    }
+
+    get().logActivity(`Removed test student entry ${student.name}`, 'Students');
+    return { success: true, message: `Test record for ${student.name} permanently removed.` };
   },
 
   // Fee Actions
@@ -1050,3 +1213,139 @@ export const useAppStore = create(
     }
   )
 );
+
+// Real-Time Socket.IO Synchronization with Zustand Store
+if (typeof window !== 'undefined') {
+  socket.on('student:created', (newStudent) => {
+    if (!newStudent) return;
+    useAppStore.setState((state) => {
+      const exists = (state.students || []).some(
+        (s) => s._id === newStudent._id || s.studentId === newStudent.studentId
+      );
+      if (exists) return state;
+
+      const updatedBatches = (state.batches || []).map((b) =>
+        b.code === newStudent.batchCode
+          ? { ...b, currentEnrolledCount: (b.currentEnrolledCount || 0) + 1 }
+          : b
+      );
+
+      return {
+        students: [newStudent, ...(state.students || [])],
+        batches: updatedBatches,
+      };
+    });
+  });
+
+  socket.on('student:status-changed', (payload) => {
+    if (!payload || !payload.studentId) return;
+    const { studentId, status, student, oldBatchCode, newBatchCode } = payload;
+    useAppStore.setState((state) => {
+      const updatedStudents = (state.students || []).map((s) => {
+        if (s._id === studentId || s.studentId === studentId) {
+          return student
+            ? { ...s, ...student }
+            : {
+                ...s,
+                status,
+                isArchived: status !== 'Active',
+                isActive: status === 'Active',
+              };
+        }
+        return s;
+      });
+
+      let updatedBatches = state.batches || [];
+      if (oldBatchCode && status !== 'Active') {
+        updatedBatches = updatedBatches.map((b) =>
+          b.code === oldBatchCode
+            ? { ...b, currentEnrolledCount: Math.max(0, (b.currentEnrolledCount || 0) - 1) }
+            : b
+        );
+      }
+      if (newBatchCode && status === 'Active') {
+        updatedBatches = updatedBatches.map((b) =>
+          b.code === newBatchCode
+            ? { ...b, currentEnrolledCount: (b.currentEnrolledCount || 0) + 1 }
+            : b
+        );
+      }
+
+      return {
+        students: updatedStudents,
+        batches: updatedBatches,
+      };
+    });
+  });
+
+  socket.on('student:deleted', ({ studentId, studentCode }) => {
+    useAppStore.setState((state) => ({
+      students: (state.students || []).filter(
+        (s) => s._id !== studentId && s.studentId !== studentId && s.studentId !== studentCode
+      ),
+    }));
+  });
+
+  socket.on('batch:seat-updated', ({ batchId, code, currentEnrolledCount }) => {
+    useAppStore.setState((state) => ({
+      batches: (state.batches || []).map((b) =>
+        b._id === batchId || b.code === code
+          ? { ...b, currentEnrolledCount }
+          : b
+      ),
+    }));
+  });
+
+  socket.on('batch:created', (newBatch) => {
+    if (!newBatch) return;
+    useAppStore.setState((state) => {
+      const exists = (state.batches || []).some((b) => b.code === newBatch.code);
+      if (exists) return state;
+      return { batches: [newBatch, ...(state.batches || [])] };
+    });
+  });
+
+  socket.on('fee:payment-received', (payload) => {
+    if (!payload || !payload.fee) return;
+    const { fee } = payload;
+    useAppStore.setState((state) => ({
+      fees: (state.fees || []).map((f) => (f._id === fee._id ? fee : f)),
+      students: (state.students || []).map((s) =>
+        s._id === fee.studentId
+          ? { ...s, paidFee: fee.paidTotal, feeBalance: fee.remainingTotal }
+          : s
+      ),
+    }));
+  });
+
+  socket.on('fee:invoice-created', (newFee) => {
+    if (!newFee) return;
+    useAppStore.setState((state) => {
+      const exists = (state.fees || []).some((f) => f._id === newFee._id);
+      if (exists) return state;
+      return { fees: [newFee, ...(state.fees || [])] };
+    });
+  });
+
+  socket.on('attendance:marked', (log) => {
+    if (!log) return;
+    useAppStore.setState((state) => {
+      const existingIdx = (state.attendanceLogs || []).findIndex(
+        (l) => l.batchCode === log.batchCode && l.date === log.date
+      );
+      if (existingIdx >= 0) {
+        const updated = [...state.attendanceLogs];
+        updated[existingIdx] = log;
+        return { attendanceLogs: updated };
+      }
+      return { attendanceLogs: [log, ...(state.attendanceLogs || [])] };
+    });
+  });
+
+  socket.on('lead:stage-changed', ({ leadId, status }) => {
+    if (!leadId) return;
+    useAppStore.setState((state) => ({
+      leads: (state.leads || []).map((l) => (l._id === leadId ? { ...l, status } : l)),
+    }));
+  });
+}

@@ -5,6 +5,7 @@ import Batch from '../models/Batch.js';
 import Fee from '../models/Fee.js';
 import Document from '../models/Document.js';
 import { getNextSequence } from '../models/Counter.js';
+import { emitSocketEvent } from '../utils/socketEmitter.js';
 
 /**
  * Execute a function within a MongoDB multi-document transaction,
@@ -201,6 +202,16 @@ export const enrollLead = async (req, res) => {
       return { student, lead, batch: updatedBatch, fee };
     });
 
+    emitSocketEvent('student:created', result.student);
+    emitSocketEvent('batch:seat-updated', {
+      batchId: result.batch._id,
+      code: result.batch.code,
+      currentEnrolledCount: result.batch.currentEnrolledCount,
+      maxStudents: result.batch.maxStudents,
+    });
+    emitSocketEvent('fee:invoice-created', result.fee);
+    emitSocketEvent('lead:stage-changed', { leadId: result.lead._id, status: 'Converted' });
+
     res.status(201).json({
       success: true,
       message: `Successfully enrolled ${result.student.name} as ${result.student.studentId} in batch ${result.batch.code}!`,
@@ -345,6 +356,15 @@ export const directRegister = async (req, res) => {
       return { student, batch: updatedBatch, fee };
     });
 
+    emitSocketEvent('student:created', result.student);
+    emitSocketEvent('batch:seat-updated', {
+      batchId: result.batch._id,
+      code: result.batch.code,
+      currentEnrolledCount: result.batch.currentEnrolledCount,
+      maxStudents: result.batch.maxStudents,
+    });
+    emitSocketEvent('fee:invoice-created', result.fee);
+
     res.status(201).json({
       success: true,
       message: `Direct walk-in admission complete for ${result.student.name} (${result.student.studentId}) in batch ${result.batch.code}!`,
@@ -424,6 +444,14 @@ export const transferBatch = async (req, res) => {
       await student.save({ session });
 
       return { student, targetBatch, previousBatchCode };
+    });
+
+    emitSocketEvent('student:updated', result.student);
+    emitSocketEvent('batch:seat-updated', {
+      batchId: result.targetBatch._id,
+      code: result.targetBatch.code,
+      currentEnrolledCount: result.targetBatch.currentEnrolledCount,
+      maxStudents: result.targetBatch.maxStudents,
     });
 
     res.json({

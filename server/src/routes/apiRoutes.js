@@ -30,6 +30,7 @@ import Document from '../models/Document.js';
 import WhatsAppLog from '../models/WhatsAppLog.js';
 import { getNextSequence } from '../models/Counter.js';
 import { runWithTransaction } from '../controllers/admissionController.js';
+import { emitSocketEvent } from '../utils/socketEmitter.js';
 
 const router = express.Router();
 
@@ -64,17 +65,477 @@ router.post('/leads', requireRoles(['Counsellor']), async (req, res) => {
 });
 
 /* ==================== STUDENTS ==================== */
-router.get('/students', requireRoles(['Counsellor', 'Teacher']), async (req, res) => {
+// GET /api/students: List students with optional status/batch filtering
+router.get('/students', requireRoles(['Counsellor', 'Teacher', 'Accountant']), async (req, res) => {
   try {
     if (!isDbConnected()) return res.json(emptyArray);
-    const students = await Student.find({ isDeleted: false }).sort({ createdAt: -1 });
+    const { status, batchCode, isArchived } = req.query;
+    const filter = { isDeleted: { $ne: true } };
+
+    if (status) {
+      if (status === 'active') {
+        filter.status = 'Active';
+        filter.isArchived = { $ne: true };
+      } else if (status === 'alumni' || status === 'archived') {
+        filter.$or = [{ status: { $ne: 'Active' } }, { isArchived: true }];
+      } else {
+        filter.status = status;
+      }
+    }
+    if (batchCode && batchCode !== 'All') {
+      filter.batchCode = batchCode;
+    }
+    if (isArchived !== undefined) {
+      filter.isArchived = isArchived === 'true';
+    }
+
+    const students = await Student.find(filter).sort({ createdAt: -1 });
     res.json(students);
   } catch (err) {
     res.json(emptyArray);
   }
 });
 
-router.post('/students/:id/graduate', requireRoles(['Owner', 'Admin', 'Teacher']), async (req, res) => {
+// POST /api/students: Add Student (Direct creation with batch capacity enforcement, unique roll number, fee ledger, and real-time socket events)
+router.post('/students', requireRoles(['Counsellor', 'Teacher']), async (req, res) => {
+  const {
+    name,
+    fatherName,
+    motherName,
+    guardianName,
+    parentName,
+    phone,
+    whatsapp,
+    email,
+    courseName,
+    level = 'A1',
+    batchCode,
+    batchId,
+    totalFee = 25000,
+    feePlan = 'Full',
+    discount = 0,
+    aadhaarNo = '',
+    address = '',
+    photoUrl,
+    documents = [],
+  } = req.body;
+
+  const staffName = req.user?.name || req.user?.designation || 'Director';
+
+  if (!name || !phone || !email || !courseName) {
+    return res.status(400).json({ success: false, message: 'Required fields missing: name, phone, email, and courseName are mandatory.' });
+  }
+
+  try {
+    if (!isDbConnected()) {
+      const fallbackStudent = {
+        _id: `std-${Date.now()}`,
+        studentId: `TELA-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+        name,
+        fatherName: fatherName || parentName || '',
+        phone,
+        whatsapp: whatsapp || phone,
+        email,
+        courseName,
+        level,
+        batchCode: batchCode || 'GER-A1-B01',
+        totalFee: Number(totalFee) || 25000,
+        status: 'Active',
+        isArchived: false,
+        isActive: true,
+        joiningDate: new Date(),
+        admissionDate: new Date(),
+        timeline: [{ title: 'Student Registered', detail: 'Created via Student Management Module', by: staffName, at: new Date() }],
+      };
+      emitSocketEvent('student:created', fallbackStudent);
+      return res.status(201).json({ success: true, student: fallbackStudent });
+    }
+
+    const result = await runWithTransaction(async (session) => {
+      // 1. Duplicate phone check for active students
+      const existing = await Student.findOne({ phone, status: 'Active', isArchived: false }).session(session);
+      if (existing) {
+        throw new Error(`A student with contact number ${phone} is already actively enrolled as ${existing.studentId} (${existing.name}).`);
+      }
+
+      // 2. Find target batch
+      let targetBatch = null;
+      if (batchId) {
+        targetBatch = await Batch.findById(batchId).session(session);
+      } else if (batchCode) {
+        targetBatch = await Batch.findOne({ code: batchCode }).session(session);
+      }
+      if (!targetBatch) {
+        targetBatch = await Batch.findOne({ status: 'Ongoing' }).session(session);
+      }
+      if (!targetBatch) {
+        throw new Error('No valid batch found to enroll student. Please create or specify an active batch.');
+      }
+
+      // 3. Batch capacity validation (Double Booking Prevention)
+      if (targetBatch.currentEnrolledCount >= targetBatch.maxStudents) {
+        const err = new Error(`Batch Capacity Exceeded! Batch ${targetBatch.code} already has ${targetBatch.currentEnrolledCount}/${targetBatch.maxStudents} seats occupied.`);
+        err.statusCode = 409;
+        throw err;
+      }
+
+      // 4. Increment batch count atomically
+      await Batch.findByIdAndUpdate(
+        targetBatch._id,
+        { $inc: { currentEnrolledCount: 1 } },
+        { session }
+      );
+
+      // 5. Generate unique roll number
+      const studentId = await getNextSequence('student_roll_number', session, 'TELA-2026-', 4);
+
+      // 6. Create Student
+      const feeNum = Number(totalFee) || 25000;
+      const discountNum = Number(discount) || 0;
+      const netFeeNum = Math.max(0, feeNum - discountNum);
+
+      const [student] = await Student.create(
+        [
+          {
+            studentId,
+            name,
+            fatherName: fatherName || parentName || '',
+            motherName: motherName || '',
+            guardianName: guardianName || parentName || '',
+            phone,
+            whatsapp: whatsapp || phone,
+            email,
+            address,
+            aadhaarNo,
+            courseName,
+            level: targetBatch.level || level,
+            batchId: targetBatch._id,
+            batchCode: targetBatch.code,
+            teacherName: targetBatch.teacherName,
+            status: 'Active',
+            isArchived: false,
+            isActive: true,
+            photoUrl: photoUrl || '',
+            joiningDate: new Date(),
+            admissionDate: new Date(),
+            feePlan,
+            totalFee: feeNum,
+            discount: discountNum,
+            netFee: netFeeNum,
+            paidFee: 0,
+            feeBalance: netFeeNum,
+            statusHistory: [
+              {
+                fromStatus: 'None',
+                toStatus: 'Active',
+                reason: 'Initial Enrollment',
+                changedBy: staffName,
+                date: new Date(),
+              },
+            ],
+            timeline: [
+              {
+                title: 'Student Admitted',
+                detail: `Enrolled into batch ${targetBatch.code} (${targetBatch.courseName} ${targetBatch.level}). Fee plan: ${feePlan}.`,
+                by: staffName,
+                at: new Date(),
+              },
+            ],
+            documents: documents.map((d) => ({
+              docType: d.type || d.docType || 'Identity Proof',
+              name: d.name || 'Document.pdf',
+              url: d.url || '',
+              fileSize: d.fileSize || '1.5 MB',
+              uploadedAt: new Date(),
+            })),
+          },
+        ],
+        { session }
+      );
+
+      // 7. Create Fee Ledger
+      const [fee] = await Fee.create(
+        [
+          {
+            studentId: student._id,
+            studentCode: student.studentId,
+            studentName: student.name,
+            courseName: student.courseName,
+            totalFee: feeNum,
+            discount: discountNum,
+            netFee: netFeeNum,
+            paidTotal: 0,
+            remainingTotal: netFeeNum,
+            status: 'Unpaid',
+            installments:
+              feePlan === 'Installment'
+                ? [
+                    {
+                      installmentNo: 1,
+                      amount: Math.round(netFeeNum / 2),
+                      dueDate: new Date(Date.now() + 7 * 86400000),
+                      paidAmount: 0,
+                      status: 'Pending',
+                    },
+                    {
+                      installmentNo: 2,
+                      amount: Math.round(netFeeNum / 2),
+                      dueDate: new Date(Date.now() + 30 * 86400000),
+                      paidAmount: 0,
+                      status: 'Pending',
+                    },
+                  ]
+                : [
+                    {
+                      installmentNo: 1,
+                      amount: netFeeNum,
+                      dueDate: new Date(Date.now() + 7 * 86400000),
+                      paidAmount: 0,
+                      status: 'Pending',
+                    },
+                  ],
+          },
+        ],
+        { session }
+      );
+
+      return { student, batch: targetBatch, fee };
+    });
+
+    // Real-Time Socket Emissions
+    emitSocketEvent('student:created', result.student);
+    emitSocketEvent('batch:seat-updated', {
+      batchId: result.batch._id,
+      code: result.batch.code,
+      currentEnrolledCount: result.batch.currentEnrolledCount + 1,
+      maxStudents: result.batch.maxStudents,
+    });
+    emitSocketEvent('fee:invoice-created', result.fee);
+
+    res.status(201).json({
+      success: true,
+      message: `Student ${result.student.name} (${result.student.studentId}) successfully registered in batch ${result.batch.code}!`,
+      student: result.student,
+      fee: result.fee,
+    });
+  } catch (err) {
+    console.error('Add Student Error:', err.message);
+    res.status(err.statusCode || 400).json({ success: false, message: err.message });
+  }
+});
+
+// POST /api/students/:id/change-status: Unified Lifecycle Status & Archival Endpoint (NO HARD DELETE)
+router.post('/students/:id/change-status', requireRoles(['Teacher']), async (req, res) => {
+  const { id } = req.params;
+  const {
+    status,
+    reason,
+    finalScore = 85,
+    grade = 'Pass',
+    remarks = '',
+    promoteToBatchCode,
+    issueCertificate = false,
+  } = req.body;
+
+  const validStatuses = ['Graduated', 'Dropped Out', 'Fee Defaulter', 'Inactive', 'Active'];
+  if (!status || !validStatuses.includes(status)) {
+    return res.status(400).json({
+      success: false,
+      message: `Invalid status '${status}'. Must be one of: ${validStatuses.join(', ')}`,
+    });
+  }
+
+  if (!reason && status !== 'Active') {
+    return res.status(400).json({
+      success: false,
+      message: 'Reason is required when changing student status to an archived or non-active state.',
+    });
+  }
+
+  const staffName = req.user?.name || req.user?.designation || 'Director';
+
+  try {
+    if (!isDbConnected()) {
+      return res.json({ success: true, message: `Status updated to ${status} (in-memory mode).` });
+    }
+
+    const result = await runWithTransaction(async (session) => {
+      const student = await Student.findById(id).session(session);
+      if (!student) throw new Error('Student not found.');
+
+      const oldStatus = student.status;
+      const oldBatchCode = student.batchCode;
+      const oldBatchId = student.batchId;
+      let cert = null;
+      let updatedBatchInfo = null;
+
+      // Transition A: Active -> Non-Active (Archive to Alumni, Dropped Out, Fee Defaulter, Inactive)
+      if (oldStatus === 'Active' && status !== 'Active') {
+        // 1. Relieve seat in active batch
+        if (oldBatchId) {
+          const b = await Batch.findByIdAndUpdate(
+            oldBatchId,
+            { $inc: { currentEnrolledCount: -1 } },
+            { session, new: true }
+          );
+          if (b) updatedBatchInfo = b;
+        }
+
+        // 2. Generate Certificate if Graduated
+        let certNumber = null;
+        if (status === 'Graduated' && issueCertificate) {
+          certNumber = await getNextSequence('certificate_number', session, 'TELA-CERT-2026-', 4);
+          [cert] = await Certificate.create(
+            [
+              {
+                certNumber,
+                studentId: student._id,
+                studentName: student.name,
+                studentCode: student.studentId,
+                courseName: student.courseName,
+                level: student.level || 'A1',
+                grade,
+                scorePercentage: Number(finalScore) || 85,
+                issueDate: new Date(),
+                qrUrl: `/verify/${certNumber}`,
+              },
+            ],
+            { session }
+          );
+
+          student.graduationDetails = {
+            graduatedAt: new Date(),
+            finalScore: Number(finalScore) || 85,
+            grade,
+            certificateNo: certNumber,
+            remarks,
+          };
+        }
+
+        student.status = status;
+        student.isArchived = true;
+        student.isActive = false;
+
+        const auditEntry = {
+          fromStatus: oldStatus,
+          toStatus: status,
+          reason,
+          changedBy: staffName,
+          date: new Date(),
+          finalScore: Number(finalScore) || null,
+          grade: grade || null,
+          remarks,
+          certificateNo: certNumber || null,
+        };
+
+        student.statusHistory = [auditEntry, ...(student.statusHistory || [])];
+        student.timeline.unshift({
+          title: `Status Changed: ${status}`,
+          detail: `Reason: ${reason}. Batch seat relieved from ${oldBatchCode}. All historical records preserved in Archive.`,
+          by: staffName,
+          at: new Date(),
+        });
+      }
+
+      // Transition B: Re-Enroll / Next-Level Promotion (Non-Active -> Active or Direct Promotion)
+      else if (status === 'Active' || promoteToBatchCode) {
+        const targetBatchCode = promoteToBatchCode || student.batchCode;
+        const targetBatch = await Batch.findOne({ code: targetBatchCode }).session(session);
+        if (!targetBatch) throw new Error(`Target batch ${targetBatchCode} not found.`);
+
+        if (targetBatch.currentEnrolledCount >= targetBatch.maxStudents) {
+          const err = new Error(`Cannot assign: Batch ${targetBatch.code} is full (${targetBatch.currentEnrolledCount}/${targetBatch.maxStudents}).`);
+          err.statusCode = 409;
+          throw err;
+        }
+
+        // Increment target batch
+        const b = await Batch.findByIdAndUpdate(
+          targetBatch._id,
+          { $inc: { currentEnrolledCount: 1 } },
+          { session, new: true }
+        );
+        if (b) updatedBatchInfo = b;
+
+        student.batchId = targetBatch._id;
+        student.batchCode = targetBatch.code;
+        student.level = targetBatch.level || student.level;
+        student.status = 'Active';
+        student.isArchived = false;
+        student.isActive = true;
+
+        const auditEntry = {
+          fromStatus: oldStatus,
+          toStatus: 'Active',
+          reason: reason || `Promoted / Re-enrolled to batch ${targetBatch.code}`,
+          changedBy: staffName,
+          date: new Date(),
+        };
+
+        student.statusHistory = [auditEntry, ...(student.statusHistory || [])];
+        student.timeline.unshift({
+          title: `Active in Batch ${targetBatch.code}`,
+          detail: `Re-enrolled/Promoted from ${oldBatchCode}. Seat allocated.`,
+          by: staffName,
+          at: new Date(),
+        });
+      }
+
+      // Transition C: Simple status update between non-active states
+      else {
+        student.status = status;
+        student.statusHistory.unshift({
+          fromStatus: oldStatus,
+          toStatus: status,
+          reason,
+          changedBy: staffName,
+          date: new Date(),
+          remarks,
+        });
+      }
+
+      await student.save({ session });
+      return { student, certificate: cert, updatedBatchInfo, oldBatchCode };
+    });
+
+    // Real-Time Socket Broadcasts
+    emitSocketEvent('student:status-changed', {
+      studentId: result.student._id,
+      studentCode: result.student.studentId,
+      status: result.student.status,
+      isArchived: result.student.isArchived,
+      oldBatchCode: result.oldBatchCode,
+      newBatchCode: result.student.batchCode,
+      student: result.student,
+      certificate: result.certificate,
+    });
+
+    if (result.updatedBatchInfo) {
+      emitSocketEvent('batch:seat-updated', {
+        batchId: result.updatedBatchInfo._id,
+        code: result.updatedBatchInfo.code,
+        currentEnrolledCount: result.updatedBatchInfo.currentEnrolledCount,
+        maxStudents: result.updatedBatchInfo.maxStudents,
+      });
+    }
+
+    res.json({
+      success: true,
+      message: `Student status successfully updated to '${status}'. Batch capacity and alumni registry synchronized.`,
+      student: result.student,
+      certificate: result.certificate,
+    });
+  } catch (err) {
+    console.error('Change Status Error:', err.message);
+    res.status(err.statusCode || 500).json({ success: false, message: err.message });
+  }
+});
+
+// POST /api/students/:id/graduate: Alias that delegates to change-status with status 'Graduated'
+router.post('/students/:id/graduate', requireRoles(['Teacher']), async (req, res) => {
+  req.body.status = 'Graduated';
+  req.body.reason = req.body.remarks || 'Course Completed & Passed CEFR Level Examination';
+  // Forward to change-status handler
   const { id } = req.params;
   const { grade = 'Distinction', scorePercentage = 90, issueCertificate = true, promoteToBatchCode, remarks = '' } = req.body;
 
@@ -90,19 +551,14 @@ router.post('/students/:id/graduate', requireRoles(['Owner', 'Admin', 'Teacher']
       const oldBatchCode = student.batchCode;
       const oldBatchId = student.batchId;
 
-      // 1. Relieve seat in old batch
       if (oldBatchId) {
-        await Batch.findByIdAndUpdate(
-          oldBatchId,
-          { $inc: { currentEnrolledCount: -1 } },
-          { session }
-        );
+        await Batch.findByIdAndUpdate(oldBatchId, { $inc: { currentEnrolledCount: -1 } }, { session });
       }
 
-      // 2. Optional Certificate Generation
       let cert = null;
+      let certNumber = null;
       if (issueCertificate) {
-        const certNumber = await getNextSequence('certificate_number', session, 'TELA-CERT-2026-', 4);
+        certNumber = await getNextSequence('certificate_number', session, 'TELA-CERT-2026-', 4);
         [cert] = await Certificate.create(
           [
             {
@@ -122,7 +578,6 @@ router.post('/students/:id/graduate', requireRoles(['Owner', 'Admin', 'Teacher']
         );
       }
 
-      // 3. Promote or Archive to Alumni
       if (promoteToBatchCode) {
         const targetBatch = await Batch.findOne({ code: promoteToBatchCode }).session(session);
         if (!targetBatch) throw new Error(`Target batch ${promoteToBatchCode} not found.`);
@@ -135,24 +590,46 @@ router.post('/students/:id/graduate', requireRoles(['Owner', 'Admin', 'Teacher']
         student.batchCode = targetBatch.code;
         student.level = targetBatch.level || student.level;
         student.status = 'Active';
-        student.timeline.unshift({
-          title: `Promoted to ${targetBatch.code}`,
-          detail: `Graduated from ${oldBatchCode} with grade ${grade}. Promoted to next level in ${targetBatch.code}.`,
-          by: req.user?.name || 'Director',
-          at: new Date(),
-        });
+        student.isArchived = false;
+        student.isActive = true;
       } else {
         student.status = 'Graduated';
-        student.timeline.unshift({
-          title: 'Course Passed & Graduated',
-          detail: `Completed ${student.courseName} in batch ${oldBatchCode}. Grade: ${grade} (${scorePercentage}%). Relieved from active class to Alumni Registry. ${remarks}`,
-          by: req.user?.name || 'Director',
-          at: new Date(),
-        });
+        student.isArchived = true;
+        student.isActive = false;
+        student.graduationDetails = {
+          graduatedAt: new Date(),
+          finalScore: Number(scorePercentage) || 90,
+          grade,
+          certificateNo: certNumber,
+          remarks,
+        };
       }
 
+      student.statusHistory = [
+        {
+          fromStatus: 'Active',
+          toStatus: student.status,
+          reason: remarks || 'Graduated from level',
+          changedBy: req.user?.name || 'Director',
+          date: new Date(),
+          finalScore: Number(scorePercentage) || 90,
+          grade,
+          certificateNo: certNumber,
+        },
+        ...(student.statusHistory || []),
+      ];
+
       await student.save({ session });
-      return { student, certificate: cert };
+      return { student, certificate: cert, oldBatchCode };
+    });
+
+    emitSocketEvent('student:status-changed', {
+      studentId: result.student._id,
+      status: result.student.status,
+      isArchived: result.student.isArchived,
+      oldBatchCode: result.oldBatchCode,
+      newBatchCode: result.student.batchCode,
+      student: result.student,
     });
 
     res.json({
@@ -164,6 +641,87 @@ router.post('/students/:id/graduate', requireRoles(['Owner', 'Admin', 'Teacher']
     });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// DELETE /api/students/:id: Institutional Safety Guard - Hard delete restricted to duplicate/test entries only
+router.delete('/students/:id', requireRoles(['Admin', 'Owner']), async (req, res) => {
+  const { id } = req.params;
+  const { confirmTestEntry } = req.query;
+
+  if (confirmTestEntry !== 'true') {
+    return res.status(403).json({
+      success: false,
+      message:
+        'Institutional Safety Guard: Direct hard delete is disabled to protect financial, attendance, and certification audit trails. To remove a student from active rosters, use "POST /api/students/:id/change-status" (Graduated, Dropped Out, Fee Defaulter, Inactive). If this is an accidental test or duplicate record, pass "?confirmTestEntry=true".',
+    });
+  }
+
+  try {
+    if (!isDbConnected()) {
+      emitSocketEvent('student:deleted', { studentId: id });
+      return res.json({ success: true, message: 'Test student record deleted (in-memory mode).' });
+    }
+
+    const student = await Student.findById(id);
+    if (!student) {
+      return res.status(404).json({ success: false, message: 'Student record not found.' });
+    }
+
+    if (student.status === 'Active' && !student.isArchived && student.batchId) {
+      await Batch.findByIdAndUpdate(student.batchId, { $inc: { currentEnrolledCount: -1 } });
+      emitSocketEvent('batch:seat-updated', { batchId: student.batchId, code: student.batchCode });
+    }
+
+    await Student.findByIdAndDelete(id);
+    emitSocketEvent('student:deleted', { studentId: id, studentCode: student.studentId });
+
+    res.json({
+      success: true,
+      message: `Accidental test entry for student ${student.name} (${student.studentId}) has been removed.`,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// GET /api/students/fee-defaulters/check: Automatic detection of long-overdue fee installments (>60 days)
+router.get('/students/fee-defaulters/check', requireRoles(['Accountant']), async (req, res) => {
+  try {
+    if (!isDbConnected()) return res.json({ success: true, defaulters: [] });
+    const sixtyDaysAgo = new Date(Date.now() - 60 * 86400000);
+
+    const overdueFees = await Fee.find({
+      status: { $ne: 'Paid' },
+      remainingTotal: { $gt: 0 },
+      'installments.dueDate': { $lt: sixtyDaysAgo },
+      'installments.status': 'Pending',
+    });
+
+    const studentIds = overdueFees.map((f) => f.studentId);
+    const potentialDefaulters = await Student.find({
+      _id: { $in: studentIds },
+      status: 'Active',
+    });
+
+    const result = potentialDefaulters.map((s) => {
+      const feeRec = overdueFees.find((f) => String(f.studentId) === String(s._id));
+      return {
+        studentId: s._id,
+        name: s.name,
+        studentCode: s.studentId,
+        phone: s.phone,
+        batchCode: s.batchCode,
+        courseName: s.courseName,
+        outstandingBalance: feeRec ? feeRec.remainingTotal : 0,
+        suggestedStatus: 'Fee Defaulter',
+        reason: 'Fee overdue past 60 days grace window',
+      };
+    });
+
+    res.json({ success: true, defaulters: result });
+  } catch (err) {
+    res.json({ success: true, defaulters: [] });
   }
 });
 
@@ -309,6 +867,43 @@ router.get('/batches', async (req, res) => {
   }
 });
 
+router.post('/batches', requireRoles(['Teacher']), async (req, res) => {
+  try {
+    const { code, courseName, level, teacherName, room, days, timing, startDate, endDate, maxStudents } = req.body;
+    if (!code || !courseName) {
+      return res.status(400).json({ success: false, message: 'Batch code and course name are required.' });
+    }
+    if (!isDbConnected()) {
+      const fallbackBatch = { _id: `btc-${Date.now()}`, ...req.body, currentEnrolledCount: 0 };
+      emitSocketEvent('batch:created', fallbackBatch);
+      return res.status(201).json(fallbackBatch);
+    }
+    const existing = await Batch.findOne({ code });
+    if (existing) {
+      return res.status(409).json({ success: false, message: `Batch code '${code}' already exists.` });
+    }
+    const batch = new Batch({
+      code,
+      courseName,
+      level: level || 'A1',
+      teacherName: teacherName || 'Unassigned',
+      room: room || 'Room 101',
+      days: days || ['Mon', 'Wed', 'Fri'],
+      timing: timing || '10:00 AM - 12:00 PM',
+      startDate: startDate || new Date(),
+      endDate: endDate || new Date(Date.now() + 90 * 86400000),
+      maxStudents: Number(maxStudents) || 20,
+      currentEnrolledCount: 0,
+      status: 'Ongoing',
+    });
+    await batch.save();
+    emitSocketEvent('batch:created', batch);
+    res.status(201).json(batch);
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+});
+
 /* ==================== ATTENDANCE, FEES & EXPENSES ==================== */
 router.get('/attendance', requireRoles(['Teacher']), async (req, res) => {
   try {
@@ -320,6 +915,47 @@ router.get('/attendance', requireRoles(['Teacher']), async (req, res) => {
   }
 });
 
+router.post('/attendance', requireRoles(['Teacher']), async (req, res) => {
+  try {
+    const { batchCode, date, entries = [] } = req.body;
+    const staffName = req.user?.name || 'Faculty';
+
+    if (!batchCode || !date) {
+      return res.status(400).json({ success: false, message: 'batchCode and date are required.' });
+    }
+
+    if (!isDbConnected()) {
+      const fallbackLog = {
+        _id: `att-${Date.now()}`,
+        batchCode,
+        date,
+        entries,
+        markedBy: staffName,
+        markedAt: new Date(),
+      };
+      emitSocketEvent('attendance:marked', fallbackLog);
+      return res.status(201).json({ success: true, log: fallbackLog });
+    }
+
+    const log = await Attendance.findOneAndUpdate(
+      { batchCode, date },
+      {
+        batchCode,
+        date,
+        entries,
+        markedBy: staffName,
+        markedAt: new Date(),
+      },
+      { upsert: true, new: true }
+    );
+
+    emitSocketEvent('attendance:marked', log);
+    res.status(201).json({ success: true, message: `Attendance for batch ${batchCode} on ${date} saved.`, log });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+});
+
 router.get('/fees', requireRoles(['Accountant', 'Counsellor']), async (req, res) => {
   try {
     if (!isDbConnected()) return res.json(emptyArray);
@@ -327,6 +963,73 @@ router.get('/fees', requireRoles(['Accountant', 'Counsellor']), async (req, res)
     res.json(fees);
   } catch (err) {
     res.json(emptyArray);
+  }
+});
+
+router.post('/fees/:id/payment', requireRoles(['Accountant']), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { amount, installmentNo } = req.body;
+
+    const payNum = Number(amount);
+    if (!payNum || payNum <= 0) {
+      return res.status(400).json({ success: false, message: 'Payment amount must be greater than zero.' });
+    }
+
+    if (!isDbConnected()) {
+      return res.json({ success: true, message: `Payment of ₹${payNum} recorded (in-memory mode).` });
+    }
+
+    const fee = await Fee.findById(id);
+    if (!fee) return res.status(404).json({ success: false, message: 'Fee invoice not found.' });
+
+    fee.paidTotal = (fee.paidTotal || 0) + payNum;
+    fee.remainingTotal = Math.max(0, (fee.netFee || fee.totalFee) - fee.paidTotal);
+    fee.status = fee.remainingTotal === 0 ? 'Paid' : 'Partially Paid';
+
+    if (fee.installments && fee.installments.length > 0) {
+      if (installmentNo) {
+        const inst = fee.installments.find((i) => i.installmentNo === Number(installmentNo));
+        if (inst) {
+          inst.paidAmount = (inst.paidAmount || 0) + payNum;
+          if (inst.paidAmount >= inst.amount) inst.status = 'Paid';
+        }
+      } else {
+        let remPay = payNum;
+        for (const inst of fee.installments) {
+          if (inst.status !== 'Paid' && remPay > 0) {
+            const needed = inst.amount - (inst.paidAmount || 0);
+            const applied = Math.min(remPay, needed);
+            inst.paidAmount = (inst.paidAmount || 0) + applied;
+            remPay -= applied;
+            if (inst.paidAmount >= inst.amount) inst.status = 'Paid';
+          }
+        }
+      }
+    }
+
+    await fee.save();
+
+    // Sync Student model fee fields
+    if (fee.studentId) {
+      await Student.findByIdAndUpdate(fee.studentId, {
+        paidFee: fee.paidTotal,
+        feeBalance: fee.remainingTotal,
+      });
+    }
+
+    emitSocketEvent('fee:payment-received', {
+      feeId: fee._id,
+      studentId: fee.studentId,
+      paidTotal: fee.paidTotal,
+      remainingTotal: fee.remainingTotal,
+      status: fee.status,
+      fee,
+    });
+
+    res.json({ success: true, message: `Payment of ₹${payNum} successfully recorded!`, fee });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
 });
 

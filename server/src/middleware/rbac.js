@@ -4,7 +4,7 @@ export const requireRoles = (allowedRoles) => {
             return res.status(401).json({ success: false, message: 'Unauthenticated user' });
         }
         const userRole = req.user.role;
-        const isAdmin = userRole === 'Owner' || userRole === 'Admin' || userRole === 'Owner/Admin';
+        const isAdmin = userRole === 'Owner' || userRole === 'Admin' || userRole === 'Owner/Admin' || userRole === 'Director' || req.user.designation === 'Director';
         if (!isAdmin && !allowedRoles.includes(userRole)) {
             return res.status(403).json({
                 success: false,

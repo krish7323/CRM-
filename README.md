@@ -3,6 +3,8 @@
 > **Comprehensive Enterprise CRM, Academic ERP, Financial Management & Multi-Role Portal System**
 > Built for European language training institutes, academies, and modern educational institutions.
 
+[![Frontend Live](https://img.shields.io/badge/Live%20Frontend-Render-00c7b7.svg)](https://crm-frontend-utul.onrender.com/crm)
+[![Backend Live](https://img.shields.io/badge/Live%20API-Render-46e3b7.svg)](https://crm-ed2t.onrender.com/)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
 [![React Version](https://img.shields.io/badge/react-18.2.0-blue.svg)](https://react.dev/)
 [![Vite](https://img.shields.io/badge/vite-5.4-purple.svg)](https://vitejs.dev/)
@@ -10,6 +12,16 @@
 [![MongoDB](https://img.shields.io/badge/database-MongoDB%20Atlas-47a248.svg)](https://www.mongodb.com/)
 [![Socket.IO](https://img.shields.io/badge/realtime-Socket.IO%204.7-black.svg)](https://socket.io/)
 [![License](https://img.shields.io/badge/license-MIT-orange.svg)](LICENSE)
+
+---
+
+### 🌐 Live Production Deployments
+
+| Component | URL | Description |
+| :--- | :--- | :--- |
+| **Frontend Web App** | [https://crm-frontend-utul.onrender.com/crm](https://crm-frontend-utul.onrender.com/crm) | React SPA Client (Live on Render) |
+| **Backend API Service** | [https://crm-ed2t.onrender.com/](https://crm-ed2t.onrender.com/) | Node.js Express & Socket.IO API |
+| **System Health Check** | [https://crm-ed2t.onrender.com/api/health](https://crm-ed2t.onrender.com/api/health) | Realtime database & server health status |
 
 ---
 
@@ -63,10 +75,37 @@
 - **Follow-up Call Scheduler:** Prioritized call lists, last contact timestamps, reminder logs, and one-click interaction status updates.
 - **Conversion Tracking:** Seamlessly transition any interested candidate into an officially enrolled student profile without re-entering details.
 
-### 2. Admissions & Student Registry
-- **Student Master Directory:** Searchable index by student ID, roll number, batch, or language track.
-- **Document Vault:** Secure digital archive for identity proofs (Aadhaar, Passport), academic transcripts, visa documents, and enrollment agreements.
-- **Self-Serve Admissions (`/apply`):** Public-facing enrollment portal for prospective students and parents to submit applications directly.
+### 2. Admissions, Student Lifecycle & Archival System (Zero Data Loss)
+- **Production-Ready Direct Student Intake:**
+  - Standardized intake fields: Full Name, Father/Guardian Name, Contact Number, WhatsApp Number, Email, Course, CEFR Level, Target Batch, Admission Date, auto-generated unique Roll Number, Fee Plan (Full/Installment), Total Fee, Discount, and Document Uploads (Aadhaar/Passport).
+  - **Live Seat Availability & Overbooking Protection:** Real-time indicator in the admission modal displays `[Enrolled / Max Seats]`. Full batches display high-visibility warnings and strictly block submission to prevent double booking.
+  - **Duplicate Prevention:** Automatic frontend and backend rejection if contact number or roll number already exists.
+  - **Atomic Seat Increment:** Enrolling a student automatically increments `currentEnrolledCount` (+1) on the assigned batch and broadcasts live changes.
+- **Institutional Zero-Data-Loss Archival Architecture:**
+  - **No Hard Delete Policy:** Real educational institutes must never permanently delete student records from the database. Instead, student transitions are handled through status lifecycle changes and soft archival (`isArchived: true` on the same document).
+  - **Lifecycle Status Enum:**
+    - `Active`: Currently enrolled in batch sessions.
+    - `Graduated`: Successfully completed course/level exam.
+    - `Dropped Out`: Discontinued studies prematurely.
+    - `Fee Defaulter`: Unpaid tuition fees overdue beyond institutional thresholds.
+    - `Inactive`: Extended medical leave, temporary hold, or transfer.
+  - **Unified Status Transition Endpoint (`POST /api/students/:id/change-status`):**
+    - Securely updates status with mandatory reason and optional exam score/remarks.
+    - Maintains an immutable audit trail in `statusHistory`: `[{ fromStatus, toStatus, reason, changedBy, date }]`.
+    - **Automatic Batch Seat Capacity Relief:** Any transition away from `Active` automatically decrements the batch's `currentEnrolledCount` (-1), immediately freeing up a seat for new admissions.
+    - **Permanent Record Preservation:** All historical attendance logs, fee receipts, payment ledger history, and exam certificates remain 100% intact and linked to the same student ID.
+  - **Attendance Register Exclusion:** Daily roll-call queries strictly filter `status: "Active"`. Non-active students never appear on daily roll calls, preventing cluttered registers while safeguarding historical attendance records.
+  - **Alumni & Archive Registry Tab:**
+    - Filterable by Status (`Graduated`, `Dropped Out`, `Fee Defaulter`, `Inactive`), Course, and Batch.
+    - **View Full History Modal:** Displays comprehensive student profile, complete attendance timeline, itemized fee receipts, balance status, and status transition audit history.
+    - **One-Click Re-Enrollment & Next-Level Promotion:** Seamlessly enroll alumni into the next CEFR level (e.g., German A1 → German A2) without re-entering demographic information.
+  - **Automated Overdue Fee Scanner (`GET /api/students/fee-defaulters/check`):** Identifies students with unpaid fee balances overdue >60 days and surfaces administrative suggestions for Director review without auto-deleting records.
+  - **Restricted Test Entry Purge:** Standard "Delete" buttons are replaced with "Change Status". Only administrators have access to an isolated "Remove Test Entry" tool requiring double confirmation.
+
+- **Real-Time Cross-Role Synchronization (Socket.IO & Zustand):**
+  - **Instant Multi-Screen Sync:** Every CRUD action (`student:created`, `student:status-changed`, `batch:seat-updated`, `fee:payment-received`, `attendance:marked`) emits real-time WebSocket events.
+  - **Role-Based Rooms:** Emits targeted updates across role-partitioned rooms (`role:Director`, `role:Teacher`, `role:Accountant`, `batch:<batchCode>`).
+  - **Reactive Zustand Store:** Client store automatically receives socket events and updates data slices without requiring manual page reloads or polling.
 
 ### 3. Academic Programs, Batches & Conflict-Free Timetable
 - **Curriculum Architecture:** Configurable courses (German, French, Spanish, Business English) with modular CEFR levels, duration, and credit hours.
@@ -117,7 +156,7 @@ The application enforces fine-grained permissions across 9 distinct institutiona
 
 | Role | Access Scope |
 | :--- | :--- |
-| **Owner / Admin** | Unrestricted access across all operational, financial, academic, security, and administrative modules. |
+| **Director / Admin** | Unrestricted executive access across all operational, financial, academic, security, staff management, and administrative modules. |
 | **Counsellor** | CRM pipeline, candidate follow-ups, student intake, WhatsApp messaging, and basic directory. |
 | **Teacher / Faculty** | Batches, timetable, student attendance, exams & marks, homework assignments, and faculty check-in. |
 | **Accountant** | Invoicing, fee receipts, payment reconciliation, expense logs, scholarships, and financial analytics. |
@@ -325,12 +364,17 @@ All protected endpoints require an `Authorization: Bearer <token>` header obtain
 
 | Method | Endpoint | Allowed Roles | Description |
 | :--- | :--- | :--- | :--- |
+| `GET` | `/api/health` | Public | System uptime, node status & MongoDB live connection health |
 | `POST` | `/api/auth/login` | Public | Authenticates credentials and returns JWT token |
 | `GET` | `/api/auth/me` | Authenticated | Retrieves current authenticated profile |
 | `GET` | `/api/public/verify/:certNumber` | Public | Instant verification of certificate authenticity |
 | `GET` | `/api/leads` | Admin, Counsellor | Fetches all CRM prospective candidate leads |
 | `POST` | `/api/leads` | Admin, Counsellor | Adds a new prospective candidate lead |
-| `GET` | `/api/students` | Admin, Counsellor, Teacher | Returns registered students directory |
+| `GET` | `/api/students` | Admin, Counsellor, Teacher | Returns registered students directory (with status filters) |
+| `POST` | `/api/students` | Admin, Counsellor | Direct student intake with validation & atomic batch seat increment |
+| `POST` | `/api/students/:id/change-status` | Director / Admin / Teacher | Unified lifecycle status change (Graduated, Dropped, Defaulter, Inactive) with batch seat relief |
+| `POST` | `/api/students/:id/graduate` | Director / Admin / Teacher | Marks student graduated, relives batch seat capacity, generates alumni record |
+| `GET` | `/api/students/fee-defaulters/check` | Director / Accountant | Scans for tuition fee payments overdue >60 days |
 | `GET` | `/api/courses` | Authenticated | Lists all academic courses and CEFR programs |
 | `GET` | `/api/batches` | Authenticated | Fetches batch schedules and timetable allocations |
 | `GET` | `/api/attendance` | Admin, Teacher | Retrieves batch attendance logs |
@@ -367,6 +411,12 @@ docker-compose down
 ---
 
 ## ☁️ Cloud Deployment (Render)
+
+The application is deployed on [Render](https://render.com/) with continuous deployment:
+
+- **Frontend Web Application**: [https://crm-frontend-utul.onrender.com/crm](https://crm-frontend-utul.onrender.com/crm)
+- **Backend API Service**: [https://crm-ed2t.onrender.com/](https://crm-ed2t.onrender.com/)
+- **Live Health Monitor**: [https://crm-ed2t.onrender.com/api/health](https://crm-ed2t.onrender.com/api/health)
 
 The repository includes a ready-to-use [`render.yaml`](./render.yaml) blueprint:
 

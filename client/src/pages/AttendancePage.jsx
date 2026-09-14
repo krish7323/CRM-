@@ -28,9 +28,9 @@ export const AttendancePage = () => {
   const [attendanceRecords, setAttendanceRecords] = useState({});
   const [selectedStudentDetail, setSelectedStudentDetail] = useState(null);
 
-  // Filter students strictly for active attending students in selected batch (excludes graduated alumni)
+  // Filter students strictly for active attending students in selected batch (excludes graduated alumni, dropouts, defaulters, inactive)
   const batchStudents = (students || []).filter(
-    (s) => s.status !== 'Graduated' && s.isActive !== false && (selectedBatch === 'All' || s.batchCode === selectedBatch)
+    (s) => (s.status === 'Active' || !s.status) && !s.isArchived && s.isActive !== false && (selectedBatch === 'All' || s.batchCode === selectedBatch)
   );
 
   // Existing saved log for selected batch & date

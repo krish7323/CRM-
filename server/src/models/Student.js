@@ -44,9 +44,48 @@ const StudentSchema = new Schema(
     ],
     status: {
       type: String,
-      enum: ['Active', 'Transferred', 'Graduated', 'Suspended'],
+      enum: ['Active', 'Graduated', 'Dropped Out', 'Fee Defaulter', 'Inactive', 'Transferred', 'Suspended'],
       default: 'Active',
+      index: true,
     },
+    isArchived: { type: Boolean, default: false, index: true },
+    statusHistory: [
+      {
+        fromStatus: { type: String },
+        toStatus: { type: String, required: true },
+        reason: { type: String },
+        changedBy: { type: String, default: 'Director' },
+        date: { type: Date, default: Date.now },
+        finalScore: { type: Number },
+        grade: { type: String },
+        remarks: { type: String },
+        certificateNo: { type: String },
+      },
+    ],
+    graduationDetails: {
+      graduatedAt: { type: Date },
+      finalScore: { type: Number },
+      grade: { type: String },
+      certificateNo: { type: String },
+      remarks: { type: String },
+    },
+    feePlan: { type: String, enum: ['Full', 'Installment'], default: 'Full' },
+    totalFee: { type: Number, default: 25000 },
+    discount: { type: Number, default: 0 },
+    netFee: { type: Number, default: 25000 },
+    paidFee: { type: Number, default: 0 },
+    feeBalance: { type: Number, default: 25000 },
+    feeDefaulterFlag: { type: Boolean, default: false },
+    feeDefaulterReason: { type: String, default: '' },
+    documents: [
+      {
+        docType: { type: String },
+        name: { type: String },
+        url: { type: String },
+        fileSize: { type: String },
+        uploadedAt: { type: Date, default: Date.now },
+      },
+    ],
     photoUrl: { type: String },
     isActive: { type: Boolean, default: true },
   },
@@ -54,5 +93,6 @@ const StudentSchema = new Schema(
 );
 
 StudentSchema.index({ name: 'text', studentId: 'text', batchCode: 'text', phone: 'text' });
+StudentSchema.index({ status: 1, isArchived: 1 });
 
 export default mongoose.model('Student', StudentSchema);

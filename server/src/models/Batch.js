@@ -18,5 +18,18 @@ const BatchSchema = new Schema({
         enum: ['Upcoming', 'Ongoing', 'Completed'],
         default: 'Ongoing',
     },
-}, { timestamps: true });
+}, { 
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+});
+
+BatchSchema.virtual('enrolledCount').get(function() {
+    return this.currentEnrolledCount;
+});
+
+BatchSchema.virtual('maxSeats').get(function() {
+    return this.maxStudents;
+});
+
 export default mongoose.model('Batch', BatchSchema);

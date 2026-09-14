@@ -11,6 +11,7 @@ import authRoutes from './routes/authRoutes.js';
 import apiRoutes from './routes/apiRoutes.js';
 import admissionRoutes from './routes/admissionRoutes.js';
 import { seedDatabase } from './utils/seedData.js';
+import { setIoInstance } from './utils/socketEmitter.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -31,6 +32,7 @@ const io = new Server(server, {
 });
 
 app.set('io', io);
+setIoInstance(io);
 
 // Security & Parsing Middleware
 app.use(helmet({ contentSecurityPolicy: false }));
@@ -123,6 +125,10 @@ io.on('connection', (socket) => {
   socket.on('join_room', (room) => {
     socket.join(room);
     console.log(`Socket ${socket.id} joined room: ${room}`);
+  });
+  socket.on('join_role', (role) => {
+    socket.join(`role:${role}`);
+    console.log(`Socket ${socket.id} joined role channel: role:${role}`);
   });
   socket.on('disconnect', () => {
     console.log(`🔥 Socket client disconnected: ${socket.id}`);
