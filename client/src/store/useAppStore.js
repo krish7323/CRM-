@@ -161,7 +161,30 @@ export const useAppStore = create(
   },
 
   // CRM Lead Actions
-  addLead: (leadData) => {
+  fetchLeads: async () => {
+    try {
+      const token = localStorage.getItem('elh_auth_token');
+      const res = await fetch(`${API_BASE}/api/leads`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (res.ok) {
+        const serverLeads = await res.json();
+        if (Array.isArray(serverLeads) && serverLeads.length > 0) {
+          const currentLeads = get().leads || [];
+          const currentMap = new Map(currentLeads.map((l) => [l._id, l]));
+          serverLeads.forEach((sl) => {
+            const existing = currentMap.get(sl._id);
+            currentMap.set(sl._id, { ...sl, ...(existing || {}) });
+          });
+          set({ leads: Array.from(currentMap.values()) });
+        }
+      }
+    } catch (err) {
+      // Offline fallback to persisted storage
+    }
+  },
+
+  addLead: async (leadData) => {
     const newLead = {
       _id: `ld-${Date.now()}`,
       name: leadData.name || 'New Applicant',
@@ -181,12 +204,34 @@ export const useAppStore = create(
       createdAt: new Date(),
       notes: [],
       calls: [],
+      callHistory: [],
+      followUps: [],
     };
     set({ leads: [newLead, ...(get().leads || [])] });
     get().logActivity(`Created new lead inquiry: ${newLead.name}`, 'CRM');
+
+    try {
+      const token = localStorage.getItem('elh_auth_token');
+      const res = await fetch(`${API_BASE}/api/leads`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(newLead),
+      });
+      const data = await res.json();
+      if (data && data._id) {
+        set({
+          leads: (get().leads || []).map((l) => (l._id === newLead._id ? { ...l, ...data } : l)),
+        });
+      }
+    } catch (err) {
+      console.warn('Backend sync warning for lead creation (using local store):', err.message);
+    }
   },
 
-  updateLeadStatus: (leadId, newStatus) => {
+  updateLeadStatus: async (leadId, newStatus) => {
     const prevLead = (get().leads || []).find((l) => l._id === leadId);
     const historyEntry = {
       fromStatus: prevLead?.status || 'New',
@@ -206,6 +251,20 @@ export const useAppStore = create(
       ),
     });
     get().logActivity(`Updated lead status to ${newStatus} for ID ${leadId}`, 'CRM');
+
+    try {
+      const token = localStorage.getItem('elh_auth_token');
+      await fetch(`${API_BASE}/api/leads/${leadId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+    } catch (err) {
+      console.warn('Backend sync warning for lead status (using local store):', err.message);
+    }
   },
 
   addLeadNote: (leadId, text) => {
@@ -217,7 +276,7 @@ export const useAppStore = create(
     });
   },
 
-  addCallHistory: (leadId, callData) => {
+  addCallHistory: async (leadId, callData) => {
     const newCall = {
       ...callData,
       id: `call-${Date.now()}`,
@@ -226,11 +285,20 @@ export const useAppStore = create(
       at: new Date(),
       calledAt: new Date(),
     };
+
+    let targetStatus = undefined;
+    if (callData.outcome === 'Interested') {
+      targetStatus = 'Interested';
+    } else if (callData.outcome === 'Not Interested') {
+      targetStatus = 'Not Interested';
+    }
+
     set({
       leads: (get().leads || []).map((l) =>
         l._id === leadId
           ? {
               ...l,
+              status: targetStatus || (l.status === 'New' ? 'Contacted' : l.status),
               calls: [newCall, ...(l.calls || [])],
               callHistory: [newCall, ...(l.callHistory || [])],
               followUps: [
@@ -249,6 +317,22 @@ export const useAppStore = create(
           : l
       ),
     });
+
+    get().logActivity(`Logged follow-up (${callData.outcome}) for lead ID ${leadId}`, 'CRM');
+
+    try {
+      const token = localStorage.getItem('elh_auth_token');
+      await fetch(`${API_BASE}/api/leads/${leadId}/follow-up`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(callData),
+      });
+    } catch (err) {
+      console.warn('Backend sync warning for follow-up (using local store):', err.message);
+    }
   },
 
   convertLeadToStudent: (leadId, targetBatchCode = 'GER-A1-B01') => {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppStore } from '../store/useAppStore';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { Plus, Search, X, Star, Video, PhoneCall, History, UserCheck, CheckCircle2, AlertTriangle, Calendar, Award } from 'lucide-react';
@@ -13,10 +13,19 @@ const stages = [
 ];
 
 export const CRMPage = () => {
-    const { leads, updateLeadStatus, addLead, addLeadNote, addCallHistory, convertLeadToStudent, batches = [] } = useAppStore();
+    const { leads, updateLeadStatus, addLead, addLeadNote, addCallHistory, convertLeadToStudent, batches = [], fetchLeads } = useAppStore();
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedLanguage, setSelectedLanguage] = useState('All');
     const [selectedLead, setSelectedLead] = useState(null);
+    const [followUpSuccessMsg, setFollowUpSuccessMsg] = useState('');
+
+    useEffect(() => {
+        if (fetchLeads) {
+            fetchLeads();
+        }
+    }, []);
+
+    const activeLead = selectedLead ? (leads.find((l) => l._id === selectedLead._id) || selectedLead) : null;
 
     // Admission Conversion Modal State (Section 1 & 2 Integrity)
     const [isEnrollModalOpen, setIsEnrollModalOpen] = useState(false);
@@ -139,19 +148,54 @@ export const CRMPage = () => {
 
     const handleLogCall = (e) => {
         e.preventDefault();
-        if (!selectedLead || !callNotes.trim())
-            return;
-        addCallHistory(selectedLead._id, {
-            durationSeconds: Number(callDuration),
-            notes: callNotes,
+        const currentTarget = activeLead || selectedLead;
+        if (!currentTarget) return;
+
+        const trimmedNotes = callNotes.trim();
+        const finalNotes = trimmedNotes || `Follow-up call logged: ${callOutcome}`;
+
+        const callData = {
+            durationSeconds: Number(callDuration) || 180,
+            notes: finalNotes,
             outcome: callOutcome,
             nextFollowUpDate,
-        });
-        if (callOutcome === 'Interested' && selectedLead.status !== 'Interested') {
-            updateLeadStatus(selectedLead._id, 'Interested');
-            setSelectedLead({ ...selectedLead, status: 'Interested' });
+        };
+
+        addCallHistory(currentTarget._id, callData);
+
+        let targetStatus = currentTarget.status;
+        if (callOutcome === 'Interested') {
+            targetStatus = 'Interested';
+        } else if (callOutcome === 'Not Interested') {
+            targetStatus = 'Not Interested';
+        } else if (currentTarget.status === 'New') {
+            targetStatus = 'Contacted';
         }
+
+        if (targetStatus !== currentTarget.status) {
+            updateLeadStatus(currentTarget._id, targetStatus);
+        }
+
+        const newCallHistoryEntry = {
+            ...callData,
+            id: `call-${Date.now()}`,
+            by: 'Director',
+            calledBy: 'Director',
+            at: new Date(),
+            calledAt: new Date(),
+        };
+
+        setSelectedLead((prev) => prev ? {
+            ...prev,
+            status: targetStatus,
+            calls: [newCallHistoryEntry, ...(prev.calls || [])],
+            callHistory: [newCallHistoryEntry, ...(prev.callHistory || [])],
+            followUps: [newCallHistoryEntry, ...(prev.followUps || [])],
+        } : null);
+
         setCallNotes('');
+        setFollowUpSuccessMsg(`✓ Successfully logged '${callOutcome}' follow-up!`);
+        setTimeout(() => setFollowUpSuccessMsg(''), 4000);
     };
     return (<div className="space-y-6 font-sans">
       {/* Top Header */}
@@ -257,34 +301,40 @@ export const CRMPage = () => {
       </DragDropContext>
 
       {/* Lead Detail & Call History Drawer */}
-      {selectedLead && (<div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+      {activeLead && (<div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-800">
               <div>
                 <h3 className="text-base font-bold text-slate-100 flex items-center gap-2">
-                  {selectedLead.name}
-                  <span className="text-xs px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 font-bold border border-amber-500/30">
-                    Stage: {selectedLead.status}
+                  {activeLead.name}
+                  <span className={`text-xs px-2 py-0.5 rounded font-bold border ${
+                    activeLead.status === 'Interested'
+                      ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                      : activeLead.status === 'Not Interested'
+                        ? 'bg-rose-500/20 text-rose-400 border-rose-500/30'
+                        : 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                  }`}>
+                    Stage: {activeLead.status}
                   </span>
                 </h3>
-                <p className="text-xs text-slate-400">Parent: {selectedLead.parentName || 'N/A'} • Contact: {selectedLead.phone}</p>
+                <p className="text-xs text-slate-400">Parent: {activeLead.parentName || 'N/A'} • Contact: {activeLead.phone}</p>
               </div>
               <div className="flex items-center gap-3">
-                {selectedLead.status === 'Interested' && (
+                {activeLead.status === 'Interested' && (
                   <button
-                    onClick={() => handleOpenEnrollModal(selectedLead)}
+                    onClick={() => handleOpenEnrollModal(activeLead)}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 hover:scale-105 transition"
                   >
                     <UserCheck className="w-4 h-4" />
                     <span>Convert to Student Admission (Enroll)</span>
                   </button>
                 )}
-                {selectedLead.status === 'Converted' && (
+                {activeLead.status === 'Converted' && (
                   <span className="px-3 py-1 rounded-xl bg-emerald-500/20 text-emerald-400 font-bold text-xs border border-emerald-500/30 flex items-center gap-1">
                     <CheckCircle2 className="w-4 h-4" /> Converted & Enrolled
                   </span>
                 )}
-                <button onClick={() => setSelectedLead(null)} className="text-slate-400 hover:text-slate-200">
+                <button onClick={() => setSelectedLead(null)} className="text-slate-400 hover:text-slate-200 cursor-pointer">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -294,29 +344,29 @@ export const CRMPage = () => {
             <div className="grid grid-cols-3 gap-3 text-xs">
               <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
                 <span className="text-slate-500 text-[10px]">Program & Level</span>
-                <p className="font-bold text-slate-200">{selectedLead.course} {selectedLead.level}</p>
+                <p className="font-bold text-slate-200">{activeLead.course} {activeLead.level}</p>
               </div>
               <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
                 <span className="text-slate-500 text-[10px]">Quoted Fee (INR)</span>
-                <p className="font-bold text-amber-400 font-mono">₹{(selectedLead.quotedFee || 0).toLocaleString('en-IN')}</p>
+                <p className="font-bold text-amber-400 font-mono">₹{(activeLead.quotedFee || 0).toLocaleString('en-IN')}</p>
               </div>
               <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
                 <span className="text-slate-500 text-[10px]">Lead Score</span>
                 <p className="font-bold text-cyan-400 flex items-center gap-1">
-                  <Star className="w-3 h-3 fill-cyan-400"/> {selectedLead.leadScore || 85} / 100
+                  <Star className="w-3 h-3 fill-cyan-400"/> {activeLead.leadScore || 85} / 100
                 </p>
               </div>
             </div>
 
             {/* Log Call & Follow-up History Form */}
-            <form onSubmit={handleLogCall} className="p-3.5 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
+            <form onSubmit={handleLogCall} className="p-3.5 bg-slate-950 rounded-xl border border-slate-800 space-y-2.5">
               <h4 className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
                 <PhoneCall className="w-3.5 h-3.5 text-amber-400"/> Log Structured Follow-up & Call Interaction
               </h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                 <input
                   type="text"
-                  placeholder="Discussion details..."
+                  placeholder="Discussion details (optional)..."
                   value={callNotes}
                   onChange={(e) => setCallNotes(e.target.value)}
                   className="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-amber-500"
@@ -341,33 +391,70 @@ export const CRMPage = () => {
                   />
                 </div>
               </div>
+
+              {followUpSuccessMsg && (
+                <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold flex items-center gap-1.5 animate-pulse">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                  <span>{followUpSuccessMsg}</span>
+                </div>
+              )}
+
               <div className="flex justify-between items-center pt-1">
                 <span className="text-[10px] text-slate-500">
                   Note: Marking outcome as 'Interested' unlocks the Enroll action.
                 </span>
-                <button type="submit" className="px-3 py-1 rounded-lg bg-amber-500 text-slate-950 font-bold text-xs hover:bg-amber-400">
+                <button type="submit" className="px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-bold text-xs hover:bg-amber-400 transition cursor-pointer shadow-sm active:scale-95">
                   Save Follow-up Log
                 </button>
               </div>
             </form>
 
             {/* Call History Timeline */}
-            {selectedLead.callHistory && selectedLead.callHistory.length > 0 && (<div className="space-y-2">
-                <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                  <History className="w-3.5 h-3.5 text-cyan-400"/> Follow-up Audit Trail ({selectedLead.callHistory.length} Interactions)
-                </h4>
-                <div className="space-y-1.5 max-h-32 overflow-y-auto">
-                  {selectedLead.callHistory.map((c) => (<div key={c.id} className="p-2 bg-slate-950 rounded-lg border border-slate-800 text-[11px] flex justify-between">
-                      <div>
-                        <p className="font-semibold text-slate-200">{c.notes}</p>
-                        <p className="text-[9px] text-slate-500">By {c.calledBy} • {c.calledAt ? new Date(c.calledAt).toLocaleString('en-IN') : 'Recently'}</p>
+            {(() => {
+              const interactions = (activeLead.callHistory && activeLead.callHistory.length > 0)
+                ? activeLead.callHistory
+                : (activeLead.calls && activeLead.calls.length > 0)
+                  ? activeLead.calls
+                  : (activeLead.followUps && activeLead.followUps.length > 0)
+                    ? activeLead.followUps
+                    : [];
+
+              if (interactions.length === 0) return null;
+
+              return (
+                <div className="space-y-2 pt-2 border-t border-slate-800">
+                  <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <History className="w-3.5 h-3.5 text-cyan-400"/> Follow-up Audit Trail ({interactions.length} Interactions)
+                  </h4>
+                  <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+                    {interactions.map((c, idx) => (
+                      <div key={c.id || c._id || idx} className="p-2.5 bg-slate-950 rounded-lg border border-slate-800 text-[11px] flex justify-between items-start gap-2">
+                        <div className="space-y-0.5">
+                          <p className="font-semibold text-slate-200">{c.notes || 'Interaction logged'}</p>
+                          <p className="text-[9px] text-slate-500">
+                            By {c.calledBy || c.by || c.loggedBy || 'Staff'} • {c.calledAt ? new Date(c.calledAt).toLocaleString('en-IN') : (c.at ? new Date(c.at).toLocaleString('en-IN') : (c.date ? new Date(c.date).toLocaleString('en-IN') : 'Recently'))}
+                          </p>
+                          {c.nextFollowUpDate && (
+                            <p className="text-[9px] text-cyan-400">
+                              Next Follow-up Due: {new Date(c.nextFollowUpDate).toLocaleDateString('en-IN')}
+                            </p>
+                          )}
+                        </div>
+                        <span className={`px-2 py-0.5 rounded font-bold text-[9px] h-fit whitespace-nowrap ${
+                          c.outcome === 'Interested'
+                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                            : c.outcome === 'Not Interested'
+                              ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                              : 'bg-slate-900 text-amber-400 border border-slate-800'
+                        }`}>
+                          {c.outcome}
+                        </span>
                       </div>
-                      <span className="px-2 py-0.5 rounded bg-slate-900 text-amber-400 font-bold text-[9px] h-fit">
-                        {c.outcome}
-                      </span>
-                    </div>))}
+                    ))}
+                  </div>
                 </div>
-              </div>)}
+              );
+            })()}
           </div>
         </div>)}
 

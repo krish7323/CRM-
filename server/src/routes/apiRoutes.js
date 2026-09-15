@@ -57,7 +57,7 @@ router.get('/health', (req, res) => {
 router.get('/leads', requireRoles(['Counsellor']), async (req, res) => {
   try {
     if (!isDbConnected()) return res.json(emptyArray);
-    const leads = await Lead.find({ isDeleted: false }).sort({ createdAt: -1 });
+    const leads = await Lead.find({ isDeleted: { $ne: true } }).sort({ createdAt: -1 });
     res.json(leads);
   } catch (err) {
     res.json(emptyArray);
@@ -69,9 +69,146 @@ router.post('/leads', requireRoles(['Counsellor']), async (req, res) => {
     if (!isDbConnected()) return res.status(201).json({ _id: `ld-${Date.now()}`, ...req.body });
     const lead = new Lead(req.body);
     await lead.save();
+    emitSocketEvent('lead:created', lead);
     res.status(201).json(lead);
   } catch (err) {
     res.status(400).json({ message: err.message });
+  }
+});
+
+router.patch('/leads/:id/status', requireRoles(['Counsellor']), async (req, res) => {
+  try {
+    const { status, reason } = req.body;
+    if (!isDbConnected()) return res.json({ success: true, leadId: req.params.id, status });
+    const lead = await Lead.findById(req.params.id);
+    if (!lead) return res.status(404).json({ message: 'Lead not found' });
+
+    const prevStatus = lead.status;
+    const cleanStatus = (status || 'new').toLowerCase().replace(' ', '_');
+    lead.status = cleanStatus;
+    lead.statusHistory = [
+      {
+        fromStatus: prevStatus,
+        toStatus: cleanStatus,
+        changedBy: req.user?.name || 'Staff',
+        changedAt: new Date(),
+        reason: reason || '',
+      },
+      ...(lead.statusHistory || []),
+    ];
+    await lead.save();
+    emitSocketEvent('lead:stage-changed', { leadId: lead._id, status });
+    res.json({ success: true, lead });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+router.post('/leads/:id/follow-up', requireRoles(['Counsellor']), async (req, res) => {
+  try {
+    const { outcome, notes, nextFollowUpDate } = req.body;
+    const cleanOutcome = (outcome || 'interested').toLowerCase();
+    const validOutcomes = ['interested', 'not interested', 'no response', 'call back later', 'demo scheduled', 'other'];
+    const safeOutcome = validOutcomes.includes(cleanOutcome) ? cleanOutcome : 'other';
+
+    if (!isDbConnected()) return res.json({ success: true, message: 'Follow-up recorded (local)' });
+    const lead = await Lead.findById(req.params.id);
+    if (!lead) return res.status(404).json({ message: 'Lead not found' });
+
+    const followUpEntry = {
+      date: new Date(),
+      outcome: safeOutcome,
+      notes: notes || `Follow-up interaction: ${outcome}`,
+      nextFollowUpDate: nextFollowUpDate ? new Date(nextFollowUpDate) : undefined,
+      by: req.user?.name || 'Staff',
+    };
+
+    lead.followUps = [followUpEntry, ...(lead.followUps || [])];
+    if (nextFollowUpDate) lead.nextFollowUpDate = new Date(nextFollowUpDate);
+
+    let targetStatus = lead.status;
+    if (safeOutcome === 'interested') targetStatus = 'interested';
+    else if (safeOutcome === 'not interested') targetStatus = 'not_interested';
+    else if (lead.status === 'new') targetStatus = 'contacted';
+
+    if (targetStatus !== lead.status) {
+      lead.statusHistory = [
+        {
+          fromStatus: lead.status,
+          toStatus: targetStatus,
+          changedBy: req.user?.name || 'Staff',
+          changedAt: new Date(),
+          reason: `Follow-up outcome: ${outcome}`,
+        },
+        ...(lead.statusHistory || []),
+      ];
+      lead.status = targetStatus;
+    }
+
+    await lead.save();
+    emitSocketEvent('lead:stage-changed', { leadId: lead._id, status: targetStatus });
+    res.json({ success: true, lead });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+router.post('/leads/:id/calls', requireRoles(['Counsellor']), async (req, res) => {
+  try {
+    const { outcome, notes, nextFollowUpDate } = req.body;
+    const cleanOutcome = (outcome || 'interested').toLowerCase();
+    const validOutcomes = ['interested', 'not interested', 'no response', 'call back later', 'demo scheduled', 'other'];
+    const safeOutcome = validOutcomes.includes(cleanOutcome) ? cleanOutcome : 'other';
+
+    if (!isDbConnected()) return res.json({ success: true, message: 'Call recorded (local)' });
+    const lead = await Lead.findById(req.params.id);
+    if (!lead) return res.status(404).json({ message: 'Lead not found' });
+
+    const followUpEntry = {
+      date: new Date(),
+      outcome: safeOutcome,
+      notes: notes || `Call interaction: ${outcome}`,
+      nextFollowUpDate: nextFollowUpDate ? new Date(nextFollowUpDate) : undefined,
+      by: req.user?.name || 'Staff',
+    };
+
+    lead.followUps = [followUpEntry, ...(lead.followUps || [])];
+    if (nextFollowUpDate) lead.nextFollowUpDate = new Date(nextFollowUpDate);
+
+    let targetStatus = lead.status;
+    if (safeOutcome === 'interested') targetStatus = 'interested';
+    else if (safeOutcome === 'not interested') targetStatus = 'not_interested';
+    else if (lead.status === 'new') targetStatus = 'contacted';
+
+    if (targetStatus !== lead.status) {
+      lead.statusHistory = [
+        {
+          fromStatus: lead.status,
+          toStatus: targetStatus,
+          changedBy: req.user?.name || 'Staff',
+          changedAt: new Date(),
+          reason: `Call outcome: ${outcome}`,
+        },
+        ...(lead.statusHistory || []),
+      ];
+      lead.status = targetStatus;
+    }
+
+    await lead.save();
+    emitSocketEvent('lead:stage-changed', { leadId: lead._id, status: targetStatus });
+    res.json({ success: true, lead });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+router.put('/leads/:id', requireRoles(['Counsellor']), async (req, res) => {
+  try {
+    if (!isDbConnected()) return res.json({ _id: req.params.id, ...req.body });
+    const lead = await Lead.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json(lead);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 });
 
